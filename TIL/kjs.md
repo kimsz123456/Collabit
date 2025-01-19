@@ -11,3 +11,6 @@ https://fog-tugboat-375.notion.site/ERD-NoSQL-de0a508a34ee4b119fb9371eb271d001?p
 
 # 01/16
 커밋컨벤션, 브랜치전략을 수립했고 Readme작성, ERD설계 과정에서 발생한 정규화, 반정규화중 어떤 것이 이득일까? 에 대해 고민해보고 팀원과 논의해봤습니다.
+
+# 01/17
+AWS RDS에 MySQL을 올리는 방법에 대해 공부했고, 주말동안 RDBMS와 NoSQL에 대해 공부했습니다.
