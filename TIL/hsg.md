@@ -29,3 +29,16 @@ make component하면 연관된 애들도 한번에 바뀌는게 정말 신기..
 jira를 통한 백로그 관리를 수행해보았습니다.
 저희 서비스가 github oauth로그인을 제공할 것이기 때문에, oauth의 과정에 대해 공부해보았습니다.
 authrization(인가)와 authentication(인증)의 차이를 알아보았습니다.
+
+
+# 2025-01-17
+공가ㅠ_ㅠㅠ
+
+
+# 2025-01-20
+회원가입/로그인 관련련
+jira에 epic, story, task 작성
+story에 적을 issue 템플릿 작성(api, service, controller이름, parameter정도 작성)
++ spring security공부, DDD설계패턴 공부(+ repository vs DAO차이이)
+
+
