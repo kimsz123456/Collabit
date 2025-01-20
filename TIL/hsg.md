@@ -40,3 +40,5 @@ authrization(인가)와 authentication(인증)의 차이를 알아보았습니�
 jira에 epic, story, task 작성
 story에 적을 issue 템플릿 작성(api, service, controller이름, parameter정도 작성)
 + spring security공부, DDD설계패턴 공부(+ repository vs DAO차이이)
+
+
