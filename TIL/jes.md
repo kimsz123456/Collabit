@@ -214,3 +214,50 @@ A라는 프로젝트에 대해서 등록한 사람과 설문 대상자 모두가
 3. 예외처리 : 전역에서 예외를 관리하기
 4. 로그 및 테스트 작성
 5. 코드 리뷰 : 백엔드 팀원 중 2명이 리뷰를 달고난 뒤 PR Merge
+
+# [01/20] 백엔드 개발 환경 구성
+
+이번 프로젝트를 위해 필요한 의존성을 추가하였다.
+- DB : MySQL, MongoDB, Redis
+- Swagger
+- JWT
+```dependencies {
+    // ===== Core Dependencies =====
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // ===== Security & OAuth =====
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // ===== JWT =====
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // ===== Swagger (API Documentation) =====
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+    // ===== Utilities =====
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // ===== Development Tools =====
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // ===== Database Drivers =====
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // ===== Testing =====
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+```
+
+이중 MongoDB와 Redis는 처음 사용해본다.
+NoSQL은 RDB와 달리 별도의 스키마를 만들지 않아도 괜찮다.
+몽고디비 연결을 맡아서 했는데 클러스터를 사용하면 배포가 따로 필요 없다는 점이 편리하다고 느꼈다.
+스키마 대신 도큐먼트에 데이터를 넣는 방식이라 설정이 생각보다 간단히 끝났다.
