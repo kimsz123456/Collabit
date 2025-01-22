@@ -20,3 +20,6 @@ MySQL 초기 세팅과 Redis 초기 세팅을 진행했습니다.
 
 # 01/21
 Redis 연결 테스트 및 Community 기능을 구현 중입니다. Redis를 활용하여 좋아요를 캐싱으로 처리하는 방법을 공부하고 있습니다.
+
+# 01/22
+PostController, CommentController 구현했고, S3 활용해서 이미지 업로드 할 수 있도록 버킷 생성, S3연결까지 작업했습니다.
