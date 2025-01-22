@@ -42,3 +42,15 @@ story에 적을 issue 템플릿 작성(api, service, controller이름, parameter
 + spring security공부, DDD설계패턴 공부(+ repository vs DAO차이이)
 
 
+# 2025-01-21
+jwt구현전에 이론들 공부했습니다!
+cookie, session, jwt
+대칭키, 비대칭키(공개키,개인키키)
+
+언어설정 화면 밝기 (개인화), 장바구니, 게임점수.. 이런건 쿠키에
+
+살짝 민감한 장바구니, 찜목록은 세션에(쿠키에 넣어두되긴함)
+
+jwt에는 인증/인가 정보만(id, 이름, 권한, 로그인상태 거의 변경안되는 데이터)
+
+jwt에는 인증/인가 정보만(id, 이름, 권한, 로그인상태 거의 변경안되는 데이터)
