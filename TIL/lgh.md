@@ -24,6 +24,7 @@ NoSQL에 어떤 데이터를 저장할지 고민하고 ERD 설계 마무리 작�
 
 ### 250120
 OAuth2.0의 기본 동작 원리를 공부하고 깃허브 소셜 로그인을 할 경우 우리 서비스에서 JWT 토큰을 어떻게 발급해줄지 고민하였다.
+
 GitHub 소셜 로그인 + JWT 토큰 발급 플로우
 1. 사용자 인증 요청
 - 클라이언트에서 "GitHub 로그인" 버튼 클릭
@@ -43,5 +44,36 @@ GitHub 소셜 로그인 + JWT 토큰 발급 플로우
 - JWT에는 사용자 식별 정보와 함께 만료 시간 등 보안 정보를 포함
 6. JWT 토큰 반환
 - 백엔드는 생성한 JWT Access Token (및 Refresh Token)을 클라이언트에 응답으로 전달
+
+### 250121
+- User Entity 생성 및 테스트
+
+Lombok이 생성하는 빌더 클래스는 파라미터로 선언된 필드만 다룬다.
+그래서 생성자의 파라미터가 아닌 내부 로직 (this.code = UUID.randomUUID().toString(), this.id = null, this.password = null)은 실행되지 않는다.
+우리 프로젝트에서 code는 PK이므로 값이 꼭 존재해야하는데 UUID를 생성하는 로직이 실행되지 않아서 빈 값이 가고 거기서 계속 오류가 발생했다.
+
+- 해결 방법
+1. 정적 팩토리 메소드 사용
+정적 메소드는 사용자 회원가입을 하는데 사용하면 안될 것 같아서 기각.
+
+2. @Builder.Default 사용
+해당 어노테이션이 붙은 필드는 빌더 패턴을 사용할 때도 지정된 기본값을 사용한다.
+즉, 생성자에서 수행하지 않고 code의 선언에 @Builder.Default를 붙여 객체를 생성할 때마다 새로운 UUID가 자동으로 생성되도록 한다.
+하지만 해당 어노테이션을 필드 레벨에서 사용하려면 클래스 레벨에 @Builder이 필요하게 되어 2가지 다른 생성자를 위한 빌드 패턴을 사용할 수 없게 된다.
+```
+@Id
+@Builder.Default
+@Column(name = "code")
+private String code = UUID.randomUUID().toString();
+```
+3. final 키워드 사용
+Java에서 final 필드의 초기화는 필드 선언 시 직접 초기화 or 생성자에서 초기화 중 하나의 시점에서 반드시 1번만 수행된다. (final 키워드가 있으면 값 변경이 불가능하기 때문)
+code도 값이 변경되지 않고 객체마다 고유해야하므로 필드 선언 시 직접 초기화를 하여, 새로운 User 객체가 생성될 때마다 해당 코드가 실행되어 새로운 UUID가 생성되도록 하였다.
+```
+@Id
+@Column(name = "code")
+private final String code = UUID.randomUUID().toString();
+```
+=> code를 생성자에서 초기화 하지 않고 따로 관리하여 생성자는 Lombok builder를 사용하여 쉽게 처리할 수 있게 하였다.
 
 
