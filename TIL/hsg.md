@@ -54,3 +54,11 @@ cookie, session, jwt
 jwt에는 인증/인가 정보만(id, 이름, 권한, 로그인상태 거의 변경안되는 데이터)
 
 jwt에는 인증/인가 정보만(id, 이름, 권한, 로그인상태 거의 변경안되는 데이터)
+
+# 2025-01-22
+실제 개발 시작했습니다!
+TokenProvider: 유저 정보로 JWT 토근 생성 or 토큰에서 유저정보 가져오는 역할할
+jwtFilter: request마다 jwt검증하는 필터 추가
+JwtSecurityConfig: 직접 만든 TokenProvider 와 JwtFilter 를 SecurityConfig에 적용!
+이런 설정위주 클래스들 완성..
+이제 로그인, 회원가입 service controller로직짜고 refreshtoken 해야합니당..
