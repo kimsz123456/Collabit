@@ -57,8 +57,40 @@ jwt에는 인증/인가 정보만(id, 이름, 권한, 로그인상태 거의 변
 
 # 2025-01-22
 실제 개발 시작했습니다!
-TokenProvider: 유저 정보로 JWT 토근 생성 or 토큰에서 유저정보 가져오는 역할할
+TokenProvider: 유저 정보로 JWT 토근 생성 or 토큰에서 유저정보 가져오는 역할
 jwtFilter: request마다 jwt검증하는 필터 추가
 JwtSecurityConfig: 직접 만든 TokenProvider 와 JwtFilter 를 SecurityConfig에 적용!
 이런 설정위주 클래스들 완성..
 이제 로그인, 회원가입 service controller로직짜고 refreshtoken 해야합니당..
+
+# 2025-01-23
+access token과 refresh token의 주로 구현하는 방식이 jwt형태이지
+jwt = access/refresh token이 아님!
+
+왜 jwt나 oauth를 사용할 땐 csrf 공격을 방어하지 않아도 될까?
+=> csrf는 cookie를 통해 인증된 사용자에게 자기도 모르는새 악성 요청을 보내게 하는 공격방법
+JWT와 OAuth는 보통 쿠키 대신 **HTTP 헤더(Authorization 헤더)**에 인증 정보를 포함합니다.
+CSRF 공격은 브라우저가 자동으로 쿠키를 전송하는 점을 악용하지만, 헤더를 설정하는 요청은 브라우저에서 자동으로 만들어지지 않으므로 CSRF 공격에 취약하지 않습니다.
+
+# 2025-01-24
+회원가입, 로그인 swagger로 테스트 완료했습니다!
+CustomUserDetail, CustomUserDetailService를 만들어야 FE,BE 다른분들이 사용하기 수월함을 배웠습니다.
+해당 클래스 사용 이유 사용자 정보를 추가로 포함하려고
+
+Spring Security의 기본 UserDetails 인터페이스는 username, password, authorities만 제공함!!
+하지만 애플리케이션에서 사용자와 관련된 추가 정보(code, nickname, profileImage, githubId 등)가 필요할 때, CustomUserDetails를 만들어서 이러한 정보를 포함시킬 수 있음음
+예: 로그인한 사용자 정보를 반환할 때 추가적인 정보를 포함해야 한다면 기본 UserDetails로는 한계가 있다고 합니다.
+
+CustomUserDetailsService의 역할(얘가 자동으로 인증과정에서 추가한 값들을 채워줌줌)
+
+Spring Security가 인증을 시도할 때 UsernamePasswordAuthenticationToken을 사용하여 사용자 정보를 조회합니다.
+이 과정에서 UserDetailsService 구현체(CustomUserDetailsService)의 "loadUserByUsername 메서드"(override해놓은 놈)를 호출합니다.
+(AuthenticationManager가 CustomUserDetailsService의 loadUserByUsername 호출)
+loadUserByUsername 메서드에서 반환된 CustomUserDetails 객체를 Authentication 객체에 저장합니다.
+때문에 
+// 사용자 인증 후
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+// db에 또 접근하지 말고 Authentication 객체에서 CustomUserDetails 가져오기 가능!
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
