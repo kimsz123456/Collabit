@@ -57,8 +57,18 @@ jwt에는 인증/인가 정보만(id, 이름, 권한, 로그인상태 거의 변
 
 # 2025-01-22
 실제 개발 시작했습니다!
-TokenProvider: 유저 정보로 JWT 토근 생성 or 토큰에서 유저정보 가져오는 역할할
+TokenProvider: 유저 정보로 JWT 토근 생성 or 토큰에서 유저정보 가져오는 역할
 jwtFilter: request마다 jwt검증하는 필터 추가
 JwtSecurityConfig: 직접 만든 TokenProvider 와 JwtFilter 를 SecurityConfig에 적용!
 이런 설정위주 클래스들 완성..
 이제 로그인, 회원가입 service controller로직짜고 refreshtoken 해야합니당..
+
+# 2025-01-23
+access token과 refresh token의 주로 구현하는 방식이 jwt형태이지
+jwt = access/refresh token이 아님!
+
+왜 jwt나 oauth를 사용할 땐 csrf 공격을 방어하지 않아도 될까?
+=> csrf는 cookie를 통해 인증된 사용자에게 자기도 모르는새 악성 요청을 보내게 하는 공격방법
+JWT와 OAuth는 보통 쿠키 대신 **HTTP 헤더(Authorization 헤더)**에 인증 정보를 포함합니다.
+CSRF 공격은 브라우저가 자동으로 쿠키를 전송하는 점을 악용하지만, 헤더를 설정하는 요청은 브라우저에서 자동으로 만들어지지 않으므로 CSRF 공격에 취약하지 않습니다.
+
