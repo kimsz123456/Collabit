@@ -76,4 +76,24 @@ private final String code = UUID.randomUUID().toString();
 ```
 => code를 생성자에서 초기화 하지 않고 따로 관리하여 생성자는 Lombok builder를 사용하여 쉽게 처리할 수 있게 하였다.
 
+### 250122
+@Transactional 사용
+붙였을 때:
+데이터베이스 작업이 하나의 트랜잭션으로 처리됨
+메소드 실행 중 에러 발생 시 모든 DB 변경사항이 롤백됨
+DB 일관성과 데이터 무결성 보장
 
+안 붙였을 때:
+각 DB 작업이 개별적으로 처리됨
+일부 작업이 실패해도 이전 작업은 그대로 유지됨
+데이터 일관성을 보장하기 어려움
+
+읽기 전용 작업: @Transactional(readOnly=true)
+getUserGithubId(), getUserNickname()같은 조회 메소드에 적용하면 좋음
+JPA가 영속성 컨텍스트를 flush하지 않아 성능 향상
+실수로 데이터 수정되는 것 방지
+
+추가 정보
+- @Transactional은 해당 메소드와 그 안에서 호출되는 모든 메소드들을 하나의 트랜잭션으로 묶어줌
+ex) saveOrLoginOAuth2User()에만 붙여도 그 안에서 호출되는 signUpOAuth2User() 메소드도 같은 트랜잭션 내에서 실행되어 각각 붙일 필요가 없음
+- Spring AOP는 public 메소드에만 프록시를 생성하기 때문에 private 메소드에는 @Transactional을 붙여도 작동하지 않음
