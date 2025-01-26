@@ -97,3 +97,12 @@ JPA가 영속성 컨텍스트를 flush하지 않아 성능 향상
 - @Transactional은 해당 메소드와 그 안에서 호출되는 모든 메소드들을 하나의 트랜잭션으로 묶어줌
 ex) saveOrLoginOAuth2User()에만 붙여도 그 안에서 호출되는 signUpOAuth2User() 메소드도 같은 트랜잭션 내에서 실행되어 각각 붙일 필요가 없음
 - Spring AOP는 public 메소드에만 프록시를 생성하기 때문에 private 메소드에는 @Transactional을 붙여도 작동하지 않음
+
+# 250123
+책임 분리가 좀 모호해지더라도 service에서 token 정보를 불러와서 사용할까, controller에서 token 정보를 가져와 책임 분리를 지키고 임시저장을 이용할까?
+
+service에서 token 정보를 불러와 사용하기로 했다. 임시 저장을 사용할 경우 동시성 문제가 발생할 수 있기 때문이다. 또, SecurityUtil이 이미 독립적인 유틸리티로 설계되어 있어 token 인증 관련 로직은 분리되어 있다고 생각한다. 서비스 계층이 보안 관련 로직과 독립적이면 좋겠지만 동시성 문제 해결을 위해 service에서 token의 usercode 정보를 불러오기로 했다.
+
+느낀점
+Spring security를 사용할 경우 token검증 뿐만 아니라 security에서 요청, 접근을 제한하여 검증 로직을 작성하는데 편리함을 느꼈습니다. 후에 프로젝트를 할 때도 security의 접근 권한 설정에 더 익숙해져야 겠습니다.
+
