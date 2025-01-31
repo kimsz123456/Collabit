@@ -94,3 +94,15 @@ loadUserByUsername 메서드에서 반환된 CustomUserDetails 객체를 Authent
 // db에 또 접근하지 말고 Authentication 객체에서 CustomUserDetails 가져오기 가능!
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
+# 2025-01-31
+mongoDB를 처음 사용해보았습니다!
+repository interface를 만들 때 extends MongoRepository<T, I> 의 의미
+T=document, I=id타입
+document entity에 지정해준 collection에 저장해준다! 자동으로 CRUD메서드 제공
+
+findById(ID id)	ID로 엔티티 조회
+findAll()	모든 데이터 조회
+deleteById(ID id)	ID로 데이터 삭제.. 와같이 기본제공하는 메서드들도있고
+
+deleteByQuestion(String question) → 특정 질문을 가진 데이터를 삭제
+메서드 이름만 잘 정해주면 편하게 자동 메서드를 만들 수 있음!
