@@ -106,3 +106,32 @@ deleteById(ID id)	ID로 데이터 삭제.. 와같이 기본제공하는 메서�
 
 deleteByQuestion(String question) → 특정 질문을 가진 데이터를 삭제
 메서드 이름만 잘 정해주면 편하게 자동 메서드를 만들 수 있음!
+
+# 2024-02-03
+mongoDB에 데이터 테스트를 위해 mongoDB Compass를 처음 사용해 보았습니다!
+클러스터에 올려놓으면 배포까지 되어 url로 간편하게 접근할 수 있어서 왕 신기..
+
+```
+@Repository
+public interface SurveyProjectInfoRepository extends CrudRepository<ProjectInfo, Integer> {
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE ProjectInfo p SET p.sympathy = p.sympathy + :sympathy, " +
+            "p.listening = p.listening + :listening, " +
+            "p.expression = p.expression + :expression, " +
+            "p.problemSolving = p.problemSolving + :problemSolving, " +
+            "p.conflictResolution = p.conflictResolution + :conflictResolution, " +
+            "p.leadership = p.leadership + :leadership " +
+            "WHERE p.code = :projectInfoCode")
+    void updateSurveyScores(int projectInfoCode, int sympathy, int listening, int expression,
+                            int problemSolving, int conflictResolution, int leadership);
+}
+```
+처음으로 JPQL 사용해보았습니다!
+@Modifying 붙여야 update 쿼리가 나감. (기본 select)
+
+✅ JPQL(Java Persistence Query Language)이란?
+- JPQL은 엔티티 객체를 대상으로 하는 SQL 같은 쿼리 언어
+- SQL과 비슷하지만 테이블이 아니라 엔티티 객체를 대상으로 실행됨
+- JPA의 @Query 어노테이션을 통해 작성 가능
