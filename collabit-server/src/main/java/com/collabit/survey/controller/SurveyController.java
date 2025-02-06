@@ -49,7 +49,7 @@ public class SurveyController {
 
     @GetMapping("/{surveyCode}")
     @Operation(summary="설문조사 디테일 조회", description = "설문조사의 모든 답변내용을 조회하는 API입니다.")
-    public ResponseEntity<?> getSurveyDetail(@PathVariable int surveyCode) {
+    public ResponseEntity<SurveyDetailResponseDTO> getSurveyDetail(@PathVariable int surveyCode) {
         String userCode = SecurityUtil.getCurrentUserCode();
         SurveyDetailResponseDTO responseDTO = surveyService.getSurveyDetail(userCode, surveyCode);
         log.debug("surveyResponse: {}", responseDTO);

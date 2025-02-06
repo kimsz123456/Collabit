@@ -9,15 +9,12 @@ import com.collabit.survey.domain.entity.SurveyEssay;
 import com.collabit.survey.domain.entity.SurveyQuestion;
 import com.collabit.survey.domain.entity.SurveyMultiple;
 import com.collabit.survey.exception.SurveyMessageDecodingException;
-import com.collabit.survey.exception.SurveyNotFinishedException;
-import com.collabit.survey.repository.SurveyEssayRepository;
 import com.collabit.survey.repository.SurveyMultipleRepository;
 import com.collabit.survey.repository.SurveyQuestionRepository;
 import com.collabit.user.domain.entity.User;
 import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -139,7 +136,9 @@ public class SurveyService {
     // 객관식 설문 답변 조회하기
     public SurveyMultipleResponseDTO getMultipleResponse(String userCode, int projectInfoCode) {
         SurveyMultiple multiple = getMultiple(userCode, projectInfoCode);
-        if (multiple == null) throw new SurveyNotFinishedException();
+        if (multiple == null) {
+            return null;
+        }
         return SurveyMultipleResponseDTO.builder().scores(multiple.getScores()).submittedAt(multiple.getSubmittedAt()).build();
     }
 
@@ -148,7 +147,10 @@ public class SurveyService {
         SurveyEssay essay = getEssay(userCode, projectInfoCode);
         System.out.println(essay);
 
-        if (essay == null) throw new SurveyNotFinishedException();
+        if (essay == null) {
+            return null;
+        }
+
         //메시지 string -> MessageDTO로 변환
         List<SurveyEssayMessageDTO> messageList;
         try {
@@ -181,11 +183,6 @@ public class SurveyService {
     public SurveyDetailResponseDTO getSurveyDetail(String userCode, int projectInfoCode) {
         log.debug("설문조사 상세조회 시작");
 
-        User user = userRepository.findByCode(userCode).orElseThrow(() -> {
-            log.debug("User not found");
-            return new UserNotFoundException();
-        });
-
         ProjectInfo projectInfo = projectInfoRepository.findByCode(projectInfoCode);
 
         if(projectInfo == null) {
@@ -196,8 +193,8 @@ public class SurveyService {
         log.debug("조회한 projectInfo: {}", projectInfo.toString());
 
         return SurveyDetailResponseDTO.builder()
-                .nickname(user.getNickname())
-                .profileImage(user.getProfileImage())
+                .nickname(projectInfo.getUser().getNickname())
+                .profileImage(projectInfo.getUser().getProfileImage())
                 .title(projectInfo.getProject().getTitle())
                 .surveyMultipleResponse(getMultipleResponse(userCode, projectInfoCode))
                 .surveyEssayResponse(getEssayResponse(userCode, projectInfoCode))
