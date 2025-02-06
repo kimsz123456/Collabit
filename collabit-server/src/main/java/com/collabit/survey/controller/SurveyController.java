@@ -47,20 +47,11 @@ public class SurveyController {
         return ResponseEntity.ok(new ApiTextResponseDTO("설문 응답이 성공적으로 저장되었습니다."));
     }
 
-    @GetMapping("/{surveyCode}/multiple")
-    @Operation(summary="객관식 설문 답변 조회", description = "24개의 객관식 설문 답변내용을 조회하는 API입니다.")
-    public ResponseEntity<SurveyMultipleResponseDTO> getMultipleResponse(@PathVariable int surveyCode) {
+    @GetMapping("/{surveyCode}")
+    @Operation(summary="설문조사 디테일 조회", description = "설문조사의 모든 답변내용을 조회하는 API입니다.")
+    public ResponseEntity<?> getSurveyDetail(@PathVariable int surveyCode) {
         String userCode = SecurityUtil.getCurrentUserCode();
-        SurveyMultipleResponseDTO responseDTO = surveyService.getMultipleResponse(userCode, surveyCode);
-        log.debug("surveyResponse: {}", responseDTO);
-        return ResponseEntity.ok(responseDTO);
-    }
-
-    @GetMapping("/{surveyCode}/essay")
-    @Operation(summary="주관식 설문 답변 조회", description = "주관식 설문 답변내용을 조회하는 API입니다.")
-    public ResponseEntity<SurveyEssayResponseDTO> getEssayResponse(@PathVariable int surveyCode) {
-        String userCode = SecurityUtil.getCurrentUserCode();
-        SurveyEssayResponseDTO responseDTO = surveyService.getEssayResponse(userCode, surveyCode);
+        SurveyDetailResponseDTO responseDTO = surveyService.getSurveyDetail(userCode, surveyCode);
         log.debug("surveyResponse: {}", responseDTO);
         return ResponseEntity.ok(responseDTO);
     }

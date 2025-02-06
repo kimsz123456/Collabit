@@ -177,4 +177,30 @@ public class SurveyService {
         return mongoTemplate.findOne(query, SurveyEssay.class);
 
     }
+
+    public SurveyDetailResponseDTO getSurveyDetail(String userCode, int projectInfoCode) {
+        log.debug("설문조사 상세조회 시작");
+
+        User user = userRepository.findByCode(userCode).orElseThrow(() -> {
+            log.debug("User not found");
+            return new UserNotFoundException();
+        });
+
+        ProjectInfo projectInfo = projectInfoRepository.findByCode(projectInfoCode);
+
+        if(projectInfo == null) {
+            log.error("해당 ProjectInfo를 찾을 수 없습니다.");
+            throw new RuntimeException("해당 프로젝트 정보를 찾을 수 없습니다.");
+        }
+
+        log.debug("조회한 projectInfo: {}", projectInfo.toString());
+
+        return SurveyDetailResponseDTO.builder()
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .title(projectInfo.getProject().getTitle())
+                .surveyMultipleResponse(getMultipleResponse(userCode, projectInfoCode))
+                .surveyEssayResponse(getEssayResponse(userCode, projectInfoCode))
+                .build();
+    }
 }

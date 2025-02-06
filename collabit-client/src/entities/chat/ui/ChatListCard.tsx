@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ChatCountBadge from "./ChatCountBadge";
 import SurveyStatusBadge from "@/entities/survey/ui/SurveyStatusBadge";
+import formatRelativeTime from "@/shared/utils/formatRelativeTime";
 
 interface ChatListCardProps {
   type: "chat" | "survey";
@@ -49,8 +50,10 @@ const ChatListCard = ({
           </span>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-between">
-        <span className="text-nowrap text-xs text-gray-400">{updatedAt}</span>
+      <div className="flex flex-col items-center justify-between gap-1">
+        <span className="text-nowrap text-xs text-gray-400">
+          {formatRelativeTime(updatedAt)}
+        </span>
         {type === "chat" && <ChatCountBadge count={unRead} />}
         {type === "survey" && <SurveyStatusBadge status={unRead} />}
       </div>

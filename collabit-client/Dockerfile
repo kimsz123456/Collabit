@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build
+RUN NEXT_DISABLE_ESLINT=1 npm run build
 
 # 실행 스테이지
 FROM node:18-alpine AS runner

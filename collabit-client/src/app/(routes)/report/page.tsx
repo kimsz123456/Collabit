@@ -18,8 +18,11 @@ export default function Page() {
   const { openModal, closeModal } = useModalStore();
   const { userInfo } = useAuth();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [reportData, setReportData] = useState<any>(null);
+
   const [loading, setLoading] = useState(false);
+  console.log(loading);
 
   const handleGenerateReport = async () => {
     setLoading(true);

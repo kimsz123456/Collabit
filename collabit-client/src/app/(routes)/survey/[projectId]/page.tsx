@@ -1,12 +1,12 @@
-import ChattingRoom from "@/features/chat/ui/ChattingRoom";
+import SurveyRoom from "@/features/survey/ui/SurveyRoom";
 
-const FeedbackPage = async ({
+const SurveyPage = async ({
   params,
 }: {
   params: Promise<{ projectId: number }>;
 }) => {
   const { projectId } = await params;
-  return <ChattingRoom id={projectId} />;
+  return <SurveyRoom id={projectId} />;
 };
 
-export default FeedbackPage;
+export default SurveyPage;

@@ -9,12 +9,8 @@ import {
   FormLabel,
 } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/shared/ui/input-otp";
 import { Progress } from "@/shared/ui/progress";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { ArrowLeftIcon, Loader2 } from "lucide-react";
-
-// 회원가입 폼 스키마
 
 export default function PasswordChangePage() {
   const {
@@ -26,6 +22,7 @@ export default function PasswordChangePage() {
     onSubmit,
     handleBack,
   } = usePasswordChange();
+
   return (
     <div className="mx-auto flex h-[460px] w-full max-w-[400px] flex-col justify-center gap-10 py-20 md:h-[500px]">
       <div className="relative flex w-full items-center justify-center">
@@ -158,7 +155,7 @@ export default function PasswordChangePage() {
               <Button
                 className="mt-8 w-[84px]"
                 type="button"
-                onClick={handleValidNickname}
+                onClick={handleValidPassword}
                 disabled={isLoading}
               >
                 {isLoading ? (

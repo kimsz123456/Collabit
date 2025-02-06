@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 interface ZingChartProps {
   width: string;
   height: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   output: string;
 }

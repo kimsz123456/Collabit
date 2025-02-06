@@ -13,6 +13,7 @@ import { Progress } from "@/shared/ui/progress";
 import calcRatio from "@/shared/utils/calcRatio";
 import { DeleteIcon, Ellipsis, GithubIcon } from "lucide-react";
 import { useProjectList } from "../api/useProjectList";
+import formatRelativeTime from "@/shared/utils/formatRelativeTime";
 
 interface ProjectListCardProps {
   project: ProjectResponse;
@@ -30,7 +31,7 @@ const MainProjectListCard = ({
   const participantsRatio = calcRatio(project.participant, contributorsCount);
 
   return (
-    <Card className="flex cursor-pointer flex-col items-center justify-between gap-4 bg-violet-50 px-4 py-6 drop-shadow-lg">
+    <Card className="flex h-full cursor-pointer flex-col items-center justify-between bg-violet-50 px-4 py-3 drop-shadow-lg">
       <div className="flex w-full items-center justify-between gap-10">
         <ProjectCotnributor contributor={project.contributors} />
         <DropdownMenu>
@@ -69,7 +70,12 @@ const MainProjectListCard = ({
         </DropdownMenu>
       </div>
       <div className="flex w-full items-center justify-between">
-        <CardTitle className="text-lg">{project.title}</CardTitle>
+        <div className="flex flex-col items-start justify-center">
+          <CardTitle className="text-lg">{project.title}</CardTitle>
+          <span className="text-xs text-gray-500">
+            {formatRelativeTime(project.createdAt)}
+          </span>
+        </div>
         {project.done ? (
           <>
             <Button className="z-5 disabled bg-gray-400 px-2 text-xs font-semibold">

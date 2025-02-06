@@ -26,6 +26,22 @@ export const createProjectAPI = async (body: ProjectCreateRequest) => {
     throw error;
   }
 };
+export const getProjectListForMainAPI = async () => {
+  try {
+    const res = await fetch(`${apiUrl}/project/list/main`, {
+      method: "GET",
+      ...fetchOptions,
+    });
+    if (!res.ok) {
+      throw new Error("메인 프로젝트 조회에 실패했습니다.");
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
 
 export const getProjectListAPI = async ({
   keyword,

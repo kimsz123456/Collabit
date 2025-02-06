@@ -49,7 +49,7 @@ export default function ListPage() {
   return (
     <div className="mx-auto flex w-full flex-col justify-center gap-5">
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex w-full items-center justify-between gap-2">
           <ProjectSelect
             options={options}
             defaultValue={selectedValue}
@@ -64,7 +64,7 @@ export default function ListPage() {
         {isLoading ? (
           <ProjectCreateCardSkeleton />
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex w-full flex-col gap-2">
             {data?.map((repo) => (
               <li key={repo.title}>
                 <ProjectCreateCard

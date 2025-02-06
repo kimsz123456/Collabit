@@ -4,7 +4,7 @@ import { User } from "../model/User";
 export type PostListResponse = Pick<
   Post,
   "code" | "content" | "createdAt" | "updatedAt"
-> & { author: Pick<User, "nickname" | "profileImage"> } & {
+> & { author: Pick<User, "nickname" | "profileImage" | "githubId"> } & {
   images: Image["url"][];
   likes: number;
   comments: number;

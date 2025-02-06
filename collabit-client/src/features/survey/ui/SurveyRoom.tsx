@@ -4,7 +4,7 @@ import ChatHeader from "@/entities/chat/ui/ChatHeader";
 import ChatInput from "@/entities/chat/ui/ChatInput";
 import { useState } from "react";
 
-const ChattingRoom = ({ id }: { id: number }) => {
+const SurveyRoom = ({ id }: { id: number }) => {
   console.log(id);
 
   const [message, setMessage] = useState("");
@@ -113,4 +113,4 @@ const ChattingRoom = ({ id }: { id: number }) => {
   );
 };
 
-export default ChattingRoom;
+export default SurveyRoom;

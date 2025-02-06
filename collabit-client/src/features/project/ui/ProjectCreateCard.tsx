@@ -27,18 +27,19 @@ const ProjectCreateCard = ({ project, isSelected }: ProjectCreateCardProps) => {
         );
       }}
     >
-      <div className="flex flex-row items-center justify-between gap-4">
+      <div className="flex min-w-0 flex-shrink flex-row items-center justify-between gap-4">
         <Image
           width={24}
           height={24}
           src="/images/github-profile.png"
           alt="Github Profile"
+          className="flex-shrink-0"
         />
-        <CardTitle className="text-md overflow-hidden text-ellipsis whitespace-nowrap">
+        <CardTitle className="text-md min-w-0 flex-shrink overflow-hidden text-ellipsis whitespace-nowrap">
           {project.title}
         </CardTitle>
       </div>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-grow items-center justify-end gap-2">
         <CardDescription className="mr-4 text-nowrap text-right text-gray-500">
           {timeAgo}
         </CardDescription>

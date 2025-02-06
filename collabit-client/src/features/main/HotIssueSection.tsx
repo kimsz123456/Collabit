@@ -1,7 +1,5 @@
 "use client";
 import DotIndicator from "@/entities/common/ui/DotIndicator";
-import UserAvatar from "@/entities/common/ui/UserAvatar";
-import { Card } from "@/shared/ui/card";
 import {
   Carousel,
   CarouselApi,
@@ -10,9 +8,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/shared/ui/carousel";
-import { Heart } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
+import MainCommunityCard from "../community/ui/MainComminityCard";
 
 const HotIssueSection = () => {
   const [api, setApi] = useState<CarouselApi>();
@@ -29,35 +26,13 @@ const HotIssueSection = () => {
           opts={{
             align: "start",
           }}
-          className="flex w-full flex-col items-center justify-center gap-4"
+          className="w-full"
         >
           <CarouselContent>
             {Array.from({ length: 5 }).map((_, index) => (
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                 <div className="px-2 py-2">
-                  <Link href={`/project/${index}`}>
-                    <Card className="flex cursor-pointer flex-col justify-between gap-4 px-4 py-6 drop-shadow-lg">
-                      <UserAvatar size="sm" user={user} />
-                      <p className="text-sm">
-                        프로젝트를 열심히 참여하지 않는 사람을 어떻게
-                        해야할까요? :(
-                      </p>
-                      <div className="flex items-center gap-1 text-xs">
-                        <div className="flex items-center text-gray-500">
-                          <span>5</span>
-                          <span>개의 답글</span>
-                        </div>
-                        <span>·</span>
-                        <div className="flex items-center gap-1">
-                          <Heart
-                            className="fill-red-500 text-red-500"
-                            style={{ width: "16px", height: "16px" }}
-                          />
-                          <span>10</span>
-                        </div>
-                      </div>
-                    </Card>
-                  </Link>
+                  <MainCommunityCard data={post} />
                 </div>
               </CarouselItem>
             ))}
@@ -78,8 +53,18 @@ const HotIssueSection = () => {
 };
 
 export default HotIssueSection;
-const user = {
-  nickname: "김철수",
-  githubId: "kimchulsoo",
-  profileImage: "https://github.com/kimchulsoo.png",
+const post = {
+  code: 123,
+  content: "123",
+  createdAt: "2025-01-02",
+  updatedAt: "2025-01-02",
+  images: ["https://github.com/kimchulsoo.png"],
+  likes: 10,
+  comments: 5,
+  isLiked: false,
+  author: {
+    nickname: "김철수",
+    githubId: "kimchulsoo",
+    profileImage: "https://github.com/kimchulsoo.png",
+  },
 };

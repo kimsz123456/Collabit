@@ -19,13 +19,15 @@ export function ProjectInfoCard({ repo }: ProjectInfoCardProps) {
 
   return (
     <ScrollArea className="flex h-full max-h-[calc(100vh-260px)] flex-col gap-4 overflow-y-auto rounded-lg border p-4">
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+      <div className="mb-5 flex w-full items-center justify-between gap-4">
+        <div className="flex w-full items-center gap-2">
           <Avatar>
             <AvatarImage src={repo.organizationImage} />
             <AvatarFallback>{repo.organization.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <h2 className="text-xl font-bold">{repo.title}</h2>
+          <h2 className="w-full overflow-hidden text-ellipsis whitespace-nowrap font-bold">
+            {repo.title}
+          </h2>
         </div>
         <button
           className="p-2"

@@ -1,6 +1,5 @@
 import FloatingButton from "@/entities/common/ui/FloatingButton";
 import CommunityCard from "@/features/community/ui/CommunityCard";
-import { getPostListAPI } from "@/shared/api/community";
 import { PostListResponse } from "@/shared/types/response/post";
 
 const ListPage = async () => {
@@ -30,6 +29,7 @@ const posts: PostListResponse[] = [
   {
     code: 1,
     author: {
+      githubId: "clapsheep",
       nickname: "clapsheep",
       profileImage: "https://github.com/shadcn.png",
     },
@@ -50,6 +50,7 @@ const posts: PostListResponse[] = [
   {
     code: 2,
     author: {
+      githubId: "apeach",
       nickname: "어피치",
       profileImage: "https://github.com/shadcn.png",
     },
@@ -69,6 +70,7 @@ const posts: PostListResponse[] = [
   {
     code: 3,
     author: {
+      githubId: "cunni",
       nickname: "춘식이",
       profileImage: "https://github.com/shadcn.png",
     },
@@ -84,6 +86,7 @@ const posts: PostListResponse[] = [
   {
     code: 4,
     author: {
+      githubId: "frodo",
       nickname: "프로도",
       profileImage: "https://github.com/shadcn.png",
     },
@@ -99,6 +102,7 @@ const posts: PostListResponse[] = [
   {
     code: 5,
     author: {
+      githubId: "muji",
       nickname: "무지",
       profileImage: "https://github.com/shadcn.png",
     },

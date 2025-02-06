@@ -4,10 +4,11 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 const HexagonChart = ({ data }) => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const ctx = canvasRef.current.getContext("2d");
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext("2d") as CanvasRenderingContext2D;
     const hexagonChart = new Chart(ctx, {
       type: "radar", // 육각형 차트는 레이더 차트로 구현
       data: {
