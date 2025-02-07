@@ -107,7 +107,7 @@ deleteById(ID id)	ID로 데이터 삭제.. 와같이 기본제공하는 메서�
 deleteByQuestion(String question) → 특정 질문을 가진 데이터를 삭제
 메서드 이름만 잘 정해주면 편하게 자동 메서드를 만들 수 있음!
 
-# 2024-02-03
+# 2025-02-04
 mongoDB에 데이터 테스트를 위해 mongoDB Compass를 처음 사용해 보았습니다!
 클러스터에 올려놓으면 배포까지 되어 url로 간편하게 접근할 수 있어서 왕 신기..
 
@@ -137,7 +137,7 @@ public interface SurveyProjectInfoRepository extends CrudRepository<ProjectInfo,
 - JPA의 @Query 어노테이션을 통해 작성 가능
 
 
-# 2024-02-03
+# 2025-02-05
 - ppt장표작성법, 발표법을 컨설팅 받았습니다!
 사실 남들하는게 좋아보여서 급하게 erd나 기술스택 추가하고 그랬는데..
 컨설팅 받아보고나니 아! 하고 깨달은 점이 많았습니다.
@@ -145,3 +145,15 @@ public interface SurveyProjectInfoRepository extends CrudRepository<ProjectInfo,
 1. 장표 한장에는 너무 많은 내용이 들어가선 안된다. 10~20초.
 2. MVP설명하고 시연먼저하고 기술설명할거면 맨 마지막에 하는게 이목끌기도 좋고, 흐름안끊기고, 순서에 맞다!
 3. 시연같은거 할 때 우리의 핵심 기능을 강조해야된다. 왜 필요했는지, 우리 서비스로 이러한 pain point를 해결해 줄 수있음을계속 강조.(발표 처음과 끝에 ㅇㅇㅇ하는 우리 서비스! 시작하겠다.. 처럼 강조하면 좋음)
+
+#2025-02-06
+**SecurityAutoConfiguration**
+    - Spring Boot가 자동으로 보안 설정 시 **보안 초기화의 중심 역할**을 함.
+    - **`SpringBootWebSecurityConfiguration`** 을 불러와 `HttpSecurity` 기본 설정을 적용함
+**SecurityProperties**
+    - `spring.security.user.name`, `spring.security.user.password` 등 기본 속성을 관리.
+**SpringBootWebSecurityConfiguration
+    - HTTP 요청 관련 보안 설정을 담당 (`HttpSecurity` 커스터마이징).
+    - `SecurityProperties`가 제공한 값(`user`, `password`, `roles`)을 사용해서 구체적인 보안 설정을 적용.
+
+
