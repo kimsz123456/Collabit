@@ -2,9 +2,7 @@ package com.collabit.mypage.controller;
 
 import com.collabit.auth.domain.dto.ApiTextResponseDTO;
 import com.collabit.global.security.SecurityUtil;
-import com.collabit.mypage.domain.dto.ChangePasswordRequestDTO;
-import com.collabit.mypage.domain.dto.GeneratePasswordChangeTokenRequestDTO;
-import com.collabit.mypage.domain.dto.MypageCurrentUserResponseDTO;
+import com.collabit.mypage.domain.dto.*;
 import com.collabit.mypage.service.MypageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -58,5 +56,42 @@ public class MypageController {
 
 
     }
+
+    @Operation(summary="마이페이지 프로필 사진 변경", description ="마이페이지에서 프로필 사진을 변경하는 API입니다.")
+    @PatchMapping("/image")
+    public ResponseEntity<ApiTextResponseDTO> changeProfileImage(@RequestBody ChangeProfileImageRequestDTO changeProfileImageRequestDTO) {
+        String userCode = SecurityUtil.getCurrentUserCode();
+        String newProfileImage = changeProfileImageRequestDTO.get("profileImage"); // 요청으로 받은 새 이미지 URL
+
+        log.debug("changeProfileImage - userCode: {}, newProfileImage: {}", userCode, newProfileImage);
+
+        mypageService.changeUserProfileImage(userCode, newProfileImage);
+        return ResponseEntity.ok(new ApiTextResponseDTO("프로필 사진 변경이 완료되었습니다."));
+    }
+
+    @Operation(summary="마이페이지 닉네임 변경", description ="마이페이지에서 닉네임을 변경하는 API입니다.")
+    @PatchMapping("/nickname")
+    public ResponseEntity<ApiTextResponseDTO> changeNickname(@RequestBody ChangeNicknameRequestDTO changeNicknameRequestDTO) {
+        String userCode = SecurityUtil.getCurrentUserCode();
+        String newNickname = changeNicknameRequestDTO.get("nickname"); // 요청으로 받은 새 닉네임
+
+        log.debug("changeNickname - userCode: {}, newNickname: {}", userCode, newNickname);
+
+        mypageService.changeUserNickname(userCode, newNickname);
+        return ResponseEntity.ok(new ApiTextResponseDTO("닉네임 변경이 완료되었습니다."));
+    }
+
+    @Operation(summary="회원 탈퇴", description ="사용자의 계정을 삭제하는 API입니다.")
+    @DeleteMapping("")
+    public ResponseEntity<ApiTextResponseDTO> deleteUser(HttpServletRequest request, HttpServletResponse response) {
+        String userCode = SecurityUtil.getCurrentUserCode();
+
+        log.debug("deleteUser - userCode: {}", userCode);
+
+        mypageService.deleteUserAccount(userCode, request, response);
+        return ResponseEntity.ok(new ApiTextResponseDTO("회원 탈퇴가 완료되었습니다."));
+    }
+
+
 
 }

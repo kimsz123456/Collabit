@@ -84,7 +84,7 @@ public class MypageService {
 
         // 새로운 비밀번호 "암호화 후" 저장
         String encodedNewPassword = authService.encodePassword(changePasswordRequestDTO.getNewPassword());
-        user.get().updatePassword(encodedNewPassword); // JPA에의해 자동 업데이트
+        user.get().updatePassword(encodedNewPassword); // Dirty Checking으로 자동 업데이트
 
         log.debug("비밀번호 변경 완료");
     }
@@ -94,10 +94,53 @@ public class MypageService {
         authService.addCookie(response, "passwordChangeToken", passwordChangeToken, 600); // 10분 유효
     }
 
+    // 프로필 사진 변경하는 메서드
+    @Transactional
+    public void changeUserProfileImage(String userCode, String newProfileImage) {
+        Optional<User> userOptional = userRepository.findByCode(userCode);
+
+        if (userOptional.isEmpty()) {
+            throw new BusinessException(ErrorCode.DATA_NOT_FOUND);
+        }
+
+        User user = userOptional.get();
+        user.updateProfileImage(newProfileImage); // Dirty Checking으로 자동 업데이트
+
+        log.debug("프로필 사진 변경 완료: {}", newProfileImage);
+    }
 
     // 닉네임 변경하는 메서드
-    public void changeUserNickname(String userCode, String nickname) {
+    @Transactional
+    public void changeUserNickname(String userCode, String newNickname) {
+        Optional<User> userOptional = userRepository.findByCode(userCode);
 
+        if (userOptional.isEmpty()) {
+            throw new BusinessException(ErrorCode.DATA_NOT_FOUND);
+        }
+
+        User user = userOptional.get();
+        user.updateNickname(newNickname); // Dirty Checking으로 자동 업데이트
+        log.debug("닉네임 변경 완료: {}", newNickname);
     }
+
+    // 회원 탈퇴 메서드
+    @Transactional
+    public void deleteUserAccount(String userCode, HttpServletRequest request, HttpServletResponse response) {
+        Optional<User> userOptional = userRepository.findByCode(userCode);
+
+        if (userOptional.isEmpty()) {
+            throw new BusinessException(ErrorCode.DATA_NOT_FOUND);
+        }
+
+        userRepository.delete(userOptional.get()); // 회원 삭제
+        log.debug("회원 삭제 완료 - userCode: {}", userCode);
+
+        // 강제 logout처리
+        authService.logout(request, response);
+        log.debug("회원 탈퇴(강제로그아웃) 완료 - userCode: {}", userCode);
+    }
+
+
+
 
 }
