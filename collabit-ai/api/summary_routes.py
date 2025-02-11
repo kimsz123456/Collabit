@@ -3,109 +3,133 @@ from database.mongodb import mongodb
 from services.chat_service import chat_service
 import json
 from collections import Counter
+from auth.jwt_handler import decode_jwt_from_cookie
 
 
 summary_bp = Blueprint('summary', __name__)
 
 
-@summary_bp.route("/ai/portfolio/essay/wordcloud", methods=["GET"])
-def get_wordcloud():
+@summary_bp.route("/ai/portfolio", methods=["POST"])
+def get_ai_summary():
   try:
-    # Get user_code from JWT
-    user_code = "57b6a621-9e43-4389-83b7-249b7b5ab929"
-    # decode_jwt_from_cookie()
+    user_code = decode_jwt_from_cookie()
 
-    # 데이터 가져오기
     summaries = list(mongodb.summary_collection.find({"user_code": user_code}))
 
+    strength_answers = []
+    weakness_answers = []
     strength_keywords = []
     weakness_keywords = []
 
-    # 각 문서에서 키워드 추출
+    # 답변들과 키워드를 긍정/부정으로 분류
     for summary in summaries:
       for analysis in summary.get('sentiment_analysis', []):
-        # 키워드 문자열을 리스트로 변환
-        keywords = [k.strip() for k in analysis['keyword'].split(',')]
-
-        # sensitive 값에 따라 키워드 분류
         if analysis['sensitive'] == 'positive':
+          strength_answers.append(analysis['answer'])
+          keywords = [k.strip() for k in analysis['keyword'].split(',')]
           strength_keywords.extend(keywords)
         elif analysis['sensitive'] == 'negative':
+          weakness_answers.append(analysis['answer'])
+          keywords = [k.strip() for k in analysis['keyword'].split(',')]
           weakness_keywords.extend(keywords)
 
-    # 키워드 빈도수 계산
+    # AI 요약 요청
+    summary_messages = [
+      chat_service.create_message("system", """주어진 답변들을 종합적으로 분석하여 해당 사람의 강점과 약점을 간단명료하게 요약해주세요. 
+답변을 다음과 같은 JSON 형식으로 작성해주세요:
+{
+    "strength": "강점에 대한 종합적인 요약",
+    "weakness": "약점에 대한 종합적인 요약"
+}"""),
+      chat_service.create_message("user", f"""강점 관련 답변들:
+{' // '.join(strength_answers)}
+
+약점 관련 답변들:
+{' // '.join(weakness_answers)}""")
+    ]
+
+    analysis_stream = chat_service.generate_response(summary_messages)
+    analysis_response = []
+
+    for chunk in analysis_stream:
+      if chunk.choices[0].delta.content:
+        analysis_response.append(chunk.choices[0].delta.content)
+
+    ai_analysis = json.loads(''.join(analysis_response))
+    mongodb.save_ai_analysis(user_code, ai_analysis)
+
+    # 워드클라우드 생성 및 저장
     strength_counter = Counter(strength_keywords)
     weakness_counter = Counter(weakness_keywords)
 
-    # 워드클라우드 형식으로 변환
-    strength_cloud = [{"text": word, "value": count}
-                      for word, count in strength_counter.items()]
-    weakness_cloud = [{"text": word, "value": count}
-                      for word, count in weakness_counter.items()]
+    def normalize_word_cloud(counter, top_n=20, min_value=8, max_value=25):
+      most_common = counter.most_common(top_n)
+
+      if not most_common:
+        return []
+
+      min_count = min(count for _, count in most_common)
+      max_count = max(count for _, count in most_common)
+
+      normalized = []
+      for word, count in most_common:
+        if min_count == max_count:
+          normalized_value = (min_value + max_value) / 2
+        else:
+          normalized_value = (count - min_count) / (max_count - min_count) * (
+              max_value - min_value) + min_value
+
+        normalized.append({
+          "text": word,
+          "value": round(normalized_value, 1)
+        })
+
+      return normalized
+
+    wordcloud_data = {
+      "user_code": user_code,
+      "strength": normalize_word_cloud(strength_counter),
+      "weakness": normalize_word_cloud(weakness_counter),
+    }
+
+    # MongoDB에 워드클라우드 데이터 저장
+    mongodb.wordcloud_collection.update_one(
+        {"user_code": user_code},
+        {"$set": wordcloud_data},
+        upsert=True
+    )
+
+    return "", 200
+
+  except Exception as e:
+    return jsonify({"error": str(e)}), 500
+
+
+@summary_bp.route("/ai/portfolio/essay/wordcloud", methods=["GET"])
+def get_wordcloud():
+  try:
+    user_code = decode_jwt_from_cookie()
+
+    wordcloud = mongodb.wordcloud_collection.find_one(
+        {"user_code": user_code},
+        {"_id": 0}
+    )
+
+    if not wordcloud:
+      return jsonify({"error": "Wordcloud data not found"}), 404
 
     return jsonify({
-      "strength": strength_cloud,
-      "weakness": weakness_cloud
+      "strength": wordcloud.get("strength", []),
+      "weakness": wordcloud.get("weakness", [])
     }), 200
 
   except Exception as e:
     return jsonify({"error": str(e)}), 500
 
-@summary_bp.route("/ai/portfolio", methods=["POST"])
-def get_ai_summary():
-    try:
-      user_code = "57b6a621-9e43-4389-83b7-249b7b5ab929"
-      # decode_jwt_from_cookie()
-
-      summaries = list(
-        mongodb.summary_collection.find({"user_code": user_code}))
-
-      strength_answers = []
-      weakness_answers = []
-
-      # 답변들을 긍정/부정으로 분류
-      for summary in summaries:
-        for analysis in summary.get('sentiment_analysis', []):
-          if analysis['sensitive'] == 'positive':
-            strength_answers.append(analysis['answer'])
-          elif analysis['sensitive'] == 'negative':
-            weakness_answers.append(analysis['answer'])
-
-      # AI에게 요약 요청
-      summary_messages = [
-        chat_service.create_message("system", """주어진 답변들을 종합적으로 분석하여 해당 사람의 강점과 약점을 간단명료하게 요약해주세요. 
-  답변을 다음과 같은 JSON 형식으로 작성해주세요:
-  {
-      "strength": "강점에 대한 종합적인 요약",
-      "weakness": "약점에 대한 종합적인 요약"
-  }"""),
-        chat_service.create_message("user", f"""강점 관련 답변들:
-  {' // '.join(strength_answers)}
-
-  약점 관련 답변들:
-  {' // '.join(weakness_answers)}""")
-      ]
-
-      analysis_stream = chat_service.generate_response(summary_messages)
-      analysis_response = []
-
-      for chunk in analysis_stream:
-        if chunk.choices[0].delta.content:
-          analysis_response.append(chunk.choices[0].delta.content)
-
-      ai_analysis = json.loads(''.join(analysis_response))
-      mongodb.save_ai_analysis(user_code, ai_analysis)
-      return "", 200
-
-    except Exception as e:
-      return jsonify({"error": str(e)}), 500
-
-
 @summary_bp.route("/ai/portfolio/essay/ai-summary", methods=["GET"])
 def get_summary():
   try:
-    user_code = "57b6a621-9e43-4389-83b7-249b7b5ab929"
-    # decode_jwt_from_cookie()
+    user_code = decode_jwt_from_cookie()
 
     summary = mongodb.ai_analysis.find_one(
         {"user_code": user_code},

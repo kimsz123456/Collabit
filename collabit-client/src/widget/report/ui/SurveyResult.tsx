@@ -16,8 +16,8 @@ const SurveyResult = () => {
 
       {wordCloud && (
         <CloudSection
-          strength={wordCloud.strength}
-          weakness={wordCloud.weakness}
+          strength={wordCloud?.strength}
+          weakness={wordCloud?.weakness}
         />
       )}
 
