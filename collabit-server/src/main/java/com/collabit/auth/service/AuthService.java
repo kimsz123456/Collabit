@@ -12,6 +12,7 @@ import com.collabit.global.security.TokenProvider;
 import com.collabit.user.domain.entity.Role;
 import com.collabit.user.domain.entity.User;
 import com.collabit.user.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -82,8 +83,20 @@ public class AuthService {
   }
 
     // 회원가입 메서드
-    public UserResponseDTO signup(UserSignupRequestDTO userSignupRequestDto) {
-        String email = userSignupRequestDto.getEmail();
+    @Transactional
+    public UserResponseDTO signup(UserSignupRequestDTO userSignupRequestDto,
+                                  HttpServletRequest request) {
+        // 임시 이메일 인증 토큰 추출
+        String verificationToken = extractToken(request, "verificationToken");
+
+        if (verificationToken == null) {
+            throw new BusinessException(ErrorCode.EMAIL_VERIFY_DENIED); // 토큰이 없으면 예외 발생
+        }
+
+        // 임시 인증토큰 검증
+        Claims claims = tokenProvider.validateVerificationToken(verificationToken);
+        String email = claims.getSubject(); // 토큰에서 이메일 가져오기
+
         String nickname = userSignupRequestDto.getNickname();
 
         // 이메일 중복체크
@@ -172,7 +185,7 @@ public class AuthService {
     }
 
     // cookie 삭제 메서드
-    private void removeCookie(HttpServletResponse response, String name) {
+    public void removeCookie(HttpServletResponse response, String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
@@ -182,7 +195,7 @@ public class AuthService {
     }
 
     // cookie에서 특정 token 추출 메서드
-    private String extractToken(HttpServletRequest request, String tokenName) {
+    public String extractToken(HttpServletRequest request, String tokenName) {
         if(request.getCookies() == null) return null;
 
         return Arrays.stream(request.getCookies())
@@ -211,11 +224,9 @@ public class AuthService {
     }
 
     // 비밀번호 암호화
-    private String encodePassword(String password){
+    public String encodePassword(String password){
         return passwordEncoder.encode(password);
     }
-
-
 
 }
 
