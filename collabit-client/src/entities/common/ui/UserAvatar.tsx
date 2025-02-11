@@ -9,15 +9,14 @@ interface UserAvatarProps {
   handleToMyPage?: () => void;
   size?: "sm" | "md";
 }
-const UserAvatar = ({
-  user,
-  size = "md",
-}: UserAvatarProps) => {
+const UserAvatar = ({ user, size = "md" }: UserAvatarProps) => {
   return (
     <div className="flex items-center gap-2">
       <Avatar className={cn("h-10 w-10", size === "sm" && "h-6 w-6")}>
         <AvatarImage src={user.profileImage} />
-        <AvatarFallback>{user.nickname.slice(0, 2)}</AvatarFallback>
+        <AvatarFallback className="truncate">
+          {user.nickname.slice(0, 2)}
+        </AvatarFallback>
       </Avatar>
       <span className={cn("font-semibold", size === "sm" && "text-md")}>
         {user.nickname}

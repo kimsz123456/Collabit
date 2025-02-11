@@ -100,15 +100,22 @@ def chat_survey(survey_code):
                         # Save to MongoDB
                         mongodb.save_survey(survey_code, user_code, messages)
 
+                        # 먼저 완료 메시지를 클라이언트에 보냄
+                        yield stream_service.create_completion_message()
+
                         # Get project owner's user_code from MySQL
-                        project_user_code = MySQL.get_project_user_code(survey_code)
+                        project_user_code = MySQL.get_project_user_code(
+                            survey_code)
                         if project_user_code:
                             # Update response count in Redis
-                            redis_client.update_response_count(project_user_code, survey_code)
+                            redis_client.update_response_count(
+                                project_user_code, survey_code)
 
+                            # HuggingFace 요청 및 저장 로직
                             summary_messages = messages.copy()
                             summary_messages.append(
-                                chat_service.create_message("user", chat_service.get_sentiment_analysis_prompt()))
+                                chat_service.create_message("user",
+                                                            chat_service.get_sentiment_analysis_prompt()))
 
                             summary_stream = chat_service.generate_response(
                                 summary_messages)
@@ -127,10 +134,9 @@ def chat_survey(survey_code):
 
                             # Save to MongoDB summaries collection
                             mongodb.summary_collection.insert_one(summary_data)
+
                         # Clean up Redis
                         redis_client.cleanup_session(session_id)
-
-                        yield stream_service.create_completion_message()
 
                     except Exception as e:
                         yield stream_service.format_sse_message(str(e), error=True)

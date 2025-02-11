@@ -14,4 +14,4 @@ EXPOSE 5000
 # 타임존 설정
 ENV TZ=Asia/Seoul
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "--timeout", "300","--workers", "3", "-b", "0.0.0.0:5000", "app:app"]

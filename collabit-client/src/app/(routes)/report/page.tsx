@@ -57,7 +57,7 @@ export default function Page() {
       <NoReport
         handleGenerateReport={handleGenerateReport}
         currentCount={reportStatus?.totalParticipant ?? 0}
-        requiredCount={Number(process.env.NEXT_MINIMUM_CREATE_CONDITION)}
+        requiredCount={Number(process.env.NEXT_PUBLIC_MINIMUM_CREATE_CONDITION)}
       />
     );
   }

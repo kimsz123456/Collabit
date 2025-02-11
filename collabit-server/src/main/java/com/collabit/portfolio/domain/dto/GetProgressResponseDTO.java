@@ -14,7 +14,4 @@ public class GetProgressResponseDTO {
     private ScoreData problemSolving;
     private ScoreData conflictResolution;
     private ScoreData leadership;
-
-    private int minScore;
-    private int maxScore;
 }

@@ -39,20 +39,15 @@ const WordCloud = ({ words, type }: WordCloudProps) => {
   }
 
   const colors = {
-    positive: [
-      "#64B5F6", // Light Blue
+    strength: [
       "#42A5F5", // Sky Blue
       "#2196F3", // Blue
       "#1E88E5", // Medium Blue
       "#1976D2", // Dark Blue
-      "#90CAF9", // Light Sky Blue
-      "#BBDEFB", // Light Blue (Soft)
-      "#E1F5FE", // Very Light Blue
       "#B3E5FC", // Pale Blue
     ],
-    negative: [
+    weakness: [
       // Violet (키컬러)
-      "#E57373", // Light Red
       "#EF5350", // Red
       "#F44336", // Bright Red
       "#D32F2F", // Dark Red
@@ -63,14 +58,14 @@ const WordCloud = ({ words, type }: WordCloudProps) => {
       "#FFCDD2",
     ], // Soft Pink],
   };
-
+  console.log(words);
   const chartData = {
     type: "wordcloud",
     options: {
       words: words.map((word) => ({
         text: word.text,
         weight: word.value,
-        fontSize: `${word.value * 0.3}vw`,
+        fontSize: word.value,
         color: colors[type][Math.floor(Math.random() * colors[type].length)],
       })),
     },

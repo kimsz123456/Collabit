@@ -125,7 +125,6 @@ export const getPortfolioWordCloudAPI =
       if (!res.ok) {
         throw new Error("워드클라우드 조회에 실패했습니다.");
       }
-      console.log(res.json());
       return res.json();
     } catch (error) {
       console.error(error);
