@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     // 401 Unauthorized (인증 실패)
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"로그인이 필요합니다."),
 
     // 403 Forbidden (인가 실패)
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
@@ -29,6 +30,11 @@ public enum ErrorCode {
     // =========== Auth ===========
     // 400 Bad Request (잘못된 형식)
     INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "인증코드가 틀립니다."),
+
+    // 401 Unauthorized (인증 실패)
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Refresh Token이 존재하지 않습니다."),
+    REFRESH_TOKEN_BLACKLISTED(HttpStatus.FORBIDDEN, "블랙리스트 Refresh Token 발견. 재발급 불가" ),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh Token 입니다."),
 
     // 409 Conflict (중복)
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 이메일입니다."),

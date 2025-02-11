@@ -3,8 +3,10 @@ package com.collabit.project.service;
 import com.collabit.portfolio.domain.dto.ScoreData;
 import com.collabit.portfolio.domain.entity.Description;
 import com.collabit.portfolio.domain.entity.Feedback;
+import com.collabit.portfolio.domain.entity.Portfolio;
 import com.collabit.portfolio.repository.DescriptionRepository;
 import com.collabit.portfolio.repository.FeedbackRepository;
+import com.collabit.portfolio.repository.PortfolioRepository;
 import com.collabit.project.domain.dto.*;
 import com.collabit.project.domain.entity.*;
 import com.collabit.project.exception.ProjectInfoNotFoundException;
@@ -14,6 +16,7 @@ import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +37,11 @@ public class ProjectService {
     private final ProjectRedisService projectRedisService;
     private final TotalScoreRepository totalScoreRepository;
     private final DescriptionRepository descriptionRepository;
+    private final PortfolioRepository portfolioRepository;
     private final FeedbackRepository feedbackRepository;
+
+    @Value("${minimum.create.condition}")
+    private int minimumCreateCondition;
 
     // User 검증 메소드
     private User findUserByCode(String userCode) {
@@ -73,7 +80,7 @@ public class ProjectService {
     }
 
     // 프론트에서 받은 프로젝트 정보 검증 후 프로젝트 저장
-    public void saveProject(CreateProjectRequestDTO createProjectRequestDTO, String userCode) {
+     public void saveProject(CreateProjectRequestDTO createProjectRequestDTO, String userCode) {
         log.info("프로젝트 등록 시작 - CreateProjectRequestDTO: {}, userCode: {}", createProjectRequestDTO.toString(), userCode);
 
         // 1. 시용자 조회
@@ -315,14 +322,14 @@ public class ProjectService {
             throw new RuntimeException("해당 프로젝트의 설문조사는 이미 마감되었습니다.");
         }
 
+        // Redis에 남아있는 알림 정보, 업데이트 되지 않은 참여자 업데이트
+        removeAllNotification(userCode);
+
         // 설문 참여자가 전체 컨트리뷰터 수의 1/2 이상일 경우에만 마감 가능
         if(projectInfo.getParticipant() < projectInfo.getTotal()/2) {
             log.error("설문 참여자가 부족한 경우 - 해당 ProjectInfo의 participant 수: {}, total 수: {}", projectInfo.getParticipant(), projectInfo.getTotal());
             throw new RuntimeException("해당 프로젝트의 설문 참여자 수가 부족합니다. 전체 인원의 반 이상이 참여해야 마감이 가능합니다.");
         }
-
-        // Redis에 남아있는 알림 정보, 업데이트 되지 않은 참여자 업데이트
-        removeAllNotification(userCode);
 
         // 설문조사 마감 시간 업데이트
         log.debug("해당 프로젝트 설문조사 마감 시작 - 현재 completedAt: {}", (Object) null);
@@ -330,12 +337,48 @@ public class ProjectService {
         projectInfoRepository.save(projectInfo);
         log.debug("해당 프로젝트 설문조사 마감 완료 - 현재 completedAt: {}", projectInfo.getCompletedAt());
 
-        // ======================================
-        // 포트폴리오 개발 시 isUpdate 변경 메소드 호출
-        // ======================================
+        // 포트폴리오가 있는 경우 isUpdate 갱신
+        portfolioRepository.findById(userCode).ifPresent(portfolio -> enablePortfolioUpdate(userCode));
 
         // 마감된 해당 프로젝트의 객관식 점수, 참여자 수 업데이트
         updateAllUserScore(projectInfo);
+    }
+
+    // 프로젝트 완료 시 갱신 여부 업데이트
+    public void enablePortfolioUpdate(String userCode) {
+        Portfolio portfolio = portfolioRepository.findById(userCode)
+                .orElseThrow(() -> new RuntimeException("아직 포트폴리오가 생성되지 않았습니다."));
+
+        // 해당 유저의 마감된 projectInfo 리스트
+        List<ProjectInfo> completedProjectList = projectInfoRepository.findByUser_CodeAndCompletedAtIsNotNull(userCode);
+        int totalParticipant = calTotalParticipant(completedProjectList);
+
+        // 포트폴리오 갱신 가능 여부
+        boolean isUpdate = canUpdatePortfolio(portfolio, totalParticipant);
+
+        if (isUpdate) {
+            portfolio.changeUpdateStatus();
+            portfolioRepository.save(portfolio);
+        }
+    }
+
+    private int calTotalParticipant(List<ProjectInfo> completedProjectList){
+        return completedProjectList.stream()
+                .mapToInt(ProjectInfo::getParticipant)
+                .sum();
+    }
+
+    public boolean canUpdatePortfolio(Portfolio portfolio, int participant) {
+        boolean isUpdate = false;
+        // 포트폴리오가 아직 생성 전이면 6명 이상인지 확인
+        if(portfolio == null && participant >= minimumCreateCondition){
+            isUpdate = true;
+        }
+        // 포트폴리오가 이미 생성되었다면 포트폴리오 테이블의 isUpdate도 확인
+        else if(portfolio != null && portfolio.getIsUpdate() && participant >= minimumCreateCondition){
+            isUpdate = true;
+        }
+        return isUpdate;
     }
 
     private void updateAllUserScore(ProjectInfo projectInfo){

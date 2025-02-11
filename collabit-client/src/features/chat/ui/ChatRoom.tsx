@@ -156,6 +156,7 @@ const ChatRoom = () => {
         message={message}
         setInputMessage={setMessage}
         handleSendMessage={handleSendMessage}
+        disabled={chatRoomLoading}
       />
     </div>
   );

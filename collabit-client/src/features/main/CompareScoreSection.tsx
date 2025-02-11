@@ -2,12 +2,25 @@
 
 import { Button } from "@/shared/ui/button";
 import { useAuth } from "../auth/api/useAuth";
-import CompareSection from "../report/ui/CompareSection";
 import { useRouter } from "next/navigation";
+import HexagonChart from "@/entities/chart/ui/HexagonChart";
+import { ChartRangeData, SkillData } from "@/shared/types/response/report";
 
 const CompareScoreSection = () => {
   const { userInfo } = useAuth();
   const router = useRouter();
+
+  const data: ChartRangeData & SkillData = {
+    minScore: 1,
+    maxScore: 5,
+    sympathy: { name: "공감(S)", score: 3.5 },
+    listening: { name: "경청(A)", score: 3.3 },
+    expression: { name: "표현(E)", score: 3.1 },
+    problemSolving: { name: "문제해결(PS)", score: 3.9 },
+    conflictResolution: { name: "갈등해결(CS)", score: 4.1 },
+    leadership: { name: "리더십(L)", score: 2.8 },
+  };
+
   return (
     <section className="flex w-full flex-wrap items-center justify-center gap-4 border-b-2 border-gray-200 pb-10 sm:flex-nowrap md:px-14">
       <h3 className="sr-only">사용자 평균 협업 점수</h3>
@@ -28,7 +41,7 @@ const CompareScoreSection = () => {
         </Button>
       </div>
       <div className="flex h-[300px] w-full max-w-[600px] items-center justify-center rounded-md bg-gray-50 p-4">
-        <CompareSection />
+        <HexagonChart hexagon={data} />
       </div>
     </section>
   );

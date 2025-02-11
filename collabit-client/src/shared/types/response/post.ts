@@ -6,9 +6,9 @@ export type PostListResponse = Pick<
   "code" | "content" | "createdAt" | "updatedAt"
 > & { author: Pick<User, "nickname" | "profileImage" | "githubId"> } & {
   images: Image["url"][];
-  likes: number;
-  comments: number;
-  isLiked: boolean;
+  likeCount: number;
+  commentCount: number;
+  liked: boolean;
 };
 
 export type PostDetailResponse = Pick<
@@ -16,6 +16,6 @@ export type PostDetailResponse = Pick<
   "code" | "content" | "createdAt" | "updatedAt"
 > & { author: Pick<User, "nickname" | "profileImage"> } & {
   images: Image["url"][];
-  likes: number;
-  isLiked: boolean;
+  likeCount: number;
+  liked: boolean;
 };

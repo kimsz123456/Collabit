@@ -3,19 +3,16 @@ import { ProjectResponse } from "@/shared/types/response/project";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { X } from "lucide-react";
 
 import ProjectListCard from "@/features/project/ui/ProjectListCard";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogOverlay,
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-} from "@radix-ui/react-dialog";
+} from "@/shared/ui/dialog";
 
 interface SurveySharingModalProps {
   project: ProjectResponse;
@@ -52,7 +49,6 @@ const SurveySharingModal = ({
         </div>
       </DialogTrigger>
       <DialogPortal>
-        <DialogOverlay className="fixed inset-0 bg-black/50" />
         <DialogContent className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-lg">
           <DialogTitle className="text-center text-lg font-bold">
             설문 링크 공유
@@ -82,11 +78,6 @@ const SurveySharingModal = ({
               링크 복사
             </Button>
           </div>
-          <DialogClose asChild className="fixed right-3 top-3">
-            <Button type="button" variant="ghost" className="h-8 w-8">
-              <X className="h-8 w-8" />
-            </Button>
-          </DialogClose>
         </DialogContent>
       </DialogPortal>
     </Dialog>

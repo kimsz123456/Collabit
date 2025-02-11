@@ -1,4 +1,5 @@
 "use client";
+import { WordWeight } from "@/shared/types/response/report";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
@@ -13,11 +14,10 @@ interface ZingChartProps {
 const ZingChart = dynamic(() => import("zingchart-react"), {
   ssr: false,
 }) as React.ComponentType<ZingChartProps>;
-export type WordCloudData = { text: string; weight: number }[];
 
 interface WordCloudProps {
-  words: WordCloudData;
-  type: "positive" | "negative";
+  words: WordWeight[];
+  type: "strength" | "weakness";
 }
 
 const WordCloud = ({ words, type }: WordCloudProps) => {
@@ -63,13 +63,14 @@ const WordCloud = ({ words, type }: WordCloudProps) => {
       "#FFCDD2",
     ], // Soft Pink],
   };
+
   const chartData = {
     type: "wordcloud",
     options: {
       words: words.map((word) => ({
         text: word.text,
-        weight: word.weight,
-        fontSize: `${word.weight * 0.3}vw`,
+        weight: word.value,
+        fontSize: `${word.value * 0.3}vw`,
         color: colors[type][Math.floor(Math.random() * colors[type].length)],
       })),
     },

@@ -16,9 +16,12 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { FileDown, Link2 } from "lucide-react";
+import useReport from "@/features/report/api/useReport";
 
 const ReportHeader = () => {
   const { userInfo } = useAuth();
+
+  const { reportInfo } = useReport();
 
   const handlePdfShare = () => {
     console.log("pdf share");
@@ -42,11 +45,15 @@ const ReportHeader = () => {
         <div className="flex gap-2">
           <p className="text-sm">
             <span>참여인원 </span>
-            <span className="font-semibold text-violet-500">15명</span>
+            <span className="font-semibold text-violet-500">
+              {reportInfo?.participant}명
+            </span>
           </p>
           <p className="text-sm">
             <span>프로젝트 </span>
-            <span className="font-semibold text-violet-500">3회</span>
+            <span className="font-semibold text-violet-500">
+              {reportInfo?.project}회
+            </span>
           </p>
         </div>
       </div>
