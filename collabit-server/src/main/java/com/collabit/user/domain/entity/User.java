@@ -62,4 +62,14 @@ public class User {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(role); // 단일 권한일 경우
     }
+
+    // 닉네임 업데이트 메소드
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
+
+    // 비밀번호 업데이트 메소드
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }
