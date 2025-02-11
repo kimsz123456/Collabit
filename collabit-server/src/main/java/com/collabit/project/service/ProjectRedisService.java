@@ -19,7 +19,7 @@ public class ProjectRedisService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     // 특정 userCode에 대한 모든 newSurveyResponse 키-값 쌍을 조회
-    public Map<Integer, Boolean> findNewSurveyResponsesByUserCode(String userCode) {
+    public Map<Integer, Integer> findNewSurveyResponsesByUserCode(String userCode) {
         log.debug("해당 유저의 모든 프로젝트 조회 시작");
         try {
             // newSurveyResponse::{userCode}::* 패턴으로 Redis에서 해당 유저와 관련된 모든 키 조회
@@ -30,8 +30,8 @@ public class ProjectRedisService {
                 return new HashMap<>();
             }
 
-            // projectInfoCode를 key로, true를 value로 하는 Map 생성
-            Map<Integer, Boolean> projectInfoCodeMap = new HashMap<>();
+            // projectInfoCode를 key로, 참여자 수를 value로 하는 Map 생성
+            Map<Integer, Integer> projectInfoCodeMap = new HashMap<>();
 
             for (String key : keys) {
                 String[] keyParts = key.split("::");
@@ -40,8 +40,10 @@ public class ProjectRedisService {
                         // projectInfoCode 추출 후 Map(key 기준 중복x)에 저장
                         int projectInfoCode = Integer.parseInt(keyParts[2]);
 
-                        // 해당 projectInfoCode는 읽지 않은 알림이 있는 것이므로 true
-                        projectInfoCodeMap.put(projectInfoCode, true);
+                        // Redis에서 해당 키의 value(참여자 수) 조회
+                        String value = (String) redisTemplate.opsForValue().get(key);
+                        int participantCount = value != null ? Integer.parseInt(value) : 0;
+                        projectInfoCodeMap.put(projectInfoCode, participantCount);
                     } catch (NumberFormatException e) {
                         log.warn("Invalid projectInfoCode in Redis key: {}", key);
                         throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");

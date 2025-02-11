@@ -218,7 +218,7 @@ public class ProjectService {
                 .collect(Collectors.groupingBy(pi -> pi.getProject().getOrganization()));
 
         // 4. Redis에서 newSurveyResponse 정보를 한 번에 조회
-        Map<Integer, Boolean> newSurveyResponseMap = projectRedisService.findNewSurveyResponsesByUserCode(userCode);
+        Map<Integer, Integer> newSurveyResponseMap = projectRedisService.findNewSurveyResponsesByUserCode(userCode);
 
         // 5. organizaion으로 묶은 ProjectInfo 리스트를 기반으로 Project 정보와 Contributor 정보를 조회 후 DTO 매핑
         List<GetProjectListResponseDTO> result = groupedByOrg.entrySet().stream()
@@ -251,9 +251,9 @@ public class ProjectService {
                                 return ProjectDetailDTO.builder()
                                         .code(projectInfo.getCode())
                                         .title(project.getTitle())
-                                        .participant(projectInfo.getParticipant())
                                         .isDone(projectInfo.getCompletedAt() != null)
-                                        .newSurveyResponse(newSurveyResponseMap.getOrDefault(projectInfo.getCode(), false))
+                                        .participant(projectInfo.getParticipant() + newSurveyResponseMap.getOrDefault(projectInfo.getCode(), 0))
+                                        .newSurveyResponse(newSurveyResponseMap.containsKey(projectInfo.getCode()))
                                         .createdAt(projectInfo.getCreatedAt())
                                         .contributors(contributors)
                                         .participationRate(calculateParticipationRate(projectInfo))
@@ -496,7 +496,7 @@ public class ProjectService {
         log.debug("사용자의 ProjectInfo 조회 완료 - 조회된 ProjectInfo 수: {}", projectInfoList.size());
 
         // 2. Redis에서 newSurveyResponse 정보를 한 번에 조회
-        Map<Integer, Boolean> newSurveyResponseMap = projectRedisService.findNewSurveyResponsesByUserCode(userCode);
+        Map<Integer, Integer> newSurveyResponseMap = projectRedisService.findNewSurveyResponsesByUserCode(userCode);
 
         // 3. ProjectInfo 리스트를 기반으로 Project 정보와 Contributor 정보를 조회 후 DTO 매핑
         List<GetMainProjectListResponseDTO> result = projectInfoList.stream()
@@ -524,9 +524,9 @@ public class ProjectService {
                             .organization(project.getOrganization())
                             .code(projectInfo.getCode())
                             .title(project.getTitle())
-                            .participant(projectInfo.getParticipant())
+                            .participant(projectInfo.getParticipant() + newSurveyResponseMap.getOrDefault(projectInfo.getCode(), 0))
                             .isDone(projectInfo.getCompletedAt() != null)
-                            .newSurveyResponse(newSurveyResponseMap.getOrDefault(projectInfo.getCode(), false))
+                            .newSurveyResponse(newSurveyResponseMap.containsKey(projectInfo.getCode()))
                             .createdAt(projectInfo.getCreatedAt())
                             .contributors(contributors)
                             .participationRate(calculateParticipationRate(projectInfo))
