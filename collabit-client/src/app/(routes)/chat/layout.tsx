@@ -4,6 +4,10 @@ import { useAuth } from "@/features/auth/api/useAuth";
 import { ChatListProvider } from "@/features/chat/context/ChatListProvider";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useChatRoomList } from "@/features/chat/api/useChatRoomList";
+import useSocket from "@/features/chat/api/useSocket";
+import { useChatStore } from "@/shared/lib/stores/chatStore";
+import { WebSocketMessage } from "@/shared/types/model/Chat";
 
 const ChatLayout = ({
   list,
@@ -25,8 +29,63 @@ const ChatLayout = ({
     }
   }, [isAuthenticated, isLoading, router]);
 
+  // WebSocket 연결
+  const { clientRef, connectionStatus } = useSocket();
+  const { setSendMessage, addMessage, chatId } = useChatStore();
+
+  useEffect(() => {
+    if (!clientRef.current) return;
+
+    const handleSendMessage = async (message: WebSocketMessage) => {
+      console.log("📩 메시지 전송:", message);
+      if (!clientRef.current?.connected) {
+        console.error("❌ WebSocket이 연결되지 않음.");
+        return;
+      }
+      if (!chatId) {
+        console.error("❌ chatId가 설정되지 않음.");
+        return;
+      }
+      addMessage(message);
+
+      try {
+        await connectionStatus;
+        clientRef.current.publish({
+          destination: `/app/chat.message/${chatId}`,
+          body: JSON.stringify(message),
+        });
+        console.log("✅ Message sent successfully");
+      } catch (error) {
+        console.error("❌ Failed to send message:", error);
+      }
+    };
+
+    setSendMessage(handleSendMessage);
+  }, [clientRef, setSendMessage, connectionStatus, chatId]);
+
+  // 리스트 렌더링
+  const { chatList, hasNextPage, fetchNextPage } = useChatRoomList();
+
+  // 디테일 렌더링
+  const { setChatId } = useChatStore();
+
+  useEffect(() => {
+    const pathParts = pathname.split("/");
+    const newChatId = pathParts.length > 2 ? pathParts[2] : null;
+
+    if (newChatId && !isNaN(Number(newChatId))) {
+      setChatId(Number(newChatId));
+    } else {
+      setChatId(null);
+    }
+  }, [pathname, setChatId]);
+
   return (
-    <ChatListProvider initialData={[]}>
+    <ChatListProvider
+      initialData={chatList}
+      hasNextPage={hasNextPage}
+      fetchNextPage={fetchNextPage}
+    >
       {/* 모바일 레이아웃 */}
       <div className="md:hidden">{isChatRoom ? room : list}</div>
 

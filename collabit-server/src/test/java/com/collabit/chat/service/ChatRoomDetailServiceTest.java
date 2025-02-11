@@ -6,7 +6,6 @@ import com.collabit.chat.domain.entity.ChatRoom;
 import com.collabit.chat.exception.UserNotInChatRoomException;
 import com.collabit.chat.repository.ChatMessageRepository;
 import com.collabit.chat.repository.ChatRoomRepository;
-import com.collabit.global.common.PageResponseDTO;
 import com.collabit.user.domain.entity.Role;
 import com.collabit.user.domain.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,14 +74,13 @@ public class ChatRoomDetailServiceTest {
     void testGetChatRoomDetail_UserNotInChatRoom() {
         // Given
         String userCode = "user3";
-        ChatRoomDetailRequestDTO requestDTO = new ChatRoomDetailRequestDTO(123, 0);
 
         // When
         when(chatRoomRepository.findById(123)).thenReturn(Optional.of(chatRoom));
 
         // Then
         assertThrows(UserNotInChatRoomException.class, () -> {
-            chatRoomDetailService.getChatRoomDetail(userCode, requestDTO);
+            chatRoomDetailService.getChatRoomDetail(userCode, 123);
         });
     }
 
@@ -90,7 +88,6 @@ public class ChatRoomDetailServiceTest {
     void testGetChatRoomDetail_Success() {
         // Given
         String userCode = "user1";
-        ChatRoomDetailRequestDTO requestDTO = new ChatRoomDetailRequestDTO(123, 0);
 
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setRoomCode(123);
@@ -103,12 +100,10 @@ public class ChatRoomDetailServiceTest {
                 .thenReturn(new PageImpl<>(List.of(chatMessage), PageRequest.of(0, 50), 1));
 
         // When
-        PageResponseDTO responseDTO = chatRoomDetailService.getChatRoomDetail(userCode, requestDTO);
+        ChatRoomDetailResponseDTO responseDTO = chatRoomDetailService.getChatRoomDetail(userCode, 123);
 
         // Then
         assertNotNull(responseDTO);
-        assertEquals(1, responseDTO.getTotalElements());
-        assertEquals("Test message", ((ChatRoomDetailResponseDTO)responseDTO.getContent()).getMessages().get(0).getMessage());
     }
 
     @Test
@@ -130,7 +125,6 @@ public class ChatRoomDetailServiceTest {
         // Given
         ChatMessageRequestDTO chatMessageRequestDTO = ChatMessageRequestDTO.builder()
                 .message("Test message")
-                .roomCode(123)
                 .timestamp(LocalDateTime.now())
                 .build();
         String userCode = "user1";

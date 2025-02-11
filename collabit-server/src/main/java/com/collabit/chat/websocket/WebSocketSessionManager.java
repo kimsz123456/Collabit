@@ -4,89 +4,91 @@ import com.collabit.chat.domain.dto.WebSocketMessageDTO;
 import com.collabit.chat.service.ChatRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.context.event.EventListener;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Lazy
 public class WebSocketSessionManager {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatRedisService chatRedisService;
+    private final Map<String, Set<String>> roomSubscribers = new ConcurrentHashMap<>();
+    private final Map<String, String> userCurrentRoom = new ConcurrentHashMap<>();
 
-    public final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
-
-    // 특정 사용자 세션 가져오기
-    public WebSocketSession getSession(String userCode) {
-        return sessions.get(userCode);
+    @EventListener
+    public void handleUserConnect(WebSocketEvent.UserConnectEvent event) {
+        log.debug("User connected: {}", event.getNickname());
     }
 
-    // WebSocket 세션에서 roomCode를 얻는 메서드
-    public int getRoomCodeFromSession(String userCode) {
-        WebSocketSession session = getSession(userCode);
-        if (session != null) {
-            log.debug("Get room code from session {}", session.getAttributes().get("roomCode"));
-            return (Integer) session.getAttributes().get("roomCode");
-        }
-        log.debug("Get room code from session null");
-        return -1;  // roomCode가 없는 경우 기본값 -1 반환
+    @EventListener
+    public void handleUserSubscribe(WebSocketEvent.UserSubscribeEvent event) {
+        addUserToRoom(event.getNickname(), event.getRoomCode());
     }
 
-    // 사용자에게 직접 메시지 전송 (STOMP 방식)
-    public void sendDirectMessage(WebSocketMessageDTO messageDTO) {
-        String destination = "/topic/room/" + messageDTO.getRoomCode();
+    @EventListener
+    public void handleUserDisconnect(WebSocketEvent.UserDisconnectEvent event) {
+        handleDisconnect(event.getNickname());
+    }
+
+    public void broadcastMessage(int roomCode, String message) {
+        String destination = "/topic/chat/" + roomCode;
         try {
-            messagingTemplate.convertAndSend(destination, messageDTO);
-            log.debug("Message {} sent to {}", messageDTO.toString(), destination);
+            messagingTemplate.convertAndSend(destination, message);
+            log.debug("Message broadcast to room {}", roomCode);
         } catch (Exception e) {
-            log.error("Failed to send direct message to user: {}", messageDTO.getNickname(), e);
+            log.error("Failed to broadcast message to room {}", roomCode, e);
         }
     }
 
-    // 채팅방에 연결된 모든 사용자에게 메시지 전송
-    public void broadcastMessage(int roomCode, String messageContent) {
-        // 채팅방에 연결된 모든 사용자 가져오기
-        List<String> userCodes = chatRedisService.getUsersInRoom(roomCode);
 
-        // 각 사용자에게 메시지 전송 (STOMP 메시지 처리)
-        userCodes.forEach(userCode -> {
-            String destination = "/topic/room/" + roomCode;
-            try {
-                WebSocketMessageDTO messageDTO = new WebSocketMessageDTO();
-                messageDTO.setMessageType("BROADCAST");
-                messageDTO.setMessage(messageContent);
-                log.debug("Sending message {} to {}", messageDTO.toString(), destination);
-                messagingTemplate.convertAndSend(destination, messageDTO);
-            } catch (Exception e) {
-                log.error("Failed to broadcast message to room: {}", roomCode, e);
+    public void addUserToRoom(String nickname, int roomCode) {
+        String roomCodeStr = String.valueOf(roomCode);
+        removeUserFromCurrentRoom(nickname);
+        
+        roomSubscribers.computeIfAbsent(roomCodeStr, k -> ConcurrentHashMap.newKeySet())
+                      .add(nickname);
+        userCurrentRoom.put(nickname, roomCodeStr);
+        
+        chatRedisService.addUserToRoom(roomCode, nickname);
+        log.debug("User {} joined room {}. Current subscribers: {}", 
+                 nickname, roomCode, roomSubscribers.get(roomCodeStr));
+    }
+
+    public void removeUserFromCurrentRoom(String nickname) {
+        String currentRoom = userCurrentRoom.get(nickname);
+        if (currentRoom != null) {
+            Set<String> subscribers = roomSubscribers.get(currentRoom);
+            if (subscribers != null) {
+                subscribers.remove(nickname);
+                if (subscribers.isEmpty()) {
+                    roomSubscribers.remove(currentRoom);
+                }
             }
-        });
+            chatRedisService.removeUserFromRoom(Integer.parseInt(currentRoom), nickname);
+            userCurrentRoom.remove(nickname);
+            
+            log.debug("User {} left room {}. Remaining subscribers: {}", 
+                     nickname, currentRoom, subscribers);
+        }
     }
 
-    // 방 이동 처리
-    public void switchRoom(String userCode, int newRoomCode) {
-        // 이전 방에서 세션 제거
-        WebSocketSession session = getSession(userCode);
-        if (session != null) {
-            int oldRoomCode = getRoomCodeFromSession(userCode);
-            session.getAttributes().put("roomCode", newRoomCode);
-            log.debug("Switch room code {} to new room code {}", oldRoomCode, newRoomCode);
-            // Redis에서 사용자 상태 업데이트
-            chatRedisService.removeUserFromRoom(oldRoomCode, userCode);
-            chatRedisService.addUserToRoom(newRoomCode, userCode);
-        }
+    public void handleDisconnect(String nickname) {
+        removeUserFromCurrentRoom(nickname);
+        log.debug("User {} disconnected and removed from all rooms", nickname);
+    }
 
-        // 새로운 방에 대한 상태 업데이트
-        log.debug("User {} switched to room {}", userCode, newRoomCode);
-
-        // STOMP로 상태 업데이트 전송
-        String destination = "/topic/room/" + newRoomCode;
-        messagingTemplate.convertAndSend(destination, "User " + userCode + " switched rooms.");
+    public Set<String> getRoomSubscribers(int roomCode) {
+        return roomSubscribers.getOrDefault(String.valueOf(roomCode), Collections.emptySet());
     }
 }
+

@@ -11,4 +11,7 @@ COPY . .
 
 EXPOSE 5000
 
+# 타임존 설정
+ENV TZ=Asia/Seoul
+
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]

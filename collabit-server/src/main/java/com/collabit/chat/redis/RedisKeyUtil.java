@@ -16,4 +16,8 @@ public class RedisKeyUtil {
     public static String getRoomStatusChannelKey() {
         return "room_status";
     }
+
+    public static String getMessageKey(int messageId) {
+        return "chat:message:" + messageId;
+    }
 }

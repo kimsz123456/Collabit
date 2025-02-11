@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import ChatCountBadge from "./ChatCountBadge";
 import SurveyStatusBadge from "@/entities/survey/ui/SurveyStatusBadge";
 import formatRelativeTime from "@/shared/utils/formatRelativeTime";
-
+import { useChatStore } from "@/shared/lib/stores/chatStore";
 interface ChatListCardProps {
   type: "chat" | "survey";
   id: number;
@@ -29,6 +29,7 @@ const ChatListCard = ({
 }: ChatListCardProps) => {
   const pathname = usePathname();
   const isActive = pathname.split("/").pop() === String(id);
+  const { chatId } = useChatStore();
 
   return (
     <Link
@@ -54,7 +55,7 @@ const ChatListCard = ({
         <span className="text-nowrap text-xs text-gray-400">
           {formatRelativeTime(updatedAt)}
         </span>
-        {type === "chat" && <ChatCountBadge count={unRead} />}
+        {type === "chat" && chatId !== id && <ChatCountBadge count={unRead} />}
         {type === "survey" && <SurveyStatusBadge status={unRead} />}
       </div>
     </Link>

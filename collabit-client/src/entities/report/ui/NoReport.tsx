@@ -3,12 +3,12 @@ import Image from "next/image";
 
 const NoReport = ({
   handleGenerateReport,
-  currentCount = 1,
-  requiredCount = 5,
+  currentCount,
+  requiredCount,
 }: {
   handleGenerateReport: () => void;
-  currentCount?: number;
-  requiredCount?: number;
+  currentCount: number;
+  requiredCount: number;
 }) => {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
@@ -44,9 +44,15 @@ const NoReport = ({
             동료들의 평가를 {requiredCount}개 이상 받으면 리포트가 생성됩니다.
             지금 바로 리포트를 생성해보세요!
           </p>
-          <Button onClick={handleGenerateReport} size="lg" className="mt-4">
-            리포트 생성하기
-          </Button>
+          {currentCount && currentCount >= requiredCount ? (
+            <Button onClick={handleGenerateReport} size="lg" className="mt-4">
+              리포트 생성하기
+            </Button>
+          ) : (
+            <Button size="lg" className="mt-4 bg-gray-300" disabled>
+              리포트 생성하기
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -9,7 +9,12 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
+import {
+  Skill,
+  SkillData,
+  TimelineResponse,
+} from "@/shared/types/response/report";
+import ReportTitle from "@/entities/report/ui/ReportTitle";
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -20,22 +25,12 @@ ChartJS.register(
   Legend,
 );
 
-const HistoryRateSection = () => {
-  // 임시 데이터 (실제로는 API나 props로 받아와야 함)
-  const projectHistory = [
-    {
-      name: "관통1 (24.09)",
-      skills: { S: 30, A: 60, E: 30, PS: 90, CS: 20, L: 30 },
-    },
-    {
-      name: "관통2 (24.10)",
-      skills: { S: 60, A: 70, E: 20, PS: 90, CS: 50, L: 20 },
-    },
-    {
-      name: "파이널 (24.11)",
-      skills: { S: 80, A: 75, E: 10, PS: 90, CS: 10, L: 50 },
-    },
-  ];
+interface HistoryRateSectionProps {
+  history: TimelineResponse;
+}
+
+const HistoryRateSection = ({ history }: HistoryRateSectionProps) => {
+  const timeline = history.timeline;
 
   const options = {
     responsive: true,
@@ -46,48 +41,53 @@ const HistoryRateSection = () => {
     },
     scales: {
       y: {
-        min: 0,
-        max: 100,
+        min: history.minScore,
+        max: history.maxScore,
       },
     },
   };
 
-  const labels = projectHistory.map((project) => project.name);
-
   const skillColors = {
-    S: "rgb(255, 99, 132)",
-    A: "rgb(54, 162, 235)",
-    E: "rgb(75, 192, 192)",
-    PS: "rgb(255, 206, 86)",
-    CS: "rgb(153, 102, 255)",
-    L: "rgb(255, 159, 64)",
-  };
-
-  const skillNames = {
-    S: "공감(S)",
-    A: "경청(A)",
-    E: "표현(E)",
-    PS: "문제해결(PS)",
-    CS: "갈등해결(CS)",
-    L: "리더십(L)",
+    sympathy: "rgb(255, 99, 132)",
+    listening: "rgb(54, 162, 235)",
+    expression: "rgb(75, 192, 192)",
+    problemSolving: "rgb(255, 206, 86)",
+    conflictResolution: "rgb(153, 102, 255)",
+    leadership: "rgb(255, 159, 64)",
   };
 
   const data = {
-    labels,
-    datasets: Object.entries(skillNames).map(([key, name]) => ({
-      label: name,
-      data: projectHistory.map(
-        (project) => project.skills[key as keyof typeof skillNames],
-      ),
-      borderColor: skillColors[key as keyof typeof skillColors],
-      backgroundColor: skillColors[key as keyof typeof skillColors],
-      tension: 0.3,
-    })),
+    labels: [...new Set(timeline.map((project) => project.projectName))],
+    datasets: Object.keys(timeline[0])
+      .filter(
+        (key) =>
+          key !== "projectName" &&
+          key !== "organization" &&
+          key !== "completedAt",
+      )
+      .map((key) => ({
+        label: (timeline[0][key] as keyof SkillData as unknown as Skill).name,
+        data: [
+          ...timeline.map(
+            (project) =>
+              (project[key] as keyof SkillData as unknown as Skill)?.score ||
+              null,
+          ),
+        ],
+        borderColor: skillColors[key] || "gray",
+        backgroundColor: skillColors[key] || "gray",
+        tension: 0.3,
+        spanGaps: true,
+      })),
   };
+
+  if (!timeline || timeline.length === 0) {
+    return <p className="text-center text-gray-500">데이터가 없습니다.</p>;
+  }
 
   return (
     <div className="h-full w-full">
-      <h2 className="mb-4 text-xl font-bold">역량 변화 추이</h2>
+      <ReportTitle title="역량 변화 추이" />
       <Line options={options} data={data} />
     </div>
   );

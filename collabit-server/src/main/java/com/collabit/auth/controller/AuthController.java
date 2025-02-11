@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@RestControllerAdvice
 @Tag(name = "AuthController", description = "Auth(로그인, 회원가입) 관련 API")
 public class AuthController {
     private final AuthService authService;
@@ -70,14 +69,6 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO userLoginRequestDto, HttpServletResponse response) {
         log.debug("login Request: {}", userLoginRequestDto.toString());
         return ResponseEntity.ok(authService.login(userLoginRequestDto, response));
-    }
-
-    // refresh token을 통한 access token 재발급 로직
-    @Operation(summary = "Access Token 재발급", description = "Refresh Token 을 사용하여 새로운 Access Token을 발급 받는 API입니다." )
-    @PostMapping("/reissue")
-    public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response) {
-        authService.refreshAccessToken(request, response);
-        return ResponseEntity.ok().build(); // 반환값 필요 없음. 쿠키에 Access Token 이 저장
     }
 
     // 이메일 인증 요청

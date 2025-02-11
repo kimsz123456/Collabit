@@ -27,7 +27,7 @@ public class PostController {
 
     @Operation(summary="게시글 등록",description = "게시글을 등록하는 API입니다.")
     @PostMapping("/")
-    public ResponseEntity<?> createPost(@ModelAttribute CreatePostRequestDTO requestDTO){
+    public ResponseEntity<CreatePostResponseDTO> createPost(@ModelAttribute CreatePostRequestDTO requestDTO){
         log.debug("CreatePost requestDTO: {}", requestDTO.toString());
         String userCode = SecurityUtil.getCurrentUserCode();
         CreatePostResponseDTO responseDTO = postService.createPost(userCode, requestDTO);
@@ -37,7 +37,7 @@ public class PostController {
 
     @Operation(summary="게시글 목록 조회",description = "게시글 목록을 조회하는 API입니다.")
     @GetMapping("/")
-    public ResponseEntity<?> getPostList(){
+    public ResponseEntity<List<GetPostResponseDTO>> getPostList(){
         String userCode = SecurityUtil.getCurrentUserCode();
         List<GetPostResponseDTO> list = postService.getPostList(userCode);
         log.debug("getPost List: {}", Objects.toString(list, "null"));
@@ -47,7 +47,7 @@ public class PostController {
 
     @Operation(summary="게시글 상세 조회",description = "게시글을 상세 조회하는 API입니다.")
     @GetMapping("/{postCode}")
-    public ResponseEntity<?> getPost(@PathVariable int postCode){
+    public ResponseEntity<GetPostResponseDTO> getPost(@PathVariable int postCode){
         String userCode = SecurityUtil.getCurrentUserCode();
         GetPostResponseDTO responseDTO = postService.getPost(userCode, postCode);
         log.debug("getPost responseDTO: {}", responseDTO.toString());
@@ -56,7 +56,7 @@ public class PostController {
 
     @Operation(summary="게시글 수정",description = "게시글을 수정하는 API입니다.")
     @PutMapping("/{postCode}")
-    public ResponseEntity<?> updatePost(@PathVariable int postCode,@RequestBody UpdatePostRequestDTO requestDTO){
+    public ResponseEntity<GetPostResponseDTO> updatePost(@PathVariable int postCode,@RequestBody UpdatePostRequestDTO requestDTO){
         log.debug("updatePost requestDTO: {}", requestDTO.toString());
         String userCode = SecurityUtil.getCurrentUserCode();
         GetPostResponseDTO responseDTO = postService.updatePost(userCode, postCode, requestDTO);
@@ -70,5 +70,21 @@ public class PostController {
         String userCode = SecurityUtil.getCurrentUserCode();
         postService.deletePost(userCode, postCode);
         return ResponseEntity.status(204).build();
+    }
+    
+    @Operation(summary="추천 게시글 조회",description = "추천 게시글을 조회 API입니다.")
+    @GetMapping("/recommend")
+    public ResponseEntity<List<GetPostResponseDTO>> recommend(){
+        String userCode = SecurityUtil.getCurrentUserCode();
+        List<GetPostResponseDTO> list = postService.recommendPost(userCode);
+        return ResponseEntity.status(200).body(list);
+    }
+
+    @Operation(summary="최신 게시글 조회",description = "최신 게시글을 조회 API입니다.")
+    @GetMapping("/latest")
+    public ResponseEntity<List<GetPostResponseDTO>> latest(){
+        String userCode = SecurityUtil.getCurrentUserCode();
+        List<GetPostResponseDTO> list = postService.latestPost(userCode);
+        return ResponseEntity.status(200).body(list);
     }
 }

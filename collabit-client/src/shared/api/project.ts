@@ -139,3 +139,20 @@ export const getAddedProjectAPI = async () => {
     throw error;
   }
 };
+
+export const getHexagonGraphAPI = async (code: number) => {
+  try {
+    const res = await fetch(`${apiUrl}/project/graph/hexagon/${code}`, {
+      method: "GET",
+      ...fetchOptions,
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error("육각형 그래프 조회에 실패했습니다.");
+    }
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};

@@ -15,13 +15,15 @@ import { useEffect, useState } from "react";
 import EmptyProjectCard from "../project/ui/EmptyProjectCard";
 import MainProjectListCard from "../project/ui/MainProjectListCard";
 import NoProjectGuide from "../project/ui/NoProjectGuide";
+import { useAuth } from "../auth/api/useAuth";
 
 const MyProjectSection = () => {
+  const { isAuthenticated } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["projectList", "main"],
     queryFn: () => getProjectListForMainAPI(),
+    enabled: !!isAuthenticated,
   });
-  console.log(data);
 
   const [emptySpace, setEmptySpace] = useState(0);
   useEffect(() => {
@@ -53,7 +55,7 @@ const MyProjectSection = () => {
       <h3 className="text-lg font-bold md:text-xl">나의 프로젝트 소식</h3>
       {isLoading ? (
         <MainProjectListSkeleton />
-      ) : data!.length > 0 ? (
+      ) : data && data.length > 0 ? (
         <div className="flex h-[200px] w-full flex-col items-center justify-center gap-4">
           <Carousel
             setApi={setApi}

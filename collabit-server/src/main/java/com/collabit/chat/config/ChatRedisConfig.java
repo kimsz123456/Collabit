@@ -32,6 +32,6 @@ public class ChatRedisConfig {
     //RedisSubscriber를 통해 "sendMessage" 메서드를 리스너로 연결
     @Bean
     public MessageListenerAdapter listenerAdapterChatMessage(RedisSubscriber subscriber) {
-        return new MessageListenerAdapter(subscriber, "sendMessage");
+        return new MessageListenerAdapter(subscriber, "onMessage");
     }
 }

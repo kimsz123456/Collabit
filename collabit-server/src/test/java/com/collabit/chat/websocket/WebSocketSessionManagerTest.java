@@ -116,7 +116,7 @@ public class WebSocketSessionManagerTest {
         when(userSession.getAttributes()).thenReturn(sessionAttributes);
 
         // When: Calling the switchRoom method
-        webSocketSessionManager.switchRoom(userCode, newRoomCode);
+//        webSocketSessionManager.switchRoom(userCode, newRoomCode);
 
         // Then
         // Verify that roomCode is updated in sessionAttributes

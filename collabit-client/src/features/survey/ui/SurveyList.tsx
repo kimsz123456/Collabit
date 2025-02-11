@@ -1,27 +1,11 @@
 "use client";
 import ChatListCard from "@/entities/chat/ui/ChatListCard";
 import ChatNav from "@/entities/chat/ui/ChatNav";
-import { useSurveyList } from "../context/SurveyListProvider";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/features/auth/api/useAuth";
-import { getSurveyListAPI } from "@/shared/api/survey";
-import { useEffect } from "react";
 import EmptySurveyList from "@/entities/survey/ui/EmptySurveyList";
+import { useSurveyList } from "../context/SurveyListProvider";
 
 export default function SurveyList() {
-  const { userInfo } = useAuth();
-  const { surveyList, setSurveyList } = useSurveyList();
-  const { data } = useQuery({
-    queryKey: ["surveyList", userInfo?.nickname],
-    queryFn: getSurveyListAPI,
-    enabled: !!userInfo?.nickname,
-  });
-
-  useEffect(() => {
-    if (data) {
-      setSurveyList(data);
-    }
-  }, [data, setSurveyList]);
+  const { surveyList } = useSurveyList();
 
   return (
     <div className="flex flex-col items-center gap-3 px-2 md:py-4">

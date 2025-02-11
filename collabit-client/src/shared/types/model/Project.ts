@@ -23,5 +23,4 @@ export interface Contributor {
   githubId: string;
   profileImage: string;
 }
-
 export type ProjectTitle = Pick<Project, "title" | "organization">;

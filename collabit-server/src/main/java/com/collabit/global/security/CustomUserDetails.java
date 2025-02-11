@@ -7,7 +7,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,7 +18,7 @@ import java.util.*;
 public class CustomUserDetails implements UserDetails, OAuth2User {
     private final String code; // PK
     private final String email; // Email
-    private final String password; // Password(인중 후에는 null)
+    private final String password; // Password(인증 후에는 null)
     private final String nickname; // 닉네임
     private final String githubId;
     private final String profileImage; // 프로필 이미지
@@ -25,6 +28,37 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     @Override
     public String getUsername() {
         return code;
+    }
+
+    // UserDetails 인터페이스의 필수 메서드들 구현
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;  // 계정 만료 여부
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;  // 계정 잠금 여부
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;  // 비밀번호 만료 여부
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;  // 계정 활성화 여부
     }
 
     // 기본 생성자
@@ -37,7 +71,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         this.nickname = nickname;
         this.githubId = githubId;
         this.profileImage = profileImage;
-        this.authorities = authorities;
+        this.authorities = authorities != null ? authorities : new ArrayList<>();
         this.attributes = new HashMap<>();
     }
 
@@ -47,7 +81,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
                              Collection<? extends GrantedAuthority> authorities,
                              Map<String, Object> attributes) {
         this(code, email, password, nickname, githubId, profileImage, authorities);
-        this.attributes = attributes;
+        this.attributes = attributes != null ? attributes : new HashMap<>();
     }
 
     // OAuth2User 인터페이스 구현
@@ -58,7 +92,6 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getName() {
-        return this.code; // OAuth2User의 getName()은 유저의 고유 식별자를 반환
+        return this.code;
     }
-
 }

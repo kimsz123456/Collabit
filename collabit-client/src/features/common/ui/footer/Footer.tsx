@@ -34,7 +34,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="mb-20 flex justify-center gap-10 px-5 py-10 sm:justify-between md:mb-0 md:px-20">
+    <footer className="mx-auto mb-20 flex max-w-5xl justify-center gap-10 px-5 py-10 sm:justify-between md:mb-0 md:px-20">
       <div className="flex flex-col items-center gap-2 sm:items-start">
         <Link
           href="/"

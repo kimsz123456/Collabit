@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatMessageResponseDTO {
-    private int roomCode;
     private String nickname;
     private String message;
     private LocalDateTime timestamp;

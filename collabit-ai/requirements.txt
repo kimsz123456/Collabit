@@ -6,3 +6,4 @@ python-dotenv
 redis
 PyJWT
 pymysql
+flask-cors

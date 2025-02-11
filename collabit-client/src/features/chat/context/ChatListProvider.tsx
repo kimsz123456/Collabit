@@ -1,27 +1,37 @@
-import { ChatListResponse } from "@/shared/types/response/chat";
+import { ChatRoomListResponse } from "@/shared/types/response/chat";
+import { createContext, useContext } from "react";
 import {
-  createContext,
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useState,
-} from "react";
+  FetchNextPageOptions,
+  InfiniteQueryObserverResult,
+} from "@tanstack/react-query";
 
-export const ChatListContext = createContext<{
-  chatList: ChatListResponse[];
-  setChatList: Dispatch<SetStateAction<ChatListResponse[]>>;
-} | null>(null);
+interface ChatListContextType {
+  chatList: ChatRoomListResponse[] | undefined;
+  hasNextPage: boolean | undefined;
+  fetchNextPage: (
+    options?: FetchNextPageOptions | undefined,
+  ) => Promise<InfiniteQueryObserverResult>;
+}
+
+export const ChatListContext = createContext<ChatListContextType | null>(null);
 
 export const ChatListProvider = ({
   children,
   initialData,
+  hasNextPage,
+  fetchNextPage,
 }: {
   children: React.ReactNode;
-  initialData: ChatListResponse[];
+  initialData: ChatRoomListResponse[] | undefined;
+  hasNextPage: boolean | undefined;
+  fetchNextPage: (
+    options?: FetchNextPageOptions | undefined,
+  ) => Promise<InfiniteQueryObserverResult>;
 }) => {
-  const [chatList, setChatList] = useState(initialData);
   return (
-    <ChatListContext.Provider value={{ chatList, setChatList }}>
+    <ChatListContext.Provider
+      value={{ chatList: initialData, hasNextPage, fetchNextPage }}
+    >
       {children}
     </ChatListContext.Provider>
   );

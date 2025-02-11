@@ -70,7 +70,6 @@ public class ChatRoomListServiceTest {
     void testGetChatRoomByNickname() {
         // Given
         String userCode = "user1";
-        ChatRoomRequestDTO requestDTO = new ChatRoomRequestDTO("user2", "Text message");
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setCode(123);
         chatRoom.setUniqueCode("user1-user2");
@@ -79,7 +78,7 @@ public class ChatRoomListServiceTest {
         when(chatRoomRepository.findByUniqueCode("user1-user2")).thenReturn(Optional.of(chatRoom));
 
         // When
-        ChatRoomResponseDTO responseDTO = chatRoomListService.getChatRoomByNickname(userCode, requestDTO);
+        ChatRoomResponseDTO responseDTO = chatRoomListService.getChatRoomByNickname(userCode, "user2");
 
         // Then
         assertNotNull(responseDTO);
@@ -130,7 +129,6 @@ public class ChatRoomListServiceTest {
     void testGetChatRoomList() {
         // Given
         String userCode = "user1";
-        ChatRoomListRequestDTO requestDTO = new ChatRoomListRequestDTO(0); // 페이지 번호 0으로 설정
         ChatRoom chatRoom = ChatRoom.builder()
                 .code(123)
                 .uniqueCode("user1-user2")
@@ -146,13 +144,13 @@ public class ChatRoomListServiceTest {
                 .thenReturn(chatRoomPage);
 
         // When
-        PageResponseDTO responseDTO = chatRoomListService.getChatRoomList(userCode, requestDTO);
+        PageResponseDTO<List<ChatRoomListResponseDTO>> responseDTO = chatRoomListService.getChatRoomList(userCode, 0);
 
         // Then
         assertNotNull(responseDTO);
         assertEquals(1, responseDTO.getTotalElements());
         assertEquals(123, ((ChatRoomListResponseDTO)((List<?>)responseDTO.getContent()).get(0)).getRoomCode());
-        assertTrue(((ChatRoomListResponseDTO)((List<?>)responseDTO.getContent()).get(0)).getLastMessage() == null);
+        assertTrue(((ChatRoomListResponseDTO)((List<ChatRoomListResponseDTO>)responseDTO.getContent()).get(0)).getLastMessage() == null);
     }
 
 

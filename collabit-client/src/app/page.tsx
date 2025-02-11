@@ -1,8 +1,21 @@
+"use client";
+
 import CompareScoreSection from "@/features/main/CompareScoreSection";
-import HotIssueSection from "@/features/main/HotIssueSection";
 import MyProjectSection from "@/features/main/MyProjectSection";
+import { useState } from "react";
+
+import { useEffect } from "react";
+import PostCarouselSection from "@/features/community/ui/PostCarouselSection";
 
 export default function Home() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
+
   return (
     <div className="m-auto flex max-w-5xl flex-col items-center gap-11 py-5 md:py-10">
       <h2 className="sr-only">
@@ -10,10 +23,8 @@ export default function Home() {
         확인하세요.
       </h2>
       <CompareScoreSection />
-
       <MyProjectSection />
-
-      <HotIssueSection />
+      <PostCarouselSection type="latest" />
     </div>
   );
 }

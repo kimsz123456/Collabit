@@ -173,7 +173,7 @@ public class SurveyService {
 
     public SurveyEssay getEssay(String userCode, int projectInfoCode) {
         Query query = new Query();
-        query.addCriteria(Criteria.where("projectInfoCode").is(projectInfoCode + "")
+        query.addCriteria(Criteria.where("projectInfoCode").is(projectInfoCode)
                 .and("userCode").is(userCode));
 
         return mongoTemplate.findOne(query, SurveyEssay.class);

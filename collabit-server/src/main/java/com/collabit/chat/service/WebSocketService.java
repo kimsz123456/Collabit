@@ -13,6 +13,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -27,89 +28,90 @@ public class WebSocketService {
 
     // 채팅 메시지 처리
     public void handleChatMessage(WebSocketMessageDTO messageDTO, String userCode) {
-        String channelKey = RedisKeyUtil.getChatMessageChannelKey(messageDTO.getRoomCode());
-        log.debug("Received chat message from user {} with channel {}", userCode, channelKey);
+        int roomCode = messageDTO.getRoomCode();
+        log.debug("Handling chat message: room={}, user={}", roomCode, userCode);
+        // Redis에 메시지 발행 (다중 서버 환경을 위해)
+        String channelKey = RedisKeyUtil.getChatMessageChannelKey(roomCode);
         redisPublisher.publish(channelKey, messageDTO);
 
+        // STOMP를 통해 클라이언트에게 메시지 전송
+        String destination = "/topic/chat/" + roomCode;
+        messagingTemplate.convertAndSend(destination, messageDTO);
+
+        // DB에 메시지 저장
         ChatMessageRequestDTO chatMessage = ChatMessageRequestDTO.builder()
-                .roomCode(messageDTO.getRoomCode())
-                .message((String) messageDTO.getMessage())
+                .message(messageDTO.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
+        chatRoomDetailService.saveMessage(chatMessage, userCode, roomCode);
 
-        chatRoomDetailService.saveMessage(chatMessage, userCode, messageDTO.getRoomCode());
-
-        // STOMP 메시지 브로커에 메시지 전달
-        String destination = "/topic/room/" + messageDTO.getRoomCode();
-        messagingTemplate.convertAndSend(destination, messageDTO);
-        log.info("Message broadcasted to room {}", messageDTO.getRoomCode());
+        // 읽지 않은 메시지 상태 업데이트
+        chatRedisService.updateRoomMessageStatus(roomCode, userCode, false);
     }
 
     // 사용자가 채팅방에 입장할 때
     public void handleUserEnter(int roomCode, String userCode) {
-        // 사용자 입장 메시지 생성
-        ChatUserStatusDTO message = createRoomStatusMessage(userCode, roomCode, true);
-        log.debug("Received user entered room {}", roomCode);
-
+        // 사용자 입장 상태 메시지 생성
+        ChatUserStatusDTO statusMessage = createRoomStatusMessage(userCode, roomCode, true);
+        
         // Redis에 사용자 추가
         chatRedisService.addUserToRoom(roomCode, userCode);
-
-        // 상태 업데이트 발행
-        publishRoomStatusMessage(message, roomCode);
+        
+        // 상태 메시지 발행 (Redis + STOMP)
+        publishRoomStatusMessage(statusMessage, roomCode);
+        
+        String destination = "/topic/chat/" + roomCode;
+        messagingTemplate.convertAndSend(destination, 
+            Map.of("type", "USER_ENTER", "userCode", userCode));
+            
+        log.debug("User {} entered room {}", userCode, roomCode);
     }
 
     // 사용자가 채팅방을 떠날 때
     public void handleUserExit(int roomCode, String userCode) {
-        // 사용자 퇴장 메시지 생성
-        ChatUserStatusDTO message = createRoomStatusMessage(userCode, roomCode, false);
-        log.debug("Received user exiting room {}", roomCode);
-
+        // 사용자 퇴장 상태 메시지 생성
+        ChatUserStatusDTO statusMessage = createRoomStatusMessage(userCode, roomCode, false);
+        
         // Redis에서 사용자 제거
         chatRedisService.removeUserFromRoom(roomCode, userCode);
-
-        // 상태 업데이트 발행
-        publishRoomStatusMessage(message, roomCode);
+        
+        // 상태 메시지 발행 (Redis + STOMP)
+        publishRoomStatusMessage(statusMessage, roomCode);
+        
+        String destination = "/topic/chat/" + roomCode;
+        messagingTemplate.convertAndSend(destination, 
+            Map.of("type", "USER_EXIT", "userCode", userCode));
+            
+        log.debug("User {} exited room {}", userCode, roomCode);
     }
 
     // 방 이동
     public void switchUserRoom(String userCode, ChatRoomSwitchDTO switchDTO) {
-        // 새 방 코드
         int newRoomCode = switchDTO.getNewRoomCode();
-        log.debug("Received new room code {}", newRoomCode);
-
-        // 세션 업데이트
-        webSocketSessionManager.switchRoom(userCode, newRoomCode);
-
-        // Redis에서 상태 변경
-        redisPublisher.publish(RedisKeyUtil.getRoomStatusChannelKey(), "User " + userCode + " switched rooms.");
-
-        // STOMP 메시지 브로커에 상태 업데이트 전송
-        String destination = "/topic/room/" + newRoomCode;
-        messagingTemplate.convertAndSend(destination, "User " + userCode + " switched rooms.");
+        webSocketSessionManager.addUserToRoom(userCode, newRoomCode);
+        
+        // STOMP를 통해 방 변경 알림
+        String destination = "/topic/chat/" + newRoomCode;
+        messagingTemplate.convertAndSend(destination, 
+            Map.of("type", "USER_SWITCH", "userCode", userCode));
+            
+        log.debug("User {} switched to room {}", userCode, newRoomCode);
     }
 
     // 사용자 상태 메시지 생성
     private ChatUserStatusDTO createRoomStatusMessage(String userCode, int roomCode, boolean isOnline) {
-        // 입장/퇴장 상태를 나타내는 DTO 객체 생성
-        ChatUserStatusDTO message = new ChatUserStatusDTO();
-        message.setUserCode(userCode);
-        message.setOnline(isOnline);
-        message.setRoomCode(roomCode);
-        log.debug("UserStatusDTO: {}", message.toString());
-        return message;
+        return ChatUserStatusDTO.builder()
+                .userCode(userCode)
+                .roomCode(roomCode)
+                .isOnline(isOnline)
+                .build();
     }
 
     // 상태 메시지 Redis와 STOMP로 전송
     private void publishRoomStatusMessage(ChatUserStatusDTO message, int roomCode) {
-        // Redis로 상태 업데이트 메시지 발행
-        log.debug("Publishing room status message to room {}", roomCode);
-        String statusChannelKey = RedisKeyUtil.getRoomStatusChannelKey();
-        redisPublisher.publish(statusChannelKey, message);
-
-        // STOMP 브로커로 상태 업데이트 메시지 전송
-        String destination = "/topic/room/" + roomCode;
-        messagingTemplate.convertAndSend(destination, message);
-
-        log.info("User {} status updated in room {}", message.getUserCode(), roomCode);
+        // Redis pub/sub을 통한 서버 간 동기화
+        redisPublisher.publish(RedisKeyUtil.getRoomStatusChannelKey(), message);
+        log.debug("Published status message for user {} in room {}", 
+                 message.getUserCode(), message.getRoomCode());
     }
 }

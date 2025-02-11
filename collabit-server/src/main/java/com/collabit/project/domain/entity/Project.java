@@ -30,4 +30,8 @@ public class Project {
 
     @OneToMany(mappedBy = "project")
     private List<ProjectContributor> projectContributors;
+
+    public void updateOrganizationImage(String newImage) {
+        this.organizationImage = newImage;
+    }
 }

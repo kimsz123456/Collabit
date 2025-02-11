@@ -77,7 +77,6 @@ public class AuthService {
       cookie.setHttpOnly(true); // HttpOnly 설정
       cookie.setSecure(false); // HTTPS 에서만 동작
       cookie.setPath("/"); // 쿠키가 유효한 경로
-      cookie.setMaxAge((int) maxAge); // 만료 시간 (초 단위)
       response.addCookie(cookie); // 클라이언트로 쿠키 전송 필수
   }
 
@@ -119,19 +118,25 @@ public class AuthService {
 
     // refresh token을 통한 access token 재발급 메서드
     @Transactional
-    public void refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+    public boolean refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         // 1. cookie 에서 refresh token 추출
         String refreshToken = extractToken(request, "refreshToken");
         log.debug("Extracted Refresh Token: {}", refreshToken);
 
+        if (refreshToken == null) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        }
+
         // 2. 블랙리스트 확인 (로그아웃 된 토큰인지 검사)
         if (redisTemplate.hasKey("blacklist:" + refreshToken)) {
-            throw new RuntimeException("유효하지 않은 Refresh Token입니다. 재로그인이 필요합니다.");
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_BLACKLISTED);
         }
 
         // 3. Refresh token 유효성 검사
-        if (refreshToken == null || !tokenProvider.validateToken(refreshToken)) {
-            throw new RuntimeException("유효하지 않은 Refresh Token 입니다. 재 로그인이 필요합니다.");
+        try {
+            tokenProvider.validateToken(refreshToken);
+        } catch (BusinessException e){
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         Authentication authentication = tokenProvider.getAuthentication(refreshToken);
@@ -142,7 +147,9 @@ public class AuthService {
 
         // 5. 새 Access Token 을 쿠키에 저장
         addCookie(response, "accessToken", accessToken, tokenProvider.getAccessTokenExpireTime() / 1000);
+        log.debug("Access Token이 성공적으로 재발급");
 
+        return true;
     }
 
     // logout 메서드

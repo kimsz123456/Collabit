@@ -1,23 +1,26 @@
 package com.collabit.project.service;
 
-import com.collabit.global.service.RedisService;
+import com.collabit.portfolio.domain.dto.ScoreData;
+import com.collabit.portfolio.domain.entity.Description;
+import com.collabit.portfolio.domain.entity.Feedback;
+import com.collabit.portfolio.domain.entity.Portfolio;
+import com.collabit.portfolio.repository.DescriptionRepository;
+import com.collabit.portfolio.repository.FeedbackRepository;
+import com.collabit.portfolio.repository.PortfolioRepository;
 import com.collabit.project.domain.dto.*;
 import com.collabit.project.domain.entity.*;
-import com.collabit.project.repository.ContributorRepository;
-import com.collabit.project.repository.ProjectContributorRepository;
-import com.collabit.project.repository.ProjectInfoRepository;
-import com.collabit.project.repository.ProjectRepository;
+import com.collabit.project.exception.ProjectInfoNotFoundException;
+import com.collabit.project.repository.*;
 import com.collabit.user.domain.entity.User;
 import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,6 +35,13 @@ public class ProjectService {
     private final ProjectContributorRepository projectContributorRepository;
     private final UserRepository userRepository;
     private final ProjectRedisService projectRedisService;
+    private final TotalScoreRepository totalScoreRepository;
+    private final DescriptionRepository descriptionRepository;
+    private final PortfolioRepository portfolioRepository;
+    private final FeedbackRepository feedbackRepository;
+
+    @Value("${minimum.create.condition}")
+    private int minimumCreateCondition;
 
     // User 검증 메소드
     private User findUserByCode(String userCode) {
@@ -70,7 +80,7 @@ public class ProjectService {
     }
 
     // 프론트에서 받은 프로젝트 정보 검증 후 프로젝트 저장
-    public void saveProject(CreateProjectRequestDTO createProjectRequestDTO, String userCode) {
+     public void saveProject(CreateProjectRequestDTO createProjectRequestDTO, String userCode) {
         log.info("프로젝트 등록 시작 - CreateProjectRequestDTO: {}, userCode: {}", createProjectRequestDTO.toString(), userCode);
 
         // 1. 시용자 조회
@@ -93,6 +103,13 @@ public class ProjectService {
         else {
             log.debug("기존 프로젝트 발견 - projectCode: {}, title: {}, organization: {}",
                     project.getCode(), project.getTitle(), project.getOrganization());
+
+            // 기존에 있던 organization 이미지 변경이 발생한 경우 이미지 업데이트
+            if(!project.getOrganizationImage().equals(createProjectRequestDTO.getOrganizationImage())) {
+                project.updateOrganizationImage(createProjectRequestDTO.getOrganizationImage());
+                project = projectRepository.save(project);
+                log.debug("기존 프로젝트의 organization 이미지 업데이트");
+            }
         }
 
         // 3. ProjectInfo 저장
@@ -121,6 +138,12 @@ public class ProjectService {
 
             // 로그인 user는 해당 projectInfo의 contributor로 저장하지 않음
             if(contributorDetailDTO.getGithubId().equals(user.getGithubId())){
+                // 기존에 있던 contributor의 프로필 이미지 변경이 발생한 경우 이미지 업데이트
+                if(!contributorDetailDTO.getProfileImage().equals(user.getProfileImage())) {
+                    user.updateProfileImage(contributorDetailDTO.getProfileImage());
+                    userRepository.save(user);
+                    log.debug("기존 contributor의 프로필 이미지 업데이트");
+                }
                 continue;
             }
 
@@ -229,7 +252,7 @@ public class ProjectService {
                                         .code(projectInfo.getCode())
                                         .title(project.getTitle())
                                         .participant(projectInfo.getParticipant())
-                                        .isDone(projectInfo.isDone())
+                                        .isDone(projectInfo.getCompletedAt() != null)
                                         .newSurveyResponse(newSurveyResponseMap.getOrDefault(projectInfo.getCode(), false))
                                         .createdAt(projectInfo.getCreatedAt())
                                         .contributors(contributors)
@@ -255,8 +278,11 @@ public class ProjectService {
                             .build();
                 })
                 .collect(Collectors.toList());
+        log.info("로그인 유저의 전체 프로젝트 목록 조회 완료 - 조회된 organization 수: {}", result.size());
 
-        log.info("프로젝트 목록 조회 완료 - 조회된 organization 수: {}", result.size());
+        removeAllNotification(userCode);
+        log.debug("전체 목록 조회 시 Redis의 모든 알림 정보를 삭제 완료");
+
         return result;
     }
 
@@ -287,14 +313,17 @@ public class ProjectService {
     }
 
     // 프로젝트 설문조사 마감
-    public void updateProjectSurveyState(String userCode, int code) {
+    public void updateProjectSurveyState(String userCode, int projectInfoCode) {
         // 해당 projectInfo가 현재 로그인된 user의 소유가 맞는지 검증
-        ProjectInfo projectInfo = validateProjectInfo(userCode, code);
+        ProjectInfo projectInfo = validateProjectInfo(userCode, projectInfoCode);
 
-        if (projectInfo.isDone()) {
-            log.error("isDone이 이미 true인 경우 - 해당 ProjectInfo의 isDone: {}", true);
+        if (projectInfo.getCompletedAt() != null) {
+            log.error("completedAt에 날짜가 있는 경우 - 해당 ProjectInfo의 completedAt: {}", projectInfo.getCompletedAt());
             throw new RuntimeException("해당 프로젝트의 설문조사는 이미 마감되었습니다.");
         }
+
+        // Redis에 남아있는 알림 정보, 업데이트 되지 않은 참여자 업데이트
+        removeAllNotification(userCode);
 
         // 설문 참여자가 전체 컨트리뷰터 수의 1/2 이상일 경우에만 마감 가능
         if(projectInfo.getParticipant() < projectInfo.getTotal()/2) {
@@ -302,12 +331,71 @@ public class ProjectService {
             throw new RuntimeException("해당 프로젝트의 설문 참여자 수가 부족합니다. 전체 인원의 반 이상이 참여해야 마감이 가능합니다.");
         }
 
-       log.debug("해당 프로젝트 설문조사 마감 시작 - 해당 ProjectInfo의 isDone: {}", false);
-       projectInfo.completeSurvey();
-       projectInfoRepository.save(projectInfo);
-       log.debug("해당 프로젝트 설문조사 마감 완료");
+        // 설문조사 마감 시간 업데이트
+        log.debug("해당 프로젝트 설문조사 마감 시작 - 현재 completedAt: {}", (Object) null);
+        projectInfo.completeSurvey();
+        projectInfoRepository.save(projectInfo);
+        log.debug("해당 프로젝트 설문조사 마감 완료 - 현재 completedAt: {}", projectInfo.getCompletedAt());
 
-       // 포트폴리오 개발 시 isUpdate 함께 변경
+        // 포트폴리오가 있는 경우 isUpdate 갱신
+        portfolioRepository.findById(userCode).ifPresent(portfolio -> enablePortfolioUpdate(userCode));
+
+        // 마감된 해당 프로젝트의 객관식 점수, 참여자 수 업데이트
+        updateAllUserScore(projectInfo);
+    }
+
+    // 프로젝트 완료 시 갱신 여부 업데이트
+    public void enablePortfolioUpdate(String userCode) {
+        Portfolio portfolio = portfolioRepository.findById(userCode)
+                .orElseThrow(() -> new RuntimeException("아직 포트폴리오가 생성되지 않았습니다."));
+
+        // 해당 유저의 마감된 projectInfo 리스트
+        List<ProjectInfo> completedProjectList = projectInfoRepository.findByUser_CodeAndCompletedAtIsNotNull(userCode);
+        int totalParticipant = calTotalParticipant(completedProjectList);
+
+        // 포트폴리오 갱신 가능 여부
+        boolean isUpdate = canUpdatePortfolio(portfolio, totalParticipant);
+
+        if (isUpdate) {
+            portfolio.changeUpdateStatus();
+            portfolioRepository.save(portfolio);
+        }
+    }
+
+    private int calTotalParticipant(List<ProjectInfo> completedProjectList){
+        return completedProjectList.stream()
+                .mapToInt(ProjectInfo::getParticipant)
+                .sum();
+    }
+
+    public boolean canUpdatePortfolio(Portfolio portfolio, int participant) {
+        boolean isUpdate = false;
+        // 포트폴리오가 아직 생성 전이면 6명 이상인지 확인
+        if(portfolio == null && participant >= minimumCreateCondition){
+            isUpdate = true;
+        }
+        // 포트폴리오가 이미 생성되었다면 포트폴리오 테이블의 isUpdate도 확인
+        else if(portfolio != null && portfolio.getIsUpdate() && participant >= minimumCreateCondition){
+            isUpdate = true;
+        }
+        return isUpdate;
+    }
+
+    private void updateAllUserScore(ProjectInfo projectInfo){
+        TotalScore totalScore = totalScoreRepository.findAll().get(0);
+
+        totalScore = TotalScore.builder()
+                .code(totalScore.getCode())
+                .totalParticipant(totalScore.getTotalParticipant() + projectInfo.getParticipant())
+                .sympathy(totalScore.getSympathy() + projectInfo.getSympathy())
+                .listening(totalScore.getListening() + projectInfo.getListening())
+                .expression(totalScore.getExpression() + projectInfo.getExpression())
+                .problemSolving(totalScore.getProblemSolving() + projectInfo.getProblemSolving())
+                .conflictResolution(totalScore.getConflictResolution() + projectInfo.getConflictResolution())
+                .leadership(totalScore.getLeadership() + projectInfo.getLeadership())
+                .build();
+
+        totalScoreRepository.save(totalScore);
     }
 
     // 해당 프로젝트 설문에 참여한 사람이 없을 경우 프로젝트 삭제
@@ -316,7 +404,7 @@ public class ProjectService {
         ProjectInfo projectInfo = validateProjectInfo(userCode, code);
 
         // 설문 참여자가 있거나 마감됐을 경우 삭제 불가
-        if(projectInfo.isDone() || projectInfo.getParticipant() >= 1) {
+        if(projectInfo.getCompletedAt() != null || projectInfo.getParticipant() >= 1) {
             log.error("설문 참여자가 있거나 설문이 마감됐을 경우 삭제 불가");
             throw new RuntimeException("설문 참여자가 있거나 설문을 마감하였을 경우 삭제가 불가능합니다.");
         }
@@ -437,7 +525,7 @@ public class ProjectService {
                             .code(projectInfo.getCode())
                             .title(project.getTitle())
                             .participant(projectInfo.getParticipant())
-                            .isDone(projectInfo.isDone())
+                            .isDone(projectInfo.getCompletedAt() != null)
                             .newSurveyResponse(newSurveyResponseMap.getOrDefault(projectInfo.getCode(), false))
                             .createdAt(projectInfo.getCreatedAt())
                             .contributors(contributors)
@@ -482,22 +570,148 @@ public class ProjectService {
         log.debug("Redis에 알림이 있던 전체 projectInfo {}개에 대해 participant 수 업데이트 완료", notificationList.size());
     }
 
-    // 해당 프로젝트의 알림만 삭제
-    public void removeNotification(String userCode, int code){
-        log.debug("특정 프로젝트 알림 삭제 시작");
+    // 육각형 데이터 조회
+    public GetHexagonResponseDTO getHexagonGraph(int projectInfoCode) {
+        // 개인 역량별 평균 계산
+        Map<String, Double> personalData = getProjectInfoAverage(projectInfoCode);
 
-        // Redis에서 특정 프로젝트 알림 삭제하며 값 가져오기
-        Object value = projectRedisService.removeNotificationByUserCodeAndProjectCode(userCode, code);
+        // 전체 사용자의 역량별 평균 계산
+        Map<String, Double> totalData = getTotalUserAverage();
 
-        if (value != null) {
-            projectInfoRepository.findById(code) // projectInfo 조회
-                    .ifPresent(info -> {
-                        // Redis에서 가져온 값으로 participant 수 업데이트
-                        info.increaseParticipant(((Number) value).intValue());
-                        projectInfoRepository.save(info);
-                        log.debug("ProjectInfo(code: {}) participant 수 업데이트 완료: {}",
-                                code, value);
-                    });
+        // 각 항목에 대해 개인 평균, 전체 평균 비교하여 isPositive만 세팅
+        Map<String, Boolean> isAboveAverageBySkill = getSkillAboveAverageMap(personalData, totalData);
+
+        // Description 데이터 Map 변환
+        Map<String, Description> descriptionMap = descriptionRepository.findAll().stream()
+                .collect(Collectors.toMap(Description::getCode, desc -> desc));
+
+        // Feedback 데이터 Map 변환
+        Map<String, List<Feedback>> feedbackMap = feedbackRepository.findAll().stream()
+                .collect(Collectors.groupingBy(Feedback::getCode));
+
+        // List<SkillData>를 Map으로 변환하여 필드명에 맞게 매핑
+        Map<String, SkillData> skillDataMap = personalData.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> {
+                            // 각 code와 isPositive에 맞는 설명, 피드백을 매핑
+                            String code = entry.getKey();
+                            Description description = descriptionMap.get(code);
+                            boolean isPositive = isAboveAverageBySkill.get(code);
+
+                            String feedback = feedbackMap.get(code).stream()
+                                    .filter(f -> f.isPositive() == isPositive)
+                                    .findFirst()
+                                    .map(Feedback::getFeedback)
+                                    .orElse("");
+
+                            return SkillData.builder()
+                                    .score(entry.getValue())
+                                    .name(description.getName())
+                                    .description(description.getDescription())
+                                    .feedback(feedback)
+                                    .isPositive(isPositive)
+                                    .build();
+                        }
+                ));
+
+
+        return GetHexagonResponseDTO.builder()
+                .minScore(1)
+                .maxScore(5)
+                .sympathy(skillDataMap.get("sympathy"))
+                .listening(skillDataMap.get("listening"))
+                .expression(skillDataMap.get("expression"))
+                .problemSolving(skillDataMap.get("problem_solving"))
+                .conflictResolution(skillDataMap.get("conflict_resolution"))
+                .leadership(skillDataMap.get("leadership"))
+                .build();
+    }
+
+    // projectInfoCode를 받아 해당 projectInfo의 역량별 점수 매핑
+    private Map<String, Double> getProjectInfoAverage(int projectInfoCode) {
+        ProjectInfo projectInfo = projectInfoRepository.findById(projectInfoCode)
+                .orElseThrow(ProjectInfoNotFoundException::new);
+
+        if (projectInfo.getCompletedAt() == null) {
+            throw new RuntimeException("설문이 마감되지 않아 프로젝트 결과를 조회할 수 없습니다.");
         }
+
+        // code와 점수 매핑
+        Map<String, Integer> totalScores = Map.of(
+                "sympathy", projectInfo.getSympathy(),
+                "listening", projectInfo.getListening(),
+                "expression", projectInfo.getExpression(),
+                "problem_solving", projectInfo.getProblemSolving(),
+                "conflict_resolution", projectInfo.getConflictResolution(),
+                "leadership", projectInfo.getLeadership()
+        );
+
+        // 총점 데이터와 참여자 수로 5점 만점의 평균 계산
+        return calculateAverageScores(totalScores, projectInfo.getParticipant());
+    }
+
+    // 각 항목에 대해 평균 계산하는 메소드
+    private Map<String, Double> calculateAverageScores(Map<String, Integer> totalScores, int participant) {
+        Map<String, Double> averageScores = new HashMap<>();
+        totalScores.forEach((key, totalScore) -> {
+            double average = participant > 0 ? (double) totalScore / participant : 0;
+            average = Math.round(average * 10.0) / 10.0;
+            averageScores.put(key, average);
+        });
+        return averageScores;
+    }
+
+    // 개인의 각 역량이 전체 평균보다 높은지 낮은지 조회
+    private Map<String, Boolean> getSkillAboveAverageMap(Map<String, Double> personalData, Map<String, Double> totalData){
+        Map<String, Boolean> isAboveAverageMap = new HashMap<>();
+        personalData.forEach((key, personalScore) -> {
+            if (personalScore >= totalData.get(key)) {
+                isAboveAverageMap.put(key, true);
+            }
+            else{
+                isAboveAverageMap.put(key, false);
+            }
+        });
+        return isAboveAverageMap;
+    }
+
+    // 임시로 사용할 전체 사용자의 역량별 평균 계산
+    public Map<String, Double> getTotalUserAverage() {
+        TotalScore totalScore = totalScoreRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("전체 사용자의 점수 데이터가 존재하지 않습니다."));
+
+        int participant = totalScore.getTotalParticipant();
+
+        Map<String, Integer> totalScores = Map.of(
+                "sympathy", totalScore.getSympathy().intValue(),
+                "listening", totalScore.getListening().intValue(),
+                "expression", totalScore.getExpression().intValue(),
+                "problem_solving", totalScore.getProblemSolving().intValue(),
+                "conflict_resolution", totalScore.getConflictResolution().intValue(),
+                "leadership", totalScore.getLeadership().intValue()
+        );
+
+        return calculateAverageScores(totalScores, participant);
+    }
+
+    // 각 projectInfo 5점 평균 계산 후 코드에 이름, 점수 매핑해서 반환 (포트폴리오에서 사용)
+    public Map<String, ScoreData> getProjectInfoAverageWithName(int projectInfoCode) {
+        Map<String, Double> scores = getProjectInfoAverage(projectInfoCode);
+        return mapToNameAndValue(scores);
+    }
+
+    // code에 name과 5점 평균 매핑 (포트폴리오에서 사용)
+    private Map<String, ScoreData> mapToNameAndValue(Map<String, Double> scores) {
+        Map<String, Description> descriptionMap = descriptionRepository.findAll().stream()
+                .collect(Collectors.toMap(Description::getCode, desc -> desc));
+
+        Map<String, ScoreData> result = new HashMap<>();
+        scores.forEach((key, value) -> {
+            result.put(key, new ScoreData(descriptionMap.get(key).getName(), value));
+        });
+
+        return result;
     }
 }

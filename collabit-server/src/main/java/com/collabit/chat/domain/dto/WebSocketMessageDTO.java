@@ -1,7 +1,8 @@
 package com.collabit.chat.domain.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -10,15 +11,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WebSocketMessageDTO {
-    @JsonProperty("messageType")
-    private String messageType;
-
-    @JsonProperty("nickname")
     private String nickname;
-
-    @JsonProperty("roomCode")
-    private int roomCode;
-
-    @JsonProperty("message")
     private String message;
+    private String timestamp;
+    private int roomCode;
 }

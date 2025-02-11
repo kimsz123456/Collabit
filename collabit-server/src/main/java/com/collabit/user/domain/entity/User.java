@@ -48,12 +48,17 @@ public class User {
     @Column(name = "role", nullable = false)
     private Role role;
 
-    // 일반회원에 GitHub 연동을 위한 메서드
+    // 일반회원에 GitHub 연동을 위한 메소드
     public void linkGithub(String githubId) {
         this.githubId = githubId;
     }
+    
+    // 프로필 이미지 업데이트 메소드
+    public void updateProfileImage(String newImage) {
+        this.profileImage = newImage;
+    }
 
-    // 권한 정보를 반환하는 메서드
+    // 권한 정보를 반환하는 메소드
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(role); // 단일 권한일 경우
     }

@@ -2,6 +2,7 @@ package com.collabit.project.repository;
 
 import com.collabit.project.domain.entity.ProjectInfo;
 import io.lettuce.core.dynamic.annotation.Param;
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +21,7 @@ public interface ProjectInfoRepository extends JpaRepository<ProjectInfo, Intege
     @Query("SELECT DISTINCT pi FROM ProjectInfo pi " +
             "JOIN FETCH pi.project p " +
             "WHERE pi.user.code = :userCode")
-    List<ProjectInfo> findByUserCodeWithProject(@Param("userCode") String userCode);
+    List<ProjectInfo> findByUserCodeWithProject(String userCode);
 
     List<ProjectInfo> findByUserCode(String userCode);
 
@@ -37,4 +38,17 @@ public interface ProjectInfoRepository extends JpaRepository<ProjectInfo, Intege
             "WHERE p.code = :projectInfoCode")
     void updateSurveyScores(int projectInfoCode, int sympathy, int listening, int expression,
                             int problemSolving, int conflictResolution, int leadership);
+
+
+    @Query("SELECT p FROM ProjectInfo p WHERE p.user.code = :userCode AND p.completedAt IS NOT NULL")
+    List<ProjectInfo> findAllCompletedByUserCode(@Param("userCode") String userCode);
+
+    @Query("SELECT p FROM ProjectInfo p WHERE p.completedAt IS NOT NULL")
+    List<ProjectInfo> findAllCompleted();
+
+    List<ProjectInfo> findTop8ByUserCodeAndCompletedAtIsNotNullOrderByCompletedAtDesc(String userCode);
+
+    List<ProjectInfo> findByUser_CodeAndCompletedAtIsNotNull(String userCode);
+
+    List<ProjectInfo> findAllByUserCodeAndCompletedAtAfter(String userCode, LocalDateTime completedAtAfter);
 }
