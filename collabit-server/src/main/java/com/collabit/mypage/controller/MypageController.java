@@ -61,7 +61,7 @@ public class MypageController {
     @PatchMapping("/image")
     public ResponseEntity<ApiTextResponseDTO> changeProfileImage(@RequestBody ChangeProfileImageRequestDTO changeProfileImageRequestDTO) {
         String userCode = SecurityUtil.getCurrentUserCode();
-        String newProfileImage = changeProfileImageRequestDTO.get("profileImage"); // 요청으로 받은 새 이미지 URL
+        String newProfileImage = changeProfileImageRequestDTO.getProfileImage(); // 요청으로 받은 새 이미지 URL
 
         log.debug("changeProfileImage - userCode: {}, newProfileImage: {}", userCode, newProfileImage);
 
@@ -73,7 +73,7 @@ public class MypageController {
     @PatchMapping("/nickname")
     public ResponseEntity<ApiTextResponseDTO> changeNickname(@RequestBody ChangeNicknameRequestDTO changeNicknameRequestDTO) {
         String userCode = SecurityUtil.getCurrentUserCode();
-        String newNickname = changeNicknameRequestDTO.get("nickname"); // 요청으로 받은 새 닉네임
+        String newNickname = changeNicknameRequestDTO.getNickname(); // 요청으로 받은 새 닉네임
 
         log.debug("changeNickname - userCode: {}, newNickname: {}", userCode, newNickname);
 
