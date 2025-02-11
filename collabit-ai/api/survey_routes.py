@@ -17,8 +17,12 @@ def start_survey(survey_code):
         nickname = data.get("nickname")
 
         if not nickname:
-            return jsonify({"error": "Nickname is required"}), 400
+            return jsonify({"error": "Nickname is required"}), 401
 
+        if not mongodb.check_survey_multiple_exists(survey_code, user_code):
+            return jsonify({"error": "Survey_Multiple is not found"}), 403
+        if mongodb.check_survey_essay_exists(survey_code, user_code):
+            return jsonify({"error": "Survey_Essay already exists"}), 403
         session_id = f"{survey_code}_{user_code}"
 
         # Store survey info in Redis
@@ -92,6 +96,7 @@ def chat_survey(survey_code):
 
                 if "설문을 종료합니다" in bot_reply:
                     try:
+                        yield stream_service.create_pending_message()
                         # Save to MongoDB
                         mongodb.save_survey(survey_code, user_code, messages)
 

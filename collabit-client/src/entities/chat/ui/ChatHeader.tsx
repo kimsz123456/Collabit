@@ -25,15 +25,17 @@ const ChatHeader = ({
       <Button variant="ghost" className="h-8 w-8" onClick={handleBack}>
         <ArrowLeftIcon className="h-full w-full" />
       </Button>
-      <div className="flex items-center gap-2">
-        <Avatar className="h-6 w-6 md:h-8 md:w-8">
+      <div className="flex min-w-0 items-center gap-2">
+        <Avatar className="h-6 w-6 flex-shrink-0 md:h-8 md:w-8">
           <AvatarImage src={profileImage} />
           <AvatarFallback>{nickname}</AvatarFallback>
         </Avatar>
 
-        <div className="flex text-sm font-semibold md:text-base">
-          <p>{nickname}</p>
-          {projectName && <p className="ml-2 text-gray-500">{projectName}</p>}
+        <div className="flex min-w-0 overflow-hidden text-sm font-semibold md:text-base">
+          <p className="truncate">{nickname}</p>
+          {projectName && (
+            <p className="ml-2 truncate text-gray-500">{projectName}</p>
+          )}
         </div>
       </div>
     </div>

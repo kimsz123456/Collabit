@@ -20,5 +20,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
         "LEFT JOIN PostLike pl ON p.code = pl.id.postCode " +
         "GROUP BY p " +
         "ORDER BY COUNT(pl) DESC, p.createdAt DESC")
-    Page<Post> findTop3ByOrderByLikeCountAndCreatedAt(Pageable pageable);
+    Page<Post> findTop5ByOrderByLikeCountAndCreatedAt(Pageable pageable);
+
+    @Query("SELECT p FROM Post p ORDER BY p.createdAt DESC")
+    Page<Post> findAll(Pageable pageable);
 }

@@ -39,8 +39,8 @@ const SurveyBubble = ({
 
   if (isMe) {
     return (
-      <div className="flex gap-2">
-        <span className="whitespace-pre rounded-bl-lg rounded-br-lg rounded-tl-lg bg-violet-100 px-3 py-2 text-xs md:text-sm">
+      <div className="flex justify-end gap-2">
+        <span className="ml-20 max-w-[350px] rounded-bl-lg rounded-br-lg rounded-tl-lg bg-violet-100 px-3 py-2 text-xs sm:max-w-lg md:max-w-xl md:text-sm">
           {message}
         </span>
       </div>
@@ -48,7 +48,7 @@ const SurveyBubble = ({
   }
 
   return (
-    <div className="flex max-w-[350px] flex-col gap-1 md:max-w-3xl">
+    <div className="mr-20 flex max-w-[350px] flex-col gap-1 sm:max-w-lg md:max-w-xl">
       <div className="flex items-center gap-1">
         <Avatar className="flex h-8 w-8 gap-3 rounded-full border-2 border-violet-100">
           <AvatarImage

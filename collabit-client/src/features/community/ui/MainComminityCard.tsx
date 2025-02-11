@@ -14,16 +14,16 @@ const MainCommunityCard = ({ data }: { data: PostListResponse }) => {
       </p>
       <div className="flex items-center gap-1 text-xs">
         <div className="flex items-center text-gray-500">
-          <span>{data.comments}</span>
+          <span>{data.commentCount}</span>
           <span>개의 답글</span>
         </div>
         <span>·</span>
         <div className="flex items-center gap-1">
           <Heart
-            className={`${data.isLiked ? "fill-red-500 text-red-500" : ""}`}
+            className={`${data.liked ? "fill-red-500 text-red-500" : ""}`}
             style={{ width: "16px", height: "16px" }}
           />
-          <span>{data.likes}</span>
+          <span>{data.likeCount}</span>
         </div>
       </div>
     </Card>

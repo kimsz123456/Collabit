@@ -10,7 +10,9 @@ const ReportTitle = ({
       <h2 className="mb-2 bg-violet-50 text-2xl font-semibold text-gray-700">
         {`# ${title}`}
       </h2>
-      {description && <p className="text-sm text-gray-500">{description}</p>}
+      {description && (
+        <p className="mb-2 text-sm text-gray-500">{description}</p>
+      )}
     </div>
   );
 };

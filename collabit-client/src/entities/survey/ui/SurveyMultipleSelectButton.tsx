@@ -4,22 +4,30 @@ import { useState } from "react";
 
 interface SurveyMultipleSelectButtonProps {
   index: number;
-  onClick: () => void;
+  onClick?: () => void;
+  selectedScore?: number;
+  readOnly?: boolean;
 }
 
 const SurveyMultipleSelectButton = ({
   index,
   onClick,
+  selectedScore,
+  readOnly = false,
 }: SurveyMultipleSelectButtonProps) => {
-  const [selectedValue, setSelectedValue] = useState<number | null>(null);
+  const [selectedValue, setSelectedValue] = useState<number | null>(
+    selectedScore || null,
+  );
   const setMultipleAnswers = useSurveyStore(
     (state) => state.setMultipleAnswers,
   );
 
   const handleClick = (value: number) => {
+    if (readOnly) return;
+
     setMultipleAnswers(value, index);
     setSelectedValue(value);
-    onClick();
+    onClick?.();
   };
 
   return (
@@ -34,15 +42,16 @@ const SurveyMultipleSelectButton = ({
         { value: 3, emoji: "🙂", label: "보통" },
         { value: 4, emoji: "😀", label: "만족" },
         { value: 5, emoji: "😆", label: "매우 만족" },
-      ].map(({ value, emoji, label }, index) => (
+      ].map(({ value, emoji, label }, btnIndex) => (
         <ImojiButton
           key={value}
-          isSelected={selectedValue === value}
+          isSelected={selectedValue === value || selectedScore === value}
           onClick={() => handleClick(value)}
+          disabled={readOnly}
           role="radio"
-          aria-checked={selectedValue === value}
+          aria-checked={selectedValue === value || selectedScore === value}
           aria-label={label}
-          index={index}
+          index={btnIndex}
         >
           {emoji}
         </ImojiButton>
@@ -50,4 +59,5 @@ const SurveyMultipleSelectButton = ({
     </div>
   );
 };
+
 export default SurveyMultipleSelectButton;

@@ -28,14 +28,12 @@ export default function ChatList() {
     };
   }, [hasNextPage, fetchNextPage]);
 
-  if (!chatList) return null;
-
   return (
     <div className="flex flex-col items-center gap-3 px-2 md:py-4">
       <ChatNav />
 
       <div className="flex h-[calc(100vh-220px)] w-full flex-col gap-2 overflow-y-auto md:h-[calc(100vh-192px)]">
-        {chatList.length > 0 ? (
+        {chatList && chatList.length > 0 ? (
           chatList.map((item) => (
             <ChatListCard
               type="chat"

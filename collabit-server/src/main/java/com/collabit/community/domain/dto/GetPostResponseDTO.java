@@ -1,5 +1,6 @@
 package com.collabit.community.domain.dto;
 
+import java.util.List;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -11,12 +12,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 public class GetPostResponseDTO {
-    int code;
-    String userNickname;
-    String content;
-    String[] images;
+    private int code;
+    private String content;
+    private List<String> images;
+    private int commentCount;
+    private int likeCount;
+    private boolean liked;
+    private Author author;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
-    int likeCount;
-    boolean isLiked;
 }

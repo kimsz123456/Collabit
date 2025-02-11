@@ -9,16 +9,37 @@ import {
   CarouselPrevious,
 } from "@/shared/ui/carousel";
 import { useState } from "react";
-import MainCommunityCard from "../community/ui/MainComminityCard";
+import MainCommunityCard from "./MainComminityCard";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getMainPostAPI,
+  getRecommendPostAPI,
+} from "@/shared/api/community";
 
-const HotIssueSection = () => {
+const PostCarouselSection = ({ type }: { type: string }) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
 
+  const { data: latestPost } = useQuery({
+    queryKey: ["latestPost"],
+    queryFn: () => getMainPostAPI(),
+    enabled: type === "latest",
+  });
+
+  const { data: recommendPost } = useQuery({
+    queryKey: ["recommendPost"],
+    queryFn: () => getRecommendPostAPI(),
+    enabled: type === "recommend",
+  });
+
+  const data = type === "latest" ? latestPost : recommendPost;
+
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 border-b-2 border-gray-200 pb-10 md:gap-8">
-      <h3 className="text-lg font-bold md:text-xl">요즘 핫한 소식</h3>
+      <h3 className="text-lg font-bold md:text-xl">
+        {type === "latest" ? "요즘 핫한 소식" : "추천 게시물"}
+      </h3>
 
       <div className="flex w-full flex-col items-center justify-center gap-4">
         <Carousel
@@ -29,8 +50,11 @@ const HotIssueSection = () => {
           className="w-full"
         >
           <CarouselContent>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+            {data?.map((post) => (
+              <CarouselItem
+                key={post.code}
+                className="md:basis-1/2 lg:basis-1/3"
+              >
                 <div className="px-2 py-2">
                   <MainCommunityCard data={post} />
                 </div>
@@ -52,19 +76,4 @@ const HotIssueSection = () => {
   );
 };
 
-export default HotIssueSection;
-const post = {
-  code: 123,
-  content: "123",
-  createdAt: "2025-01-02",
-  updatedAt: "2025-01-02",
-  images: ["https://github.com/kimchulsoo.png"],
-  likes: 10,
-  comments: 5,
-  isLiked: false,
-  author: {
-    nickname: "김철수",
-    githubId: "kimchulsoo",
-    profileImage: "https://github.com/kimchulsoo.png",
-  },
-};
+export default PostCarouselSection;

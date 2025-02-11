@@ -35,16 +35,16 @@ const ProjectListCard = ({
       onClick={onClick}
       className="flex cursor-pointer flex-col items-center justify-between gap-3 bg-violet-50 px-4 py-4 drop-shadow-lg"
     >
-      <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-3">
-          <CardTitle className="text-lg">{project.title}</CardTitle>
-          <CardDescription className="text-xs">
+      <div className="flex w-full items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <CardTitle className="truncate text-lg">{project.title}</CardTitle>
+          <CardDescription className="shrink-0 text-xs">
             {formatRelativeTime(project.createdAt)}
           </CardDescription>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="z-10 flex h-5 w-5 items-center justify-center text-gray-400"
+            className="z-10 flex h-5 w-5 shrink-0 items-center justify-center text-gray-400"
             onClick={(e) => e.stopPropagation()}
           >
             <Ellipsis />

@@ -4,6 +4,13 @@ import optimizeImageToWebP from "../utils/optimizeImageToWebP";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+const fetchOptions = {
+  credentials: "include" as RequestCredentials,
+  headers: {
+    "Content-Type": "application/json",
+  },
+};
+
 export const createPostAPI = async (post: CreatePostRequest) => {
   const formData = new FormData();
   formData.append("content", post.content);
@@ -25,14 +32,16 @@ export const createPostAPI = async (post: CreatePostRequest) => {
   const response = await fetch(`${apiUrl}/post`, {
     method: "POST",
     body: formData,
-    credentials: "include",
+    ...fetchOptions,
   });
   return response.json();
 };
 
 export const getPostListAPI = async (): Promise<PostListResponse[]> => {
   try {
-    const response = await fetch(`${apiUrl}/post`);
+    const response = await fetch(`${apiUrl}/post`, {
+      ...fetchOptions,
+    });
     if (response.ok) {
       return response.json();
     } else {
@@ -47,7 +56,9 @@ export const getPostListAPI = async (): Promise<PostListResponse[]> => {
 export const getPostAPI = async (
   postCode: number,
 ): Promise<PostDetailResponse> => {
-  const response = await fetch(`${apiUrl}/post/${postCode}`);
+  const response = await fetch(`${apiUrl}/post/${postCode}`, {
+    ...fetchOptions,
+  });
   return response.json();
 };
 
@@ -62,7 +73,7 @@ export const editPostAPI = async (postCode: number, post: EditPostRequest) => {
   const response = await fetch(`${apiUrl}/post/${postCode}`, {
     method: "PATCH",
     body: formData,
-    credentials: "include",
+    ...fetchOptions,
   });
   return response.json();
 };
@@ -70,6 +81,7 @@ export const editPostAPI = async (postCode: number, post: EditPostRequest) => {
 export const deletePostAPI = async (postCode: number) => {
   const response = await fetch(`${apiUrl}/post/${postCode}`, {
     method: "DELETE",
+    ...fetchOptions,
   });
   return response.json();
 };
@@ -77,10 +89,7 @@ export const deletePostAPI = async (postCode: number) => {
 export const likePostAPI = async (postCode: number) => {
   const response = await fetch(`${apiUrl}/post/${postCode}/like`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
+    ...fetchOptions,
   });
   return response.json();
 };
@@ -88,10 +97,31 @@ export const likePostAPI = async (postCode: number) => {
 export const unlikePostAPI = async (postCode: number) => {
   const response = await fetch(`${apiUrl}/post/${postCode}/like`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
+    ...fetchOptions,
   });
   return response.json();
+};
+
+export const getMainPostAPI = async (): Promise<PostListResponse[]> => {
+  try {
+    const response = await fetch(`${apiUrl}/post/latest`, {
+      ...fetchOptions,
+    });
+    return response.json();
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
+export const getRecommendPostAPI = async (): Promise<PostListResponse[]> => {
+  try {
+    const response = await fetch(`${apiUrl}/post/recommend`, {
+      ...fetchOptions,
+    });
+    return response.json();
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 };

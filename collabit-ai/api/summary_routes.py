@@ -51,7 +51,7 @@ def get_wordcloud():
   except Exception as e:
     return jsonify({"error": str(e)}), 500
 
-@summary_bp.route("/ai/portfolio/essay/ai-summary", methods=["GET"])
+@summary_bp.route("/ai/portfolio", methods=["POST"])
 def get_ai_summary():
     try:
       user_code = "57b6a621-9e43-4389-83b7-249b7b5ab929"
@@ -86,16 +86,35 @@ def get_ai_summary():
   {' // '.join(weakness_answers)}""")
       ]
 
-      summary_stream = chat_service.generate_response(summary_messages)
-      summary_response = []
+      analysis_stream = chat_service.generate_response(summary_messages)
+      analysis_response = []
 
-      for chunk in summary_stream:
+      for chunk in analysis_stream:
         if chunk.choices[0].delta.content:
-          summary_response.append(chunk.choices[0].delta.content)
+          analysis_response.append(chunk.choices[0].delta.content)
 
-      summary_result = json.loads(''.join(summary_response))
-
-      return jsonify(summary_result), 200
+      ai_analysis = json.loads(''.join(analysis_response))
+      mongodb.save_ai_analysis(user_code, ai_analysis)
+      return "", 200
 
     except Exception as e:
       return jsonify({"error": str(e)}), 500
+
+
+@summary_bp.route("/ai/portfolio/essay/ai-summary", methods=["GET"])
+def get_summary():
+  try:
+    user_code = "57b6a621-9e43-4389-83b7-249b7b5ab929"
+    # decode_jwt_from_cookie()
+
+    summary = mongodb.ai_analysis.find_one(
+        {"user_code": user_code},
+        {"_id": 0, "analysis_results": 1}
+    )
+
+    if summary:
+      return jsonify(summary["analysis_results"]), 200
+    return jsonify({"error": "Summary not found"}), 404
+
+  except Exception as e:
+    return jsonify({"error": str(e)}), 500

@@ -57,6 +57,18 @@ class StreamService:
     return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
   @staticmethod
+  def create_pending_message() -> str:
+    """
+    설문 완료 메시지 생성
+    """
+    data = {
+      "status": "pending",
+      "timestamp": datetime.now().isoformat(),
+      "response": "저장중입니다."
+    }
+    return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+  @staticmethod
   def create_completion_message() -> str:
     """
     설문 완료 메시지 생성

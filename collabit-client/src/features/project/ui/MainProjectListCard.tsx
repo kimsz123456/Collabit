@@ -69,22 +69,24 @@ const MainProjectListCard = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="flex w-full items-center justify-between">
-        <div className="flex flex-col items-start justify-center">
-          <CardTitle className="text-lg">{project.title}</CardTitle>
+      <div className="flex w-full items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-1 flex-col items-start justify-center">
+          <CardTitle className="w-full truncate text-lg">
+            {project.title}
+          </CardTitle>
           <span className="text-xs text-gray-500">
             {formatRelativeTime(project.createdAt)}
           </span>
         </div>
         {project.done ? (
           <>
-            <Button className="z-5 disabled bg-gray-400 px-2 text-xs font-semibold">
+            <Button className="z-5 disabled shrink-0 bg-gray-400 px-2 text-xs font-semibold">
               종료됨
             </Button>
           </>
         ) : (
           <Button
-            className="z-5 bg-black px-2 text-xs font-semibold"
+            className="z-5 shrink-0 bg-black px-2 text-xs font-semibold"
             onClick={(e) => {
               e.stopPropagation();
               handleFinishSurvey(project.code);

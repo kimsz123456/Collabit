@@ -1,4 +1,3 @@
-import createEventStream from "../lib/stream/createEvetStream";
 import {
   MultipleQueriesResponse,
   SurveyDetailResponse,
@@ -6,7 +5,7 @@ import {
 } from "../types/response/survey";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-const flaskApiUrl = process.env.NEXT_PUBLIC_FLASK_API_URL;
+const flaskApiUrl = process.env.NEXT_PUBLIC_AI_URL;
 
 // 설문 리스트 조회
 export const getSurveyListAPI = async (): Promise<SurveyListResponse[]> => {
@@ -14,6 +13,7 @@ export const getSurveyListAPI = async (): Promise<SurveyListResponse[]> => {
     headers: { "Content-Type": "application/json" },
     credentials: "include",
   });
+
   if (!response.ok) {
     throw new Error("설문 리스트 조회 실패");
   }
@@ -56,36 +56,41 @@ export const sendMultipleSurveyAnswerAPI = async (
 
 // 주관식 설문 시작 post
 //survey/{surveyCode}
-export const startEssaySurveyAPI = async (surveyCode: number) => {
-  console.log("Flask API URL:", flaskApiUrl);
+export const startEssaySurveyAPI = async (
+  surveyCode: number,
+  body: string,
+): Promise<Response> => {
   const response = await fetch(`${flaskApiUrl}/survey/${surveyCode}`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Accept: "text/event-stream", // SSE를 위한 헤더 추가
+      Accept: "text/event-stream",
     },
+    body: JSON.stringify({ nickname: body }),
     credentials: "include",
   });
 
   if (!response.ok) {
     throw new Error("주관식 설문 시작 실패");
   }
-
-  const reader = response.body?.getReader();
-  if (!reader) {
-    throw new Error("스트림 리더를 생성할 수 없습니다");
-  }
-
-  return createEventStream(response);
+  return response;
 };
 
 // 주관식 설문 진행 post
 //survey/{surveyCode}/essay
-export const essaySurveyProgressAPI = async (surveyCode: number) => {
+export const essaySurveyProgressAPI = async (
+  surveyCode: number,
+  body: string,
+): Promise<Response> => {
+  console.log(body);
+
   const response = await fetch(`${flaskApiUrl}/survey/${surveyCode}/essay`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "text/event-stream", // SSE를 위한 헤더 추가
     },
+    body: JSON.stringify({ content: body }),
     credentials: "include",
   });
 
@@ -93,12 +98,7 @@ export const essaySurveyProgressAPI = async (surveyCode: number) => {
     throw new Error("주관식 설문 진행 실패");
   }
 
-  const reader = response.body?.getReader();
-  if (!reader) {
-    throw new Error("스트림 리더를 생성할 수 없습니다");
-  }
-
-  return createEventStream(response);
+  return response;
 };
 
 // 설문 디테일 조회

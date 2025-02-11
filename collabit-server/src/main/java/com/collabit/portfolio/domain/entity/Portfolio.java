@@ -56,30 +56,8 @@ public class Portfolio {
     @JoinColumn(name = "user_code")
     private User user;
 
-    public void update(
-            String userCode,
-            int project,
-            int participant,
-            Long sympathy,
-            Long listening,
-            Long expression,
-            Long problemSolving,
-            Long conflictResolution,
-            Long leadership,
-            LocalDateTime updatedAt
-    ) {
-        this.userCode = userCode;
-        this.project = project;
-        this.participant = participant;
-        this.sympathy = sympathy;
-        this.listening = listening;
-        this.expression = expression;
-        this.problemSolving = problemSolving;
-        this.conflictResolution = conflictResolution;
-        this.leadership = leadership;
-        this.isUpdate = true;
-        this.updatedAt = updatedAt;
-    }
+    @Version
+    private Long version;
 
     public void changeUpdateStatus(){
         this.isUpdate = true;
