@@ -195,7 +195,7 @@ public class PortfolioService {
     private Map<String, Double> calculateAverageScores(Map<String, Integer> totalScores, int participant) {
         Map<String, Double> averageScores = new HashMap<>();
         totalScores.forEach((key, totalScore) -> {
-            double average = participant > 0 ? (double) totalScore / participant : 0;
+            double average = participant > 0 ? (double) totalScore / participant / 4: 0;
             average = Math.round(average * 10.0) / 10.0;
             averageScores.put(key, average);
         });
