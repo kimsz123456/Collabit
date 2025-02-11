@@ -30,6 +30,10 @@ public enum ErrorCode {
     // 400 Bad Request (잘못된 형식)
     INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "인증코드가 틀립니다."),
 
+    // 403 Forbidden (인가 실패)
+    EMAIL_VERIFY_DENIED(HttpStatus.FORBIDDEN, "이메일 검증 토큰이 필요합니다."),
+    PASSWORD_CHANGE_DENIED(HttpStatus.FORBIDDEN, "비밀번호 변경 검증 토큰이 필요합니다."),
+
     // 409 Conflict (중복)
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 이메일입니다."),
     NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 닉네임입니다."),
@@ -37,7 +41,11 @@ public enum ErrorCode {
     // =========== portfolio ===========
     SURVEY_NOT_CLOSED(HttpStatus.BAD_REQUEST, "설문이 마감되지 않아 프로젝트 결과를 조회할 수 없습니다."),
     PROJECT_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 프로젝트 정보를 찾을 수 없습니다."),
-    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당되는 피드백 정보를 찾을 수 없습니다.");
+    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당되는 피드백 정보를 찾을 수 없습니다."),
+
+    // =========== Mypage ===========
+    // 400 Bad Request (잘못된 형식)
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 틀립니다.");
 
     // =========== Business ===========
 
