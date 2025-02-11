@@ -1,13 +1,16 @@
 package com.collabit.auth.service;
 
+import com.collabit.global.security.TokenProvider;
 import com.collabit.global.service.RedisService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.core.token.TokenService;
 import org.springframework.stereotype.Service;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +23,8 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
     private final RedisService redisService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final TokenProvider tokenProvider;
+    private final AuthService authService;
 
     private static final long EXPIRE_MINUTES = 5; // 인증 코드 유효 시간: 5분
     private static final String EMAIL_SUBJECT = "[Collabit] 회원가입 인증 코드";
@@ -73,4 +78,9 @@ public class EmailService {
 
     }
 
+    public void generateVerificationTokenEmailService(String email, HttpServletResponse response) {
+        String verificationToken = tokenProvider.generateVerificationToken(email);
+        authService.addCookie(response, "verificationToken", verificationToken, 600); // 10분 유효
+
+    }
 }
