@@ -3,6 +3,7 @@ package com.collabit.auth.controller;
 import com.collabit.auth.domain.dto.*;
 import com.collabit.auth.service.AuthService;
 import com.collabit.auth.service.EmailService;
+import com.collabit.global.security.TokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,15 +23,17 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
     private final EmailService emailService;
+    private final TokenProvider tokenProvider;
 
 
     // 회원가입
     @Operation(summary = "일반 회원가입", description = "일반 사이트 자체 회원가입 하는 API입니다.")
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@Valid @RequestBody UserSignupRequestDTO userSignupRequestDTO) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody UserSignupRequestDTO userSignupRequestDTO,
+                                    HttpServletRequest request) {
         log.debug("signUp Request: {}", userSignupRequestDTO.toString());
 
-        UserResponseDTO userResponseDto = authService.signup(userSignupRequestDTO);
+        UserResponseDTO userResponseDto = authService.signup(userSignupRequestDTO, request);
         log.debug("signUp Response: {}", userResponseDto.toString());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDto);
@@ -91,14 +94,18 @@ public class AuthController {
     // 이메일 인증 코드 검증
     @Operation(summary = "이메일 인증 코드 검증", description = "회원가입 시 요청한 이메일 인증코드를 검증하는 API입니다." )
     @PostMapping("/verify-email")
-    public ResponseEntity<ApiTextResponseDTO> verifyEmail(@RequestBody EmailVerifyRequestDTO emailVerifyRequestDto) {
+    public ResponseEntity<ApiTextResponseDTO> verifyEmail(@RequestBody EmailVerifyRequestDTO emailVerifyRequestDto,
+                                                          HttpServletResponse response) {
         String email = emailVerifyRequestDto.getEmail();
         int code = emailVerifyRequestDto.getCode();
 
         String result = emailService.verifyCode(email, code);
         switch (result) {
             case "성공":
-                return ResponseEntity.ok(new ApiTextResponseDTO("이메일 인증 성공"));
+                // 이메일 인증 성공 → "이메일 검증 인증 토큰" 생성
+                emailService.generateVerificationTokenEmailService(email, response);
+
+                return ResponseEntity.ok(new ApiTextResponseDTO("이메일 인증 성공 회원가입 진행 가능"));
             case "틀림":
                 return ResponseEntity.badRequest().body(new ApiTextResponseDTO("이메일 인증 실패: 코드가 틀립니다."));
             case "만료":
