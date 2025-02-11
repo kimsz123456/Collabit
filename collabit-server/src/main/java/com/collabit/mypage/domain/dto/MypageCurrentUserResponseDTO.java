@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @ToString
 @Getter
-public class MypageCurrentUserDTO {
+public class MypageCurrentUserResponseDTO {
     private String email;
     private String githubId;
     private String nickname;
