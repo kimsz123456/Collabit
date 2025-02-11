@@ -3,6 +3,8 @@ package com.collabit.global.security;
 import com.collabit.auth.domain.dto.TokenDTO;
 
 import com.collabit.auth.exception.InvalidTokenException;
+import com.collabit.global.common.ErrorCode;
+import com.collabit.global.error.exception.BusinessException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -143,7 +145,8 @@ public class TokenProvider {
         try {
             Jwts.parserBuilder() // JWT token 을 파싱하기 위한 객체 생성
                     .setSigningKey(key) // 서명 검증에 사용할 키(비밀키)
-                    .build().parseClaimsJws(token); // token 검증
+                    .build()
+                    .parseClaimsJws(token); // token 검증
             log.debug("Token validated");
             return true;
         } catch (SecurityException | MalformedJwtException e) {
@@ -159,11 +162,13 @@ public class TokenProvider {
     }
 
     // JWT 토큰 파싱해서 내부 claims 추출
-    private Claims parseClaims(String accessToken) {
+    private Claims parseClaims(String token) {
         try {
             return Jwts.parserBuilder().
                     setSigningKey(key) // 서명검증을 위한 비밀키 등록
-                    .build().parseClaimsJws(accessToken).getBody();
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
         } catch (ExpiredJwtException e) {
             return e.getClaims();
         }
@@ -190,6 +195,61 @@ public class TokenProvider {
 
     public long getRefreshTokenExpireTime() {
         return REFRESH_TOKEN_EXPIRE_TIME;
+    }
+
+    // 회원가입시 이메일 검증을 위한 임시 인증 토큰 발급 메서드
+    public String generateVerificationToken(String email) {
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
+                .setSubject(email) // 토큰의 subject 를 이메일로 설정
+                .claim("purpose", "EMAIL_VERIFICATION") // 토큰 용도를 EMAIL_VERIFICATION로 지정
+                .setExpiration(new Date(now + 1000 * 60 * 10)) // 10분 유효
+                .signWith(key, SignatureAlgorithm.HS512) // 서명 생성
+                .compact();
+    }
+
+    // 회원가입시 이메일 검증을 위한 임시 인증 토큰 검증 메서드
+    public Claims validateVerificationToken(String token) {
+        validateToken(token);
+
+        Claims claims = parseClaims(token);
+
+        // 토큰의 용도가 EMAIL_VERIFICATION인지 확인
+        if (!"EMAIL_VERIFICATION".equals(claims.get("purpose", String.class))) {
+            throw new InvalidTokenException();
+        }
+
+        return claims;
+    }
+
+    // 마이페이지 비밀번호 변경을 위한 임시 인증 토큰 발급 메서드
+    public String generatePasswordChangeToken(String userCode) {
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
+                .setSubject(userCode) // userCode를 토큰의 subject로 사용
+                .claim("purpose", "PASSWORD_CHANGE") // 토큰의 용도 지정
+                .setExpiration(new Date(now + 1000 * 60 * 10)) // 10분 유효
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    // 마이페이지 비밀번호 변경을 위한 임시 인증 토큰 검증 메서드
+    public Claims validatePasswordChangeToken(String token, String userCode) {
+        validateToken(token);
+
+        Claims claims = parseClaims(token);
+
+        // 토큰의 용도가 PASSWORD_CHANGE인지 확인
+        if (!"PASSWORD_CHANGE".equals(claims.get("purpose", String.class))) {
+            throw new InvalidTokenException();
+        }
+
+        // 동일한 유저인지 확인
+        if (!userCode.equals(claims.getSubject())) {
+            throw new InvalidTokenException();
+        }
+
+        return claims;
     }
 
 }
