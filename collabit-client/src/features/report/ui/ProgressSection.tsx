@@ -1,16 +1,15 @@
 import ProgressChart from "@/entities/chart/ui/ProgressChart";
 import ReportTitle from "@/entities/report/ui/ReportTitle";
-import { ChartRangeData, SkillData } from "@/shared/types/response/report";
+import { SkillData } from "@/shared/types/response/report";
 import { Badge } from "@/shared/ui/badge";
 
-const ProgressSection = ({ data }: { data: ChartRangeData & SkillData }) => {
-  const { minScore, maxScore, ...progressItems } = data;
+const ProgressSection = ({ data }: { data: SkillData }) => {
 
   return (
     <div className="flex flex-col gap-4 bg-white">
       <ReportTitle title="전체 이용자 대비 협업 능력" />
       <div className="grid grid-cols-2 gap-4">
-        {Object.entries(progressItems).map(([key, value]) => (
+        {Object.entries(data).map(([key, value]) => (
           <div key={key}>
             <div className="flex items-center justify-between gap-2">
               <Badge className="bg-violet-100 text-sm text-black hover:bg-violet-300">

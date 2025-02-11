@@ -22,7 +22,7 @@ export interface SkillData {
 
 export type ChartResponse = {
   hexagon: ChartRangeData & SkillData;
-  progress: ChartRangeData & SkillData;
+  progress: SkillData;
 };
 
 export type WordWeight = {

@@ -95,14 +95,12 @@ public class PortfolioService {
             .build();
 
         GetProgressResponseDTO progress = GetProgressResponseDTO.builder()
-            .sympathy(buildScoreData("sympathy", userAverages.get("sympathy"), totalUserAverages.get("sympathy")))
-            .listening(buildScoreData("listening", userAverages.get("listening"), totalUserAverages.get("listening")))
-            .expression(buildScoreData("expression", userAverages.get("expression"), totalUserAverages.get("expression")))
-            .problemSolving(buildScoreData("problemSolving", userAverages.get("problem_solving"), totalUserAverages.get("problem_solving")))
-            .conflictResolution(buildScoreData("conflictResolution", userAverages.get("conflict_resolution"), totalUserAverages.get("conflict_resolution")))
-            .leadership(buildScoreData("leadership", userAverages.get("leadership"), totalUserAverages.get("leadership")))
-            .minScore(1)
-            .maxScore(5)
+            .sympathy(buildScoreData("sympathy", userAverages.get("sympathy"), totalUserAverages.get("sympathy"), descriptionMap))
+            .listening(buildScoreData("listening", userAverages.get("listening"), totalUserAverages.get("listening"), descriptionMap))
+            .expression(buildScoreData("expression", userAverages.get("expression"), totalUserAverages.get("expression"), descriptionMap))
+            .problemSolving(buildScoreData("problem_solving", userAverages.get("problem_solving"), totalUserAverages.get("problem_solving"), descriptionMap))
+            .conflictResolution(buildScoreData("conflict_resolution", userAverages.get("conflict_resolution"), totalUserAverages.get("conflict_resolution"), descriptionMap))
+            .leadership(buildScoreData("leadership", userAverages.get("leadership"), totalUserAverages.get("leadership"), descriptionMap))
             .build();
 
         return GetMultipleHexagonProgressResponseDTO.builder()
@@ -124,9 +122,9 @@ public class PortfolioService {
         return isAboveAverageMap;
     }
 
-    private ScoreData buildScoreData(String name, Double userScore, Double totalScore) {
+    private ScoreData buildScoreData(String name, Double userScore, Double totalScore, Map<String, Description> descriptionMap) {
         return ScoreData.builder()
-            .name(name)
+            .name(descriptionMap.get(name).getName())
             .score(calculateProgressBarValue(userScore, totalScore))
             .build();
     }
@@ -213,7 +211,18 @@ public class PortfolioService {
             throw new BusinessException(ErrorCode.PROJECT_INFO_NOT_FOUND);
         }
 
+        // Description으로 name Map 변환
+        Map<String, String> codeAndNameMap = descriptionRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        Description::getCode,    // key는 그대로 code를 사용
+                        Description::getName     // value는 Description 객체 대신 name만 추출
+                ));
+
         List<TimelineData> timelineDataList = new ArrayList<>();
+
+        // 첫 번째 데이터 추가 (모든 값이 1)
+        TimelineData firstData = createDummyData(1, codeAndNameMap);
+        timelineDataList.add(firstData);
 
         // 각 projectInfo의 항목별 객관식 점수 구하기
         for (ProjectInfo projectInfo : projectInfoList) {
@@ -234,10 +243,30 @@ public class PortfolioService {
             timelineDataList.add(timelineData);
         }
 
+        // 남은 데이터를 0값으로 채움 (총 9개가 되도록)
+        while (timelineDataList.size() < 9) {
+            TimelineData dummyData = createDummyData(0, codeAndNameMap);
+            timelineDataList.add(dummyData);
+        }
+
         return GetTimelineResponseDTO.builder()
                 .timeline(timelineDataList)
                 .minScore(1)
                 .maxScore(5)
+                .build();
+    }
+
+    private TimelineData createDummyData(int num, Map<String, String> codeAndNameMap) {
+        return TimelineData.builder()
+                .projectName("")
+                .organization("")
+                .completedAt(null)
+                .sympathy(new ScoreData(codeAndNameMap.get("sympathy"), num))
+                .listening(new ScoreData(codeAndNameMap.get("listening"), num))
+                .expression(new ScoreData(codeAndNameMap.get("expression"), num))
+                .problemSolving(new ScoreData(codeAndNameMap.get("problem_solving"), num))
+                .conflictResolution(new ScoreData(codeAndNameMap.get("conflict_resolution"), num))
+                .leadership(new ScoreData(codeAndNameMap.get("leadership"), num))
                 .build();
     }
 
