@@ -3,9 +3,9 @@ package com.collabit.project.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +16,7 @@ import java.util.Set;
 public class ProjectRedisService {
 
     private static final String NEW_SURVEY_RESPONSE_KEY_PREFIX = "newSurveyResponse::";
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> stringRedisTemplate;
 
     // 특정 userCode에 대한 모든 newSurveyResponse 키-값 쌍을 조회
     public Map<Integer, Integer> findNewSurveyResponsesByUserCode(String userCode) {
@@ -24,7 +24,7 @@ public class ProjectRedisService {
         try {
             // newSurveyResponse::{userCode}::* 패턴으로 Redis에서 해당 유저와 관련된 모든 키 조회
             String pattern = NEW_SURVEY_RESPONSE_KEY_PREFIX + userCode + "::*";
-            Set<String> keys = redisTemplate.keys(pattern);
+            Set<String> keys = stringRedisTemplate.keys(pattern);
 
             if (keys == null || keys.isEmpty()) {
                 return new HashMap<>();
@@ -32,6 +32,7 @@ public class ProjectRedisService {
 
             // projectInfoCode를 key로, 참여자 수를 value로 하는 Map 생성
             Map<Integer, Integer> projectInfoCodeMap = new HashMap<>();
+            ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
 
             for (String key : keys) {
                 String[] keyParts = key.split("::");
@@ -39,11 +40,10 @@ public class ProjectRedisService {
                     try {
                         // projectInfoCode 추출 후 Map(key 기준 중복x)에 저장
                         int projectInfoCode = Integer.parseInt(keyParts[2]);
-
-                        // Redis에서 해당 키의 value(참여자 수) 조회
-                        String value = (String) redisTemplate.opsForValue().get(key);
-                        int participantCount = value != null ? Integer.parseInt(value) : 0;
-                        projectInfoCodeMap.put(projectInfoCode, participantCount);
+                        String value = ops.get(key); // Redis에서 해당 키의 value(참여자 수) 조회
+                        if (value != null) {
+                            projectInfoCodeMap.put(projectInfoCode, Integer.parseInt(value));
+                        }
                     } catch (NumberFormatException e) {
                         log.warn("Invalid projectInfoCode in Redis key: {}", key);
                         throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");
@@ -57,66 +57,48 @@ public class ProjectRedisService {
         }
     }
 
-    // userCode에 해당하는 모든 newSurveyResponse 삭제
-    public Map<Integer, Object> removeAllNotificationByUserCode(String userCode) {
+    // userCode에 해당하는 모든 newSurveyResponse 삭제 후 반환
+    public Map<Integer, Integer> removeAllNotificationByUserCode(String userCode) {
         log.debug("해당 유저의 모든 프로젝트 알림 삭제 시작");
 
         try {
             // 해당 유저의 모든 알림 키 조회
             String pattern = NEW_SURVEY_RESPONSE_KEY_PREFIX + userCode + "::*";
-            Set<String> keys = redisTemplate.keys(pattern);
+            Set<String> keys = stringRedisTemplate.keys(pattern);
 
-            if (keys == null || keys.isEmpty()) {
+            if (keys.isEmpty()) {
                 return new HashMap<>();
             }
 
-            // projectInfoCode별 value를 저장할 Map (참여인원 업데이트를 위해)
-            Map<Integer, Object> projectInfoValues = new HashMap<>();
+            // projectInfoCode를 key로, 참여자 수를 value로 하는 Map 생성
+            Map<Integer, Integer> projectInfoCodeMap = new HashMap<>();
+            ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
 
             for (String key : keys) {
-                Object value = redisTemplate.opsForValue().get(key);
-                if (value != null) {
-                    String[] keyParts = key.split("::");
-                    if (keyParts.length == 3) {
+                String[] keyParts = key.split("::");
+                if (keyParts.length == 3) {
+                    try {
                         int projectInfoCode = Integer.parseInt(keyParts[2]);
-                        projectInfoValues.put(projectInfoCode, value);
+                        String value = ops.get(key);
+                        if (value != null) {
+                            projectInfoCodeMap.put(projectInfoCode, Integer.parseInt(value));
+                        }
+                    } catch (NumberFormatException e) {
+                        log.warn("Invalid projectInfoCode in Redis key: {}", key);
+                        throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");
                     }
                 }
             }
 
             // 키들 일괄 삭제
-            redisTemplate.delete(keys);
+            stringRedisTemplate.delete(keys);
 
-            log.debug("삭제된 알림 수: {}", projectInfoValues.size());
-            return projectInfoValues;
+            log.debug("삭제된 알림 수: {}", projectInfoCodeMap.size());
+            return projectInfoCodeMap;
 
         } catch (Exception e) {
             log.error("Redis에서 알림 삭제 중 오류 발생", e);
             return new HashMap<>();
-        }
-    }
-
-    // 특정 프로젝트의 알림만 삭제
-    public Object removeNotificationByUserCodeAndProjectCode(String userCode, int projectInfoCode) {
-        log.debug("특정 프로젝트의 알림 삭제 시작 - userCode: {}, projectInfoCode: {}", userCode, projectInfoCode);
-
-        try {
-            // 특정 프로젝트의 알림 키 조회
-            String key = NEW_SURVEY_RESPONSE_KEY_PREFIX + userCode + "::" + projectInfoCode;
-
-            // 삭제 전에 값을 먼저 가져옴
-            Object value = redisTemplate.opsForValue().get(key);
-
-            if (value != null) {
-                redisTemplate.delete(key);
-                log.debug("프로젝트 알림 삭제 완료 - key: {}, value: {}", key, value);
-                return value;
-            }
-
-            return null;
-        } catch (Exception e) {
-            log.error("Redis에서 프로젝트 알림 삭제 중 오류 발생", e);
-            return null;
         }
     }
 }

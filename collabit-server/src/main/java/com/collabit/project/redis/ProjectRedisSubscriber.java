@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -16,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 public class ProjectRedisSubscriber implements MessageListener {
 
     private final SseEmitterService sseEmitterService;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     // Redis의 키 이벤트 발생 시 호출되는 메서드, 어떤 projectInfo에 대한 응답인지 알 수 있게 code를 SSE로 전송
     // Redis에서 정보를 삭제할 때는 SSE 이벤트를 보내지 않음

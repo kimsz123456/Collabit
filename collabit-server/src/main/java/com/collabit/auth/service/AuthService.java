@@ -36,7 +36,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public UserResponseDTO login(UserLoginRequestDTO userLoginRequestDto, HttpServletResponse response) {
@@ -75,7 +74,7 @@ public class AuthService {
     public void addCookie(HttpServletResponse response, String name, String value, long maxAge) {
       Cookie cookie = new Cookie(name, value);
       cookie.setHttpOnly(true); // HttpOnly 설정
-      cookie.setSecure(false); // HTTPS 에서만 동작
+      cookie.setSecure(true); // HTTPS 에서만 동작
       cookie.setPath("/"); // 쿠키가 유효한 경로
       response.addCookie(cookie); // 클라이언트로 쿠키 전송 필수
   }
@@ -116,89 +115,6 @@ public class AuthService {
 
     }
 
-    // refresh token을 통한 access token 재발급 메서드
-    @Transactional
-    public boolean refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
-        // 1. cookie 에서 refresh token 추출
-        String refreshToken = extractToken(request, "refreshToken");
-        log.debug("Extracted Refresh Token: {}", refreshToken);
-
-        if (refreshToken == null) {
-            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
-        }
-
-        // 2. 블랙리스트 확인 (로그아웃 된 토큰인지 검사)
-        if (redisTemplate.hasKey("blacklist:" + refreshToken)) {
-            throw new BusinessException(ErrorCode.REFRESH_TOKEN_BLACKLISTED);
-        }
-
-        // 3. Refresh token 유효성 검사
-        try {
-            tokenProvider.validateToken(refreshToken);
-        } catch (BusinessException e){
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        Authentication authentication = tokenProvider.getAuthentication(refreshToken);
-
-        // 4. 유효하다면 Access Token 재발급
-        String accessToken = tokenProvider.generateAccessToken(authentication);
-        log.debug("New Access Token Generated: {}", accessToken);
-
-        // 5. 새 Access Token 을 쿠키에 저장
-        addCookie(response, "accessToken", accessToken, tokenProvider.getAccessTokenExpireTime() / 1000);
-        log.debug("Access Token이 성공적으로 재발급");
-
-        return true;
-    }
-
-    // logout 메서드
-    @Transactional
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
-        // logout 했으니, token 들을 블랙리스트에 추가.(탈취된 token 이 있다면 사용 불가)
-        String accessToken = extractToken(request, "accessToken");
-        String refreshToken = extractToken(request, "refreshToken");
-
-        // 블랙리스트에 쿠키 추가(만료 시간까지 유지)
-        if (accessToken != null) {
-            long accessExpireTime = tokenProvider.getRemainingExpiration(accessToken);
-            redisTemplate.opsForValue().set("blacklist:" + accessToken, "LOGOUT", accessExpireTime, TimeUnit.MILLISECONDS);
-            log.debug("Access Token added to blacklist");
-        }
-
-        if (refreshToken != null) {
-            long refreshExpireTime = tokenProvider.getRemainingExpiration(refreshToken);
-            redisTemplate.opsForValue().set("blacklist:" + refreshToken, "LOGOUT", refreshExpireTime, TimeUnit.MILLISECONDS);
-            log.debug("Refresh Token added to blacklist");
-        }
-
-        // access, refresh token 을 cookie 에서 삭제
-        removeCookie(response, "accessToken");
-        removeCookie(response, "refreshToken");
-        log.debug("User logged out successfully, cookies removed.");
-    }
-
-    // cookie 삭제 메서드
-    private void removeCookie(HttpServletResponse response, String name) {
-        Cookie cookie = new Cookie(name, null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
-
-    // cookie에서 특정 token 추출 메서드
-    private String extractToken(HttpServletRequest request, String tokenName) {
-        if(request.getCookies() == null) return null;
-
-        return Arrays.stream(request.getCookies())
-                .filter(cookie -> tokenName.equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
-    }
-
     // 이메일 중복 체크
     public void isEmailAlreadyExists(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -221,9 +137,6 @@ public class AuthService {
     private String encodePassword(String password){
         return passwordEncoder.encode(password);
     }
-
-
-
 }
 
 
