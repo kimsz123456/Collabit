@@ -6,7 +6,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +16,7 @@ import java.util.Set;
 public class ProjectRedisService {
 
     private static final String NEW_SURVEY_RESPONSE_KEY_PREFIX = "newSurveyResponse::";
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> stringRedisTemplate;
 
     // 특정 userCode에 대한 모든 newSurveyResponse 키-값 쌍을 조회
     public Map<Integer, Integer> findNewSurveyResponsesByUserCode(String userCode) {
@@ -25,7 +24,7 @@ public class ProjectRedisService {
         try {
             // newSurveyResponse::{userCode}::* 패턴으로 Redis에서 해당 유저와 관련된 모든 키 조회
             String pattern = NEW_SURVEY_RESPONSE_KEY_PREFIX + userCode + "::*";
-            Set<String> keys = redisTemplate.keys(pattern);
+            Set<String> keys = stringRedisTemplate.keys(pattern);
 
             if (keys == null || keys.isEmpty()) {
                 return new HashMap<>();
@@ -33,7 +32,7 @@ public class ProjectRedisService {
 
             // projectInfoCode를 key로, 참여자 수를 value로 하는 Map 생성
             Map<Integer, Integer> projectInfoCodeMap = new HashMap<>();
-            ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+            ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
 
             for (String key : keys) {
                 String[] keyParts = key.split("::");
@@ -41,7 +40,7 @@ public class ProjectRedisService {
                     try {
                         // projectInfoCode 추출 후 Map(key 기준 중복x)에 저장
                         int projectInfoCode = Integer.parseInt(keyParts[2]);
-                        String value = (String) ops.get(key); // Redis에서 해당 키의 value(참여자 수) 조회
+                        String value = ops.get(key); // Redis에서 해당 키의 value(참여자 수) 조회
                         if (value != null) {
                             projectInfoCodeMap.put(projectInfoCode, Integer.parseInt(value));
                         }
@@ -65,22 +64,22 @@ public class ProjectRedisService {
         try {
             // 해당 유저의 모든 알림 키 조회
             String pattern = NEW_SURVEY_RESPONSE_KEY_PREFIX + userCode + "::*";
-            Set<String> keys = redisTemplate.keys(pattern);
+            Set<String> keys = stringRedisTemplate.keys(pattern);
 
-            if (keys == null || keys.isEmpty()) {
+            if (keys.isEmpty()) {
                 return new HashMap<>();
             }
 
             // projectInfoCode를 key로, 참여자 수를 value로 하는 Map 생성
             Map<Integer, Integer> projectInfoCodeMap = new HashMap<>();
-            ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+            ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
 
             for (String key : keys) {
                 String[] keyParts = key.split("::");
                 if (keyParts.length == 3) {
                     try {
                         int projectInfoCode = Integer.parseInt(keyParts[2]);
-                        String value = (String) ops.get(key);
+                        String value = ops.get(key);
                         if (value != null) {
                             projectInfoCodeMap.put(projectInfoCode, Integer.parseInt(value));
                         }
@@ -92,7 +91,7 @@ public class ProjectRedisService {
             }
 
             // 키들 일괄 삭제
-            redisTemplate.delete(keys);
+            stringRedisTemplate.delete(keys);
 
             log.debug("삭제된 알림 수: {}", projectInfoCodeMap.size());
             return projectInfoCodeMap;

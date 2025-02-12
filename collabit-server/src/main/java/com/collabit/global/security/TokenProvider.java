@@ -85,29 +85,23 @@ public class TokenProvider {
                 .build();
     }
 
-    // Refresh Token 을 이용해서 Access Token 만 재발급하는 메서드
-    public String generateAccessToken(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public String createNewAccessToken(String refreshToken) {
+        // 1. 리프레시 토큰에서 사용자 정보 추출
+        Claims claims = parseClaims(refreshToken);
+        String userCode = claims.getSubject();  // code(PK) 추출
 
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+        // 2. 사용자 정보로 권한 정보 가져오기
+        String authorities = claims.get(AUTHORITIES_KEY, String.class);
 
-        long now = (new Date()).getTime();
+        // 3. 새로운 액세스 토큰 생성
+        Date accessTokenExpiresIn = new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRE_TIME);
 
-        // Access Token 만 새로 생성
-
-        log.debug("Access token and refresh token generated");
-
-        Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
         return Jwts.builder()
-                .setSubject(userDetails.getCode())
-                .claim(AUTHORITIES_KEY, authorities)
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
-
-
+            .setSubject(userCode)                // payload "sub" : "code(PK)"
+            .claim(AUTHORITIES_KEY, authorities) // payload "auth" : "ROLE_USER"
+            .setExpiration(accessTokenExpiresIn) // payload "exp" : "~~~"
+            .signWith(key, SignatureAlgorithm.HS512) // header "alg" : "HS512"
+            .compact();
     }
 
     // JWT 토큰 복호화해서 토큰에 들어있는 정보 추출
@@ -156,19 +150,6 @@ public class TokenProvider {
             return e.getClaims();
         }
 
-    }
-
-    // JWT 토큰의 남은 유효 시간 계산 메서드
-    public long getRemainingExpiration(String token) {
-        try {
-            Claims claims = parseClaims(token); // JWT Claims 가져오기
-            Date expiration = claims.getExpiration(); // 만료 시간
-            long now = new Date().getTime(); // 현재 시간 (밀리초)
-
-            return expiration.getTime() - now; // 남은 시간 (밀리초)
-        } catch (Exception e) {
-            return 0; // 만료되었거나 잘못된 토큰이면 0 반환
-        }
     }
 
     // Getter 메서드 추가

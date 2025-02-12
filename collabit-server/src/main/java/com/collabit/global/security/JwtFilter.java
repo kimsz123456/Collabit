@@ -50,20 +50,32 @@ public class JwtFilter extends OncePerRequestFilter {
         log.debug("JWT token: {}", accessToken);
 
         try {
-            if(accessToken != null) {
-                // 블랙리스트 조회 (토큰이 블랙리스트에 있으면 즉시 차단)
-                if (redisTemplate.hasKey("blacklist:" + accessToken)) {
-                    log.debug("블랙리스트 토큰 감지! Access denied.");
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그아웃된 토큰입니다.");
-                    return;
-                }
+            // request header 에서 토큰 추출
+            String accessToken = resolveToken(request,"accessToken");
+            String refreshToken = resolveToken(request,"refreshToken");
+            log.debug("access token: {}", accessToken);
+            log.debug("refresh token: {}", refreshToken);
 
-                // validateToken 으로 토큰 유효성 검사(예외는 catch로 잡기)
-                tokenProvider.validateToken(accessToken);
-
-                // 정상 토큰이면 해당 토큰으로 Authentication 을 가져와서 SecurityContext 에 저장
-                log.debug("JWT 토큰 유효. SecurityContext 에 저장");
+            if (accessToken != null && tokenProvider.validateToken(accessToken)) {
+                // 액세스 토큰이 유효한 경우 인증 처리
                 Authentication authentication = tokenProvider.getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+            // accessToken이 유효하지 않은 경우 refreshToken 확인
+            else if (refreshToken != null && tokenProvider.validateToken(refreshToken)) {
+                // 리프레시 토큰으로 새로운 액세스 토큰 발급
+                String newAccessToken = tokenProvider.createNewAccessToken(refreshToken);
+
+                // 새로운 액세스 토큰을 쿠키에 설정
+                Cookie newAccessTokenCookie = new Cookie("accessToken", newAccessToken);
+                newAccessTokenCookie.setHttpOnly(true);
+                newAccessTokenCookie.setPath("/");
+//                newAccessTokenCookie.setSecure(true);
+                newAccessTokenCookie.setMaxAge((int) tokenProvider.getAccessTokenExpireTime() / 1000);
+                response.addCookie(newAccessTokenCookie);
+
+                // 새 토큰으로 인증 처리
+                Authentication authentication = tokenProvider.getAuthentication(newAccessToken);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             }
@@ -102,17 +114,17 @@ public class JwtFilter extends OncePerRequestFilter {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 인증 실패: " + e.getMessage());
             return;
         }
-
+        filterChain.doFilter(request, response);
     }
 
     // Request Header 에서 JWT 토큰정보 추출
-    private String resolveToken(HttpServletRequest request) {
+    private String resolveToken(HttpServletRequest request,String tokenType) {
         // 쿠키에서 accessToken 체크
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 log.debug("Found cookie: {} = {}", cookie.getName(), cookie.getValue());
-                if ("accessToken".equals(cookie.getName())) {
+                if (tokenType.equals(cookie.getName())) {
                     log.debug("Token found in cookie");
                     return cookie.getValue();
                 }

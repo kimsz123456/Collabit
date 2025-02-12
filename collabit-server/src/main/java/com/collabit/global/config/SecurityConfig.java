@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,6 +27,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
@@ -42,6 +45,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // csrf 비활성화 (JWT, OAUTH 사용할거라 필요 없음)
+            .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers("/api/user/sign-up","/api/user/login", "/api/auth/**", "/error", "/api/user/**", "/api/survey/**").permitAll();
                 auth.requestMatchers("/api/oauth").anonymous(); // oauth 회원가입, 로그인의 경우 토큰이 있는 사용자 거부
@@ -77,9 +81,18 @@ public class SecurityConfig {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         response.setContentType("application/json;charset=UTF-8");
                         response.getWriter().write("OAuth 로그인 실패: " + exception.getMessage());
-                    })
-            );
-
+                    }
+            ))
+            .logout((logout) -> logout
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"message\": \"로그아웃 성공\"}");
+                })
+                .deleteCookies("JSESSIONID", "accessToken", "refreshToken")
+            )
+            ;
         return http.build();
     }
 
