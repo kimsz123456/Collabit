@@ -100,7 +100,6 @@ def chat_survey(survey_code):
                         yield stream_service.create_pending_message()
                         # Save to MongoDB
 
-                        MySQL.update_project_participant(survey_code)
                         mongodb.save_survey(survey_code, user_code, messages)
 
                         # 먼저 완료 메시지를 클라이언트에 보냄

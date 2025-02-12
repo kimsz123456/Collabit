@@ -12,9 +12,9 @@ summary_bp = Blueprint('summary', __name__)
 @summary_bp.route("/ai/portfolio", methods=["POST"])
 def get_ai_summary():
   try:
-    user_code = "470824b0-0338-415e-8ee2-937d47ecd70c" # decode_jwt_from_cookie()
+    user_code = decode_jwt_from_cookie()
 
-    summaries = list(mongodb.summary_collection.find({"user_code": user_code}))
+    summaries = list(mongodb.get_summary_by_user(user_code))
 
     strength_answers = []
     weakness_answers = []
@@ -103,45 +103,6 @@ def get_ai_summary():
     )
 
     return "", 200
-
-  except Exception as e:
-    return jsonify({"error": str(e)}), 500
-
-
-@summary_bp.route("/ai/portfolio/essay/wordcloud", methods=["GET"])
-def get_wordcloud():
-  try:
-    user_code = decode_jwt_from_cookie()
-
-    wordcloud = mongodb.wordcloud_collection.find_one(
-        {"user_code": user_code},
-        {"_id": 0}
-    )
-
-    if not wordcloud:
-      return jsonify({"error": "Wordcloud data not found"}), 404
-
-    return jsonify({
-      "strength": wordcloud.get("strength", []),
-      "weakness": wordcloud.get("weakness", [])
-    }), 200
-
-  except Exception as e:
-    return jsonify({"error": str(e)}), 500
-
-@summary_bp.route("/ai/portfolio/essay/ai-summary", methods=["GET"])
-def get_summary():
-  try:
-    user_code = decode_jwt_from_cookie()
-
-    summary = mongodb.ai_analysis.find_one(
-        {"user_code": user_code},
-        {"_id": 0, "analysis_results": 1}
-    )
-
-    if summary:
-      return jsonify(summary["analysis_results"]), 200
-    return jsonify({"error": "Summary not found"}), 404
 
   except Exception as e:
     return jsonify({"error": str(e)}), 500

@@ -6,7 +6,6 @@ import { useSurveyList } from "../context/SurveyListProvider";
 
 export default function SurveyList() {
   const { surveyList } = useSurveyList();
-
   return (
     <div className="flex flex-col items-center gap-3 px-2 md:py-4">
       <ChatNav />

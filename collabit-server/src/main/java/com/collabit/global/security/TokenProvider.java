@@ -132,12 +132,18 @@ public class TokenProvider {
 
     }
 
-    // token 정보 검증
-    public void validateToken(String token) {
-        Jwts.parserBuilder() // JWT token 을 파싱하기 위한 객체 생성
-                .setSigningKey(key) // 서명 검증에 사용할 키(비밀키)
-                .build().parseClaimsJws(token); // token 검증
-        log.debug("Token validated");
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token);
+            log.debug("Token validated");
+            return true;
+        } catch (Exception e) {
+            log.error("Token validation failed: {}", e.getMessage());
+            return false;
+        }
     }
 
     // JWT 토큰 파싱해서 내부 claims 추출

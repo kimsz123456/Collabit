@@ -1,9 +1,10 @@
 "use client";
-import useMediaQuery from "@/shared/hooks/useMediaQuery";
-import SurveyList from "@/features/survey/ui/refactor/SurveyList";
-import SurveyRoom from "@/features/survey/ui/refactor/SurveyRoom";
 
-const DetailPage = () => {
+import SurveyList from "@/features/survey/ui/refactor/SurveyList";
+import useMediaQuery from "@/shared/hooks/useMediaQuery";
+import EmptySurveyPage from "@/widget/survey/EmptySurveyPage";
+
+const ListPage = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
@@ -14,13 +15,13 @@ const DetailPage = () => {
             <SurveyList />
           </div>
           <div className="w-3/4">
-            <SurveyRoom />
+            <EmptySurveyPage />
           </div>
         </div>
       ) : (
-        <SurveyRoom />
+        <SurveyList />
       )}
     </>
   );
 };
-export default DetailPage;
+export default ListPage;

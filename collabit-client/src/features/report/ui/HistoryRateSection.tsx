@@ -15,6 +15,7 @@ import {
   TimelineResponse,
 } from "@/shared/types/response/report";
 import ReportTitle from "@/entities/report/ui/ReportTitle";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -24,6 +25,23 @@ ChartJS.register(
   Tooltip,
   Legend,
 );
+
+
+const formatProjectName = (name: string): string[] => {
+  const maxCharsPerLine = 10;
+  if (name.length <= maxCharsPerLine) return [name];
+
+  const firstLine = name.slice(0, maxCharsPerLine);
+  const remaining = name.slice(maxCharsPerLine);
+
+  if (remaining.length <= maxCharsPerLine) {
+    return [firstLine, remaining];
+  } else {
+    // 두 번째 줄이 10글자보다 길 경우, 남은 글자 중 7글자만 표시하고 "..." 추가
+    const secondLine = remaining.slice(0, maxCharsPerLine - 3) + "...";
+    return [firstLine, secondLine];
+  }
+};
 
 interface HistoryRateSectionProps {
   history: TimelineResponse;
@@ -56,8 +74,18 @@ const HistoryRateSection = ({ history }: HistoryRateSectionProps) => {
     leadership: "rgb(255, 159, 64)",
   };
 
+  // 기존에는 라벨을 문자열로 처리했지만, 이제 각 프로젝트명을 문자열 배열로 처리합니다.
+  // 중복 제거를 위해 우선 join("\n")한 값으로 Set에 넣은 후 다시 split("\n")으로 배열로 복원합니다.
+  const uniqueLabels = Array.from(
+    new Set(
+      timeline.map((project) =>
+        formatProjectName(project.projectName).join("\n"),
+      ),
+    ),
+  ).map((label) => label.split("\n"));
+
   const data = {
-    labels: [...new Set(timeline.map((project) => project.projectName))],
+    labels: uniqueLabels,
     datasets: Object.keys(timeline[0])
       .filter(
         (key) =>
@@ -67,13 +95,11 @@ const HistoryRateSection = ({ history }: HistoryRateSectionProps) => {
       )
       .map((key) => ({
         label: (timeline[0][key] as keyof SkillData as unknown as Skill).name,
-        data: [
-          ...timeline.map(
-            (project) =>
-              (project[key] as keyof SkillData as unknown as Skill)?.score ||
-              null,
-          ),
-        ],
+        data: timeline.map(
+          (project) =>
+            (project[key] as keyof SkillData as unknown as Skill)?.score ||
+            null,
+        ),
         borderColor: skillColors[key] || "gray",
         backgroundColor: skillColors[key] || "gray",
         tension: 0.3,

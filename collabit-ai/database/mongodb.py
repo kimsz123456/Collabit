@@ -29,7 +29,6 @@ class MongoDB:
       self.db = self.client['mydatabase']
       self.survey_essay = self.db['survey_essay']
       self.summary_collection = self.db['summaries']
-      self.sentiment_analysis = self.db['sentiment_analysis']
       self.survey_multiple = self.db['survey_multiple']
       self.ai_analysis = self.db['ai_analysis']
       self.wordcloud_collection = self.db['wordcloud_collection']
@@ -50,48 +49,6 @@ class MongoDB:
       return self.survey_essay.insert_one(survey_data)
     except Exception as e:
       print(f"Failed to save survey: {e}")
-      raise
-
-  def save_sentiment_analysis(self, user_code, analysis_results):
-    """Save sentiment analysis results to MongoDB"""
-    try:
-      analysis_data = {
-        "user_code": user_code,
-        "analysis_results": analysis_results,
-        "created_at": datetime.now()
-      }
-      return self.sentiment_analysis.insert_one(analysis_data)
-    except Exception as e:
-      print(f"Failed to save sentiment analysis: {e}")
-      raise
-
-  def get_survey_by_user(self, user_code):
-    """Get survey data by user code"""
-    try:
-      return self.survey_essay.find({"userCode": user_code})
-    except Exception as e:
-      print(f"Failed to get survey: {e}")
-      raise
-
-  def get_sentiment_analysis_by_user(self, user_code):
-    """Get sentiment analysis results by user code"""
-    try:
-      return self.sentiment_analysis.find({"user_code": user_code})
-    except Exception as e:
-      print(f"Failed to get sentiment analysis: {e}")
-      raise
-
-  def save_summary(self, user_code, summary_data):
-    """Save summary data to MongoDB"""
-    try:
-      summary_doc = {
-        "user_code": user_code,
-        "summary": summary_data,
-        "created_at": datetime.now()
-      }
-      return self.summary_collection.insert_one(summary_doc)
-    except Exception as e:
-      print(f"Failed to save summary: {e}")
       raise
 
   def get_summary_by_user(self, user_code):

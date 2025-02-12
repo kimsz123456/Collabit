@@ -19,7 +19,7 @@ interface SurveyStore {
   // 액션
   setId: (id: number) => void;
   setSurveyDetail: (detail: SurveyDetail) => void;
-  setSurveyEssayResponse: (response: AIChatResponse[]) => void;
+  setSurveyEssayResponse: (response: AIChatResponse[] | null) => void;
   setSurveyMultipleResponse: (response: number[]) => void;
   setMultipleAnswers: (answer: number, index: number) => void;
 

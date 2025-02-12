@@ -6,6 +6,7 @@ import SurveyMultipleSelectButton from "@/entities/survey/ui/SurveyMultipleSelec
 import { useAuth } from "@/features/auth/api/useAuth";
 import {
   essaySurveyProgressAPI,
+  getSurveyDetailAPI,
   getSurveyMultipleQueryAPI,
   startEssaySurveyAPI,
 } from "@/shared/api/survey";
@@ -14,12 +15,14 @@ import { Button } from "@/shared/ui/button";
 import generateGreetingMessage from "@/shared/utils/generateGreetingMessage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import useSendMultipleAnswer from "../api/useSendMultipleAnswer";
+
 import essaySurveyAPI from "@/entities/survey/api/essaySurvey";
 import useModalStore from "@/shared/lib/stores/modalStore";
 import { AIChatResponse } from "@/shared/types/response/survey";
 import OneButtonModal from "@/widget/ui/modals/OneButtonModal";
 import { useParams } from "next/navigation";
+import useSendMultipleAnswer from "../../api/useSendMultipleAnswer";
+
 export type EssayStatus =
   | "PENDING"
   | "COMPLETED"
@@ -27,48 +30,68 @@ export type EssayStatus =
   | "SAVING"
   | "PROGRESSING"
   | "STREAMING"
-  | "READY";
-const SurveyRoom = ({ id }: { id: number }) => {
+  | "READY"
+  | "DONE";
+const SurveyRoom = () => {
   const { userInfo } = useAuth();
-  const { openModal, closeModal } = useModalStore();
   const queryClient = useQueryClient();
+  const { projectId } = useParams();
+  const id = Number(projectId);
+  const { openModal, closeModal } = useModalStore();
   const [essayStatus, setEssayStatus] = useState<EssayStatus>("READY");
-  /* 초기 디테일 데이터 불러오기 */
-  const setId = useSurveyStore((state) => state.setId);
-  const surveyDetail = useSurveyStore((state) => state.surveyDetail);
-  const surveyEssayResponse = useSurveyStore(
-    (state) => state.surveyEssayResponse,
-  );
-  const surveyMultipleResponse = useSurveyStore(
-    (state) => state.surveyMultipleResponse,
-  );
+  const [currentStep, setCurrentStep] = useState(-1);
+  const [mutipleStep, setMutipleStep] = useState(0);
   const multipleAnswers = useSurveyStore((state) => state.multipleAnswers);
 
-  const params = useParams();
-  console.log(params);
+  const [inputMessage, setInputMessage] = useState("");
 
-  useEffect(() => {
-    setId(id);
-  }, [params, id, setId]); // params를 의존성 배열에 추가
+  const [activeInput, setActiveInput] = useState(false);
+  const [currentMessage, setCurrentMessage] = useState("");
+
+  const { data: surveyMultipleQuery } = useQuery({
+    queryKey: ["surveyMultiple"],
+    queryFn: () => getSurveyMultipleQueryAPI(),
+    enabled: !!userInfo && !!id,
+    staleTime: 1000 * 60,
+  });
+
+  const { data: details } = useQuery({
+    queryKey: ["surveyDetail", userInfo?.nickname, id],
+    queryFn: () => getSurveyDetailAPI(id),
+    enabled: !!userInfo?.nickname && !!id,
+  });
+
+  const { sendMultipleAnswer } = useSendMultipleAnswer({
+    nickname: userInfo?.nickname as string,
+  });
+
+  const [essayMessageList, setEssayMessageList] = useState<AIChatResponse[]>(
+    [],
+  );
 
   // surveyEssayResponse 변경시 상태 업데이트
   useEffect(() => {
-    if (surveyEssayResponse) {
-      setEssayMessageList(surveyEssayResponse);
-      setEssayStatus("COMPLETED");
+    if (details?.surveyEssayResponse) {
+      setEssayMessageList(details.surveyEssayResponse.messages);
+      setEssayStatus("DONE");
     }
-  }, [surveyEssayResponse]);
+  }, [details?.surveyEssayResponse, essayMessageList]);
 
-  // essayStatus가 COMPLETED일 때만 모달 표시
+  // essayStatus가 COMPLETED일 때 캐시 무효화
   useEffect(() => {
-    if (essayStatus === "COMPLETED" && surveyDetail?.nickname) {
+    if (essayStatus === "COMPLETED" && details?.nickname) {
+      // 현재 설문 상세 데이터 캐시 무효화
+      queryClient.invalidateQueries({
+        queryKey: ["surveyDetail"],
+      });
+      // 설문 목록 캐시도 함께 무효화
       queryClient.invalidateQueries({
         queryKey: ["surveyList", userInfo?.nickname],
       });
       openModal(
         <OneButtonModal
           title="소중한 의견 감사합니다."
-          description={`${surveyDetail.nickname}님의 성장을 위한 소중한 조언이 될 거예요. \n 앞으로도 더 나은 모습으로 발전하는 ${surveyDetail.nickname}님이 되도록 하겠습니다.`}
+          description={`${details.nickname}님의 성장을 위한 소중한 조언이 될 거예요. \n 앞으로도 더 나은 모습으로 발전하는 ${details.nickname}님이 되도록 하겠습니다.`}
           buttonText="확인"
           handleButtonClick={() => {
             closeModal();
@@ -78,27 +101,12 @@ const SurveyRoom = ({ id }: { id: number }) => {
     }
   }, [
     essayStatus,
-    surveyDetail?.nickname,
+    details?.nickname,
     userInfo?.nickname,
     queryClient,
     openModal,
     closeModal,
   ]);
-
-  /* 설문 스텝 관리 */
-  const [currentStep, setCurrentStep] = useState(-1);
-  const [mutipleStep, setMutipleStep] = useState(0);
-
-  // 객관식 설문 리스트
-  const { data: surveyMultipleQuery } = useQuery({
-    queryKey: ["surveyMultiple"],
-    queryFn: () => getSurveyMultipleQueryAPI(),
-    enabled: !!userInfo && !!id,
-    staleTime: 1000 * 60,
-  });
-  const { sendMultipleAnswer } = useSendMultipleAnswer({
-    nickname: userInfo?.nickname as string,
-  });
 
   const handleStartMultiple = () => {
     setCurrentStep(0);
@@ -114,18 +122,14 @@ const SurveyRoom = ({ id }: { id: number }) => {
   };
 
   // 주관식 설문 시작
-  const [inputMessage, setInputMessage] = useState("");
-  const [essayMessageList, setEssayMessageList] = useState<AIChatResponse[]>(
-    [],
-  );
-  const [activeInput, setActiveInput] = useState(false);
-  const [currentMessage, setCurrentMessage] = useState("");
+
   const handleSendButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (
       essayStatus === "PENDING" ||
       essayStatus === "SAVING" ||
-      essayStatus === "COMPLETED"
+      essayStatus === "COMPLETED" ||
+      essayStatus === "STREAMING"
     ) {
       return;
     }
@@ -153,7 +157,7 @@ const SurveyRoom = ({ id }: { id: number }) => {
     setCurrentStep((prev) => prev + 1);
 
     // 객관식 답변 제출이 필요한 경우
-    if (!surveyMultipleResponse && multipleAnswers.length === 24) {
+    if (!details?.surveyMultipleResponse && multipleAnswers.length === 24) {
       await sendMultipleAnswer({
         surveyCode: id,
         answer: multipleAnswers,
@@ -166,23 +170,26 @@ const SurveyRoom = ({ id }: { id: number }) => {
     // essaySurveyAPI를 Promise를 반환하도록 수정하고 await 추가
     await essaySurveyAPI({
       surveyCode: id,
-      body: surveyDetail?.nickname as string,
+      body: details?.nickname as string,
       api: startEssaySurveyAPI,
       setState: setCurrentMessage,
       setStatus: setEssayStatus,
     });
+    queryClient.invalidateQueries({
+      queryKey: ["surveyDetail", userInfo?.nickname, id],
+    });
   };
 
   // 유저 정보가 없거나 디테일이 없으면 렌더링 안함
-  if (!userInfo || !surveyDetail) {
+  if (!userInfo || !details) {
     return null;
   }
   return (
     <div className="flex h-screen w-full flex-col gap-3 py-4 md:h-[calc(100vh-108px)] md:px-2">
       <ChatHeader
-        nickname={surveyDetail?.nickname}
-        projectName={surveyDetail?.title}
-        profileImage={surveyDetail?.profileImage}
+        nickname={details.nickname}
+        projectName={details.title}
+        profileImage={details.profileImage}
       />
       <div className="flex h-full w-full flex-col-reverse overflow-y-auto bg-white px-2 md:h-[calc(100vh-256px)] md:px-4 md:py-3">
         <div className="flex flex-col-reverse gap-6">
@@ -215,17 +222,17 @@ const SurveyRoom = ({ id }: { id: number }) => {
           </div>
           {/*객관식 마지막 메시지 */}
 
-          {(currentStep >= 24 || surveyMultipleResponse) && (
+          {(currentStep >= 24 || details.surveyMultipleResponse) && (
             <SurveyBubble
               isMe={false}
-              message={`감사합니다! ${userInfo.nickname}님의 이야기를 들으니까 ${surveyDetail?.nickname}님이 어떤 사람인지는 조금 알 것 같아요. \n\n 이제 더 구체적으로 알고 싶은데, 대화로 알려주시겠어요? (지금 나가시면 피드백이 완료되지 않아요!)`}
+              message={`감사합니다! ${userInfo.nickname}님의 이야기를 들으니까 ${details.nickname}님이 어떤 사람인지는 조금 알 것 같아요. \n\n 이제 더 구체적으로 알고 싶은데, 대화로 알려주시겠어요? (지금 나가시면 피드백이 완료되지 않아요!)`}
               animation={currentStep === 24}
               isLoading={false}
               component={
                 <Button
                   disabled={
                     currentStep > 24 ||
-                    !!surveyEssayResponse ||
+                    !!details.surveyEssayResponse ||
                     essayStatus != "READY"
                   }
                   className="duration-900 animate-in fade-in-0 slide-in-from-bottom-4"
@@ -238,7 +245,7 @@ const SurveyRoom = ({ id }: { id: number }) => {
           )}
           {/* 우선 스텝에 따른 챗봇의 메세지 렌더링 */}
 
-          {!surveyMultipleResponse ? ( // 객관식 설문한 적이 없으면면
+          {!details.surveyMultipleResponse ? ( // 객관식 설문한 적이 없으면면
             <>
               {surveyMultipleQuery
                 ?.slice(0, currentStep + 1)
@@ -271,8 +278,8 @@ const SurveyRoom = ({ id }: { id: number }) => {
                 isMe={false}
                 message={generateGreetingMessage(
                   userInfo.nickname,
-                  surveyDetail?.nickname ?? "",
-                  surveyDetail?.title ?? "",
+                  details?.nickname ?? "",
+                  details?.title ?? "",
                 )}
                 animation={currentStep === -1}
                 isLoading={false}
@@ -305,7 +312,9 @@ const SurveyRoom = ({ id }: { id: number }) => {
                       component={
                         <SurveyMultipleSelectButton
                           index={originalIndex}
-                          selectedScore={surveyMultipleResponse[originalIndex]}
+                          selectedScore={
+                            details.surveyMultipleResponse.scores[originalIndex]
+                          }
                           readOnly
                           onClick={() => {}}
                         />
@@ -319,17 +328,18 @@ const SurveyRoom = ({ id }: { id: number }) => {
                 isMe={false}
                 message={generateGreetingMessage(
                   userInfo.nickname,
-                  surveyDetail?.nickname ?? "",
-                  surveyDetail?.title ?? "",
+                  details.nickname ?? "",
+                  details.title ?? "",
                 )}
                 animation={false}
                 isLoading={false}
                 component={
                   <Button
                     disabled={
-                      currentStep >= 0 || surveyMultipleResponse.length > 0
+                      currentStep >= 0 ||
+                      details.surveyMultipleResponse.scores.length > 0
                     }
-                    className="fade-in-duration-700 max-w-[200px] duration-700 animate-in fade-in-0 slide-in-from-bottom-4"
+                    className="fade-in-duration-700 w-full duration-700 animate-in fade-in-0 slide-in-from-bottom-4"
                     onClick={handleStartMultiple}
                   >
                     시작하기

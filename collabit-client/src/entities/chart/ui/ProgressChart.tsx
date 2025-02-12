@@ -1,6 +1,6 @@
-const ProgressChart = ({ value }: { value: number }) => {
+const ProgressChart = ({ value, className }: { value: number; className?: string }) => {
   return (
-    <div className="relative mt-5 h-3 w-full overflow-hidden rounded-full bg-gray-200">
+    <div className={`relative h-3 w-full overflow-hidden rounded-full bg-gray-200 ${className}`}>
       <div
         className="absolute inset-0"
         style={{
