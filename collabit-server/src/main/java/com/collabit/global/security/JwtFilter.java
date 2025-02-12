@@ -44,18 +44,14 @@ public class JwtFilter extends OncePerRequestFilter {
     // JWT 토큰 인증 정보 검증후, SecurityContext 에 검증된 인증 정보 저장
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
-        // request header 에서 토큰 추출
-        String accessToken = resolveToken(request);
-        log.debug("JWT token: {}", accessToken);
-
         try {
-            // request header 에서 토큰 추출
-            String accessToken = resolveToken(request,"accessToken");
-            String refreshToken = resolveToken(request,"refreshToken");
+            // request cookie에서 토큰 추출
+            String accessToken = resolveToken(request, "accessToken");
+            String refreshToken = resolveToken(request, "refreshToken");
             log.debug("access token: {}", accessToken);
             log.debug("refresh token: {}", refreshToken);
 
+            // accessToken 검증
             if (accessToken != null && tokenProvider.validateToken(accessToken)) {
                 // 액세스 토큰이 유효한 경우 인증 처리
                 Authentication authentication = tokenProvider.getAuthentication(accessToken);
@@ -70,52 +66,38 @@ public class JwtFilter extends OncePerRequestFilter {
                 Cookie newAccessTokenCookie = new Cookie("accessToken", newAccessToken);
                 newAccessTokenCookie.setHttpOnly(true);
                 newAccessTokenCookie.setPath("/");
-//                newAccessTokenCookie.setSecure(true);
-                newAccessTokenCookie.setMaxAge((int) tokenProvider.getAccessTokenExpireTime() / 1000);
+                // newAccessTokenCookie.setSecure(true); // HTTPS 사용시 주석 해제
                 response.addCookie(newAccessTokenCookie);
 
                 // 새 토큰으로 인증 처리
                 Authentication authentication = tokenProvider.getAuthentication(newAccessToken);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
             }
 
-            filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
-            log.debug("Access Token 만료됨. Refresh Token으로 재발급 시도");
+            log.error("ExpiredJwtException: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 만료되었습니다.");
+            return;
 
-            // refresh token 으로 access token 재발급
-            AuthService authService = applicationContext.getBean(AuthService.class);
-            boolean isReissued = authService.refreshAccessToken(request, response);
-            if(isReissued) {
-                log.debug("Access Token 재발급 성공.");
-                filterChain.doFilter(request, response);
-
-            } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Access Token 재발급 실패. 재로그인이 필요합니다.");
-                return;
-            }
         } catch (MalformedJwtException e) {
-            log.debug("MalformedJwtException: {}", e.getMessage());
+            log.error("MalformedJwtException: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "잘못된 형식의 토큰입니다.");
             return;
 
         } catch (SignatureException e) {
-            log.debug("SignatureException: {}", e.getMessage());
+            log.error("SignatureException: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰 서명이 유효하지 않습니다.");
             return;
 
-        } catch (UnsupportedJwtException e) {
-            log.debug("UnsupportedJwtException: {}", e.getMessage());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "지원되지 않는 JWT 토큰입니다.");
-        }
-        catch (Exception e) {
-            log.debug("예상치 못한 JWT 인증 오류 발생: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("예상치 못한 JWT 인증 오류 발생: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 인증 실패: " + e.getMessage());
             return;
         }
+
         filterChain.doFilter(request, response);
     }
+
 
     // Request Header 에서 JWT 토큰정보 추출
     private String resolveToken(HttpServletRequest request,String tokenType) {
