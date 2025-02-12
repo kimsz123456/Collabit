@@ -38,6 +38,7 @@
     "clsx": "^2.1.1",
     "collabit-client": "file:",
     "embla-carousel-react": "^8.5.2",
+    "html2pdf.js": "^0.10.2",
     "input-otp": "^1.4.2",
     "jose": "^5.9.6",
     "lucide-react": "^0.473.0",

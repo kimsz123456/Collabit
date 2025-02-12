@@ -51,4 +51,6 @@ public interface ProjectInfoRepository extends JpaRepository<ProjectInfo, Intege
     List<ProjectInfo> findByUser_CodeAndCompletedAtIsNotNull(String userCode);
 
     List<ProjectInfo> findAllByUserCodeAndCompletedAtAfter(String userCode, LocalDateTime completedAtAfter);
+
+    List<ProjectInfo> findAllByProjectCode(int projectCode);
 }

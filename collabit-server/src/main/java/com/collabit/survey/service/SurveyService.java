@@ -24,8 +24,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 @Slf4j
@@ -50,12 +49,20 @@ public class SurveyService {
 
         //나에게 들어온 모든 설문 요청 가져오기
         List<ProjectContributor> surveyRequest = projectContributorRepository.findByIdGithubId(user.getGithubId());
+        Set<Integer> projectCode = new HashSet<>();
+        for (ProjectContributor projectContributor : surveyRequest) {
+            projectCode.add(projectContributor.getProject().getCode());
+        }
+        List<ProjectInfo> projectList = new ArrayList<>();
+        for (int code : projectCode) {
+            projectList.addAll(projectInfoRepository.findAllByProjectCode(code));
+        }
+
         // 해당 설문들의 정보 가져오기
         List<SurveyListResponseDTO> surveyList = new ArrayList<>();
 
-        for (ProjectContributor projectContributor : surveyRequest) {
-            ProjectInfo projectInfo = projectContributor.getProjectInfo();
-            if (projectInfo != null) {
+        for (ProjectInfo projectInfo : projectList) {
+            if (projectInfo != null && !projectInfo.getUser().getCode().equals(userCode)) {
                 int status = 0;
                 LocalDateTime updatedAt = projectInfo.getCreatedAt();
 
@@ -89,6 +96,8 @@ public class SurveyService {
                 log.debug(dto.toString());
             }
         }
+
+        Collections.reverse(surveyList);
         return surveyList;
     }
 
@@ -118,13 +127,37 @@ public class SurveyService {
                 .build();
         log.debug("surveyResponse: {}", surveyMultiple);
 
-        // projectInfoCode 로 6개영역 총합값 업데이트, participant += 1
-        int sympathy = scores.subList(0, 4).stream().mapToInt(Integer::intValue).sum();
-        int listening = scores.subList(4, 8).stream().mapToInt(Integer::intValue).sum();
-        int expression = scores.subList(8, 12).stream().mapToInt(Integer::intValue).sum();
-        int problemSolving = scores.subList(12, 16).stream().mapToInt(Integer::intValue).sum();
-        int conflictResolution = scores.subList(16, 20).stream().mapToInt(Integer::intValue).sum();
-        int leadership = scores.subList(20, 24).stream().mapToInt(Integer::intValue).sum();
+        // 각 영역별 점수 초기화
+        int sympathy = 0;
+        int listening = 0;
+        int expression = 0;
+        int problemSolving = 0;
+        int conflictResolution = 0;
+        int leadership = 0;
+
+        // 인덱스를 6으로 나눈 나머지를 기준으로 점수 합산
+        for (int i = 0; i < scores.size(); i++) {
+            switch (i % 6) {
+                case 0:
+                    sympathy += scores.get(i);
+                    break;
+                case 1:
+                    listening += scores.get(i);
+                    break;
+                case 2:
+                    expression += scores.get(i);
+                    break;
+                case 3:
+                    problemSolving += scores.get(i);
+                    break;
+                case 4:
+                    conflictResolution += scores.get(i);
+                    break;
+                case 5:
+                    leadership += scores.get(i);
+                    break;
+            }
+        }
 
         log.debug("Calculated Scores - Sympathy: {}, Listening: {}, Expression: {}, ProblemSolving: {}, ConflictResolution: {}, Leadership: {}",
                 sympathy, listening, expression, problemSolving, conflictResolution, leadership);

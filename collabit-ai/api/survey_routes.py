@@ -1,4 +1,5 @@
 import json
+
 from flask import Blueprint, request, jsonify, Response
 from database.mongodb import mongodb
 from database.mysql import MySQL
@@ -98,6 +99,8 @@ def chat_survey(survey_code):
                     try:
                         yield stream_service.create_pending_message()
                         # Save to MongoDB
+
+                        MySQL.update_project_participant(survey_code)
                         mongodb.save_survey(survey_code, user_code, messages)
 
                         # 먼저 완료 메시지를 클라이언트에 보냄
