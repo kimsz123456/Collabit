@@ -77,22 +77,18 @@ public class JwtFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException e) {
             log.error("ExpiredJwtException: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 만료되었습니다.");
-            return;
 
         } catch (MalformedJwtException e) {
             log.error("MalformedJwtException: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "잘못된 형식의 토큰입니다.");
-            return;
 
         } catch (SignatureException e) {
             log.error("SignatureException: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰 서명이 유효하지 않습니다.");
-            return;
 
         } catch (Exception e) {
             log.error("예상치 못한 JWT 인증 오류 발생: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 인증 실패: " + e.getMessage());
-            return;
         }
 
         filterChain.doFilter(request, response);

@@ -23,6 +23,10 @@ export interface SkillData {
 export type ChartResponse = {
   hexagon: ChartRangeData & SkillData;
   progress: SkillData;
+  wordCloud: WordCloudResponse;
+  aiSummary: AISummaryResponse;
+  timeline: TimelineResponse;
+  portfolioInfo: ReportInfoResponse;
 };
 
 export type WordWeight = {

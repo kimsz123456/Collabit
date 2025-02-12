@@ -7,12 +7,12 @@ import HistoryRateSection from "@/features/report/ui/HistoryRateSection";
 import ProgressSection from "@/features/report/ui/ProgressSection";
 
 const SurveyResult = () => {
-  const { report, wordCloud, summary, timeline } = useReport();
+  const { hexagon, progress, wordCloud, aiSummary, timeline } = useReport();
 
   return (
     <div className="flex flex-col gap-10 py-4">
-      {report && <HexagonSection data={report.hexagon} type="report" />}
-      {report && <ProgressSection data={report.progress} />}
+      {hexagon && <HexagonSection data={hexagon} type="report" />}
+      {progress && <ProgressSection data={progress} />}
 
       {wordCloud && (
         <CloudSection
@@ -21,13 +21,19 @@ const SurveyResult = () => {
         />
       )}
 
-      {summary && (
+      {aiSummary && (
         <AISummarySection
-          strength={summary.strength}
-          weakness={summary.weakness}
+          strength={aiSummary.strength}
+          weakness={aiSummary.weakness}
         />
       )}
-      {timeline && <HistoryRateSection history={timeline} />}
+      {timeline && (
+        <HistoryRateSection
+          timeline={timeline.timeline}
+          minScore={timeline.minScore}
+          maxScore={timeline.maxScore}
+        />
+      )}
       <PostCarouselSection type="recommend" />
     </div>
   );

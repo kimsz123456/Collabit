@@ -14,7 +14,7 @@ const useLoginCallback = () => {
     const checkAuth = async () => {
       const auth = await queryClient.fetchQuery({
         queryKey: ["auth"],
-        queryFn: () => getUserInfoAPI(),
+        queryFn: getUserInfoAPI,
       });
       if (auth.isAuthenticated) {
         router.push("/");
@@ -33,6 +33,6 @@ const useLoginCallback = () => {
       }
     };
     checkAuth();
-  }, []);
+  }, [ openModal,closeModal,queryClient,router]);
 };
 export default useLoginCallback;

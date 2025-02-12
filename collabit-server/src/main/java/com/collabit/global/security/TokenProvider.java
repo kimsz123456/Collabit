@@ -6,6 +6,7 @@ import com.collabit.auth.exception.InvalidTokenException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,7 +42,6 @@ public class TokenProvider {
     public TokenProvider(@Value("${jwt.secret-key}") String secretKey, CustomUserDetailsService customUserDetailsService){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes); // 비밀키 객체 생성
-
         this.customUserDetailsService = customUserDetailsService; // 주입
     }
 
@@ -83,6 +83,39 @@ public class TokenProvider {
                 .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
                 .refreshToken(refreshToken)
                 .build();
+    }
+    // Access Token 생성
+    public String createAccessToken(Authentication authentication) {
+        String authorities = authentication.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(","));
+
+        long now = (new Date()).getTime();
+        Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
+
+        return Jwts.builder()
+            .setSubject(authentication.getName())
+            .claim("auth", authorities)
+            .claim("type", "access")
+            .signWith(SignatureAlgorithm.HS512, key)
+            .setIssuedAt(new Date(now))
+            .setExpiration(accessTokenExpiresIn)
+            .compact();
+    }
+
+    // Refresh Token 생성
+    public String createRefreshToken(Authentication authentication) {
+        long now = (new Date()).getTime();
+        Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
+
+        String refreshToken = Jwts.builder()
+            .setSubject(authentication.getName())
+            .claim("type", "refresh")
+            .signWith(SignatureAlgorithm.HS512, key)
+            .setIssuedAt(new Date(now))
+            .setExpiration(accessTokenExpiresIn)
+            .compact();
+        return refreshToken;
     }
 
     public String createNewAccessToken(String refreshToken) {

@@ -12,13 +12,14 @@ import {
 import { useSurveyStore } from "@/shared/lib/stores/surveyStore";
 import { Button } from "@/shared/ui/button";
 import generateGreetingMessage from "@/shared/utils/generateGreetingMessage";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import useSendMultipleAnswer from "../api/useSendMultipleAnswer";
 import essaySurveyAPI from "@/entities/survey/api/essaySurvey";
 import useModalStore from "@/shared/lib/stores/modalStore";
-import LoadingModal from "@/widget/ui/modals/LoadingModal";
 import { AIChatResponse } from "@/shared/types/response/survey";
+import OneButtonModal from "@/widget/ui/modals/OneButtonModal";
+import { useParams } from "next/navigation";
 export type EssayStatus =
   | "PENDING"
   | "COMPLETED"
@@ -30,7 +31,8 @@ export type EssayStatus =
 const SurveyRoom = ({ id }: { id: number }) => {
   const { userInfo } = useAuth();
   const { openModal, closeModal } = useModalStore();
-
+  const queryClient = useQueryClient();
+  const [essayStatus, setEssayStatus] = useState<EssayStatus>("READY");
   /* 초기 디테일 데이터 불러오기 */
   const setId = useSurveyStore((state) => state.setId);
   const surveyDetail = useSurveyStore((state) => state.surveyDetail);
@@ -41,13 +43,47 @@ const SurveyRoom = ({ id }: { id: number }) => {
     (state) => state.surveyMultipleResponse,
   );
   const multipleAnswers = useSurveyStore((state) => state.multipleAnswers);
-  const resetAnswers = useSurveyStore((state) => state.resetAnswers);
 
-  // 디테일 스토어 업데이트
+  const params = useParams();
+  console.log(params);
+
   useEffect(() => {
-    resetAnswers();
     setId(id);
-  }, [id, setId, resetAnswers]);
+  }, [params, id, setId]); // params를 의존성 배열에 추가
+
+  // surveyEssayResponse 변경시 상태 업데이트
+  useEffect(() => {
+    if (surveyEssayResponse) {
+      setEssayMessageList(surveyEssayResponse);
+      setEssayStatus("COMPLETED");
+    }
+  }, [surveyEssayResponse]);
+
+  // essayStatus가 COMPLETED일 때만 모달 표시
+  useEffect(() => {
+    if (essayStatus === "COMPLETED" && surveyDetail?.nickname) {
+      queryClient.invalidateQueries({
+        queryKey: ["surveyList", userInfo?.nickname],
+      });
+      openModal(
+        <OneButtonModal
+          title="소중한 의견 감사합니다."
+          description={`${surveyDetail.nickname}님의 성장을 위한 소중한 조언이 될 거예요. \n 앞으로도 더 나은 모습으로 발전하는 ${surveyDetail.nickname}님이 되도록 하겠습니다.`}
+          buttonText="확인"
+          handleButtonClick={() => {
+            closeModal();
+          }}
+        />,
+      );
+    }
+  }, [
+    essayStatus,
+    surveyDetail?.nickname,
+    userInfo?.nickname,
+    queryClient,
+    openModal,
+    closeModal,
+  ]);
 
   /* 설문 스텝 관리 */
   const [currentStep, setCurrentStep] = useState(-1);
@@ -60,14 +96,15 @@ const SurveyRoom = ({ id }: { id: number }) => {
     enabled: !!userInfo && !!id,
     staleTime: 1000 * 60,
   });
-  const { sendMultipleAnswer } = useSendMultipleAnswer();
+  const { sendMultipleAnswer } = useSendMultipleAnswer({
+    nickname: userInfo?.nickname as string,
+  });
 
   const handleStartMultiple = () => {
     setCurrentStep(0);
   };
 
   const handleSelectAnswer = (currentIndex: number) => {
-    console.log(currentIndex, currentStep);
     if (currentIndex === currentStep) {
       setCurrentStep(currentIndex + 1);
       if (mutipleStep < 23) {
@@ -83,7 +120,6 @@ const SurveyRoom = ({ id }: { id: number }) => {
   );
   const [activeInput, setActiveInput] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
-  const [essayStatus, setEssayStatus] = useState<EssayStatus>("READY");
   const handleSendButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (
@@ -112,55 +148,29 @@ const SurveyRoom = ({ id }: { id: number }) => {
       setStatus: setEssayStatus,
     });
   };
-  useEffect(() => {
-    if (essayStatus === "SAVING") {
-      openModal(<LoadingModal context="AI가 설문을 분석하고 있어요." />);
-    } else {
-      closeModal();
-    }
-  }, [essayStatus, openModal, closeModal, id]);
-  useEffect(() => {
-    console.log("surveyEssayResponse : ", surveyEssayResponse);
-
-    if (surveyEssayResponse) {
-      setEssayStatus("COMPLETED");
-      setEssayMessageList(surveyEssayResponse);
-    } else {
-      setEssayStatus("READY");
-      setEssayMessageList([]);
-    }
-  }, [surveyEssayResponse, id]);
 
   const handleEndMultiple = async () => {
     setCurrentStep((prev) => prev + 1);
 
-    try {
-      // 객관식 답변 제출이 필요한 경우
-      if (!surveyMultipleResponse && multipleAnswers.length === 24) {
-        await sendMultipleAnswer({
-          surveyCode: id,
-          answer: multipleAnswers,
-        });
-      }
-
-      // 객관식 답변 제출이 완료된 후에 주관식 설문 시작
-      setActiveInput(true);
-
-      // essaySurveyAPI를 Promise를 반환하도록 수정하고 await 추가
-      await essaySurveyAPI({
+    // 객관식 답변 제출이 필요한 경우
+    if (!surveyMultipleResponse && multipleAnswers.length === 24) {
+      await sendMultipleAnswer({
         surveyCode: id,
-        body: surveyDetail?.nickname as string,
-        api: startEssaySurveyAPI,
-        setState: setCurrentMessage,
-        setStatus: setEssayStatus,
+        answer: multipleAnswers,
       });
-
-      // 상태 업데이트 완료 후에 로그 출력
-      console.log("essayStatus : ", essayStatus);
-      console.log("currentMessage : ", currentMessage);
-    } catch (error) {
-      console.error("Error in handleEndMultiple:", error);
     }
+
+    // 객관식 답변 제출이 완료된 후에 주관식 설문 시작
+    setActiveInput(true);
+
+    // essaySurveyAPI를 Promise를 반환하도록 수정하고 await 추가
+    await essaySurveyAPI({
+      surveyCode: id,
+      body: surveyDetail?.nickname as string,
+      api: startEssaySurveyAPI,
+      setState: setCurrentMessage,
+      setStatus: setEssayStatus,
+    });
   };
 
   // 유저 정보가 없거나 디테일이 없으면 렌더링 안함
@@ -242,8 +252,8 @@ const SurveyRoom = ({ id }: { id: number }) => {
                       step={mutipleStep - index + 1}
                       message={
                         reversedIndex === 0
-                          ? `감사합니다, 그러면 몇가지 질문을 드릴게요! 5가지 이모티콘 중 제가 드리는 질문에 가장 적합한 이모티콘을 눌러주세요! 첫번째 질문을 시작하겠습니다. ${surveyDetail?.nickname}${item.questionText}`
-                          : `${surveyDetail?.nickname}${item.questionText}`
+                          ? `감사합니다, 그러면 몇가지 질문을 드릴게요! 5가지 이모티콘 중 제가 드리는 질문에 가장 적합한 이모티콘을 눌러주세요! 첫번째 질문을 시작하겠습니다. ${item.questionText}`
+                          : `${item.questionText}`
                       }
                       isLoading={false}
                       component={
@@ -319,7 +329,7 @@ const SurveyRoom = ({ id }: { id: number }) => {
                     disabled={
                       currentStep >= 0 || surveyMultipleResponse.length > 0
                     }
-                    className="fade-in-duration-700 duration-700 animate-in fade-in-0 slide-in-from-bottom-4"
+                    className="fade-in-duration-700 max-w-[200px] duration-700 animate-in fade-in-0 slide-in-from-bottom-4"
                     onClick={handleStartMultiple}
                   >
                     시작하기

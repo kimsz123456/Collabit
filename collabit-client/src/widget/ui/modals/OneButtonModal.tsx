@@ -44,7 +44,9 @@ const OneButtonModal = ({
           <h1 id="modal-title" className="text-xl font-bold text-gray-800">
             {title}
           </h1>
-          <p className="text-center text-sm text-gray-600">{description}</p>
+          <p className="whitespace-pre text-center text-sm text-gray-600">
+            {description}
+          </p>
         </div>
         <div className="mt-8 flex w-full justify-center">
           <Button

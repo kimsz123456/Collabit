@@ -1,7 +1,7 @@
 import { sendMultipleSurveyAnswerAPI } from "@/shared/api/survey";
-import { useMutation } from "@tanstack/react-query";
-
-const useSendMultipleAnswer = () => {
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+const useSendMultipleAnswer = ({ nickname }: { nickname: string }) => {
+  const queryClient = useQueryClient();
   const { mutateAsync: sendMultipleAnswer } = useMutation({
     mutationFn: ({
       surveyCode,
@@ -10,6 +10,9 @@ const useSendMultipleAnswer = () => {
       surveyCode: number;
       answer: number[];
     }) => sendMultipleSurveyAnswerAPI(surveyCode, answer),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["surveyList", nickname] });
+    },
   });
 
   return { sendMultipleAnswer };

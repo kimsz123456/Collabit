@@ -1,11 +1,4 @@
-import {
-  AISummaryResponse,
-  ChartResponse,
-  ReportInfoResponse,
-  ReportStatusResponse,
-  TimelineResponse,
-  WordCloudResponse,
-} from "../types/response/report";
+import { ChartResponse, ReportStatusResponse } from "../types/response/report";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 const flaskUrl = process.env.NEXT_PUBLIC_AI_URL;
 
@@ -25,7 +18,7 @@ export const createPortfolioSpringAPI = async () => {
     if (!res.ok) {
       throw new Error("포트폴리오 생성에 실패했습니다.");
     }
-    return res.json();
+    return res;
   } catch (error) {
     console.error(error);
     throw error;
@@ -41,7 +34,7 @@ export const createPortfolioFlaskAPI = async () => {
     if (!res.ok) {
       throw new Error("포트폴리오 생성에 실패했습니다.");
     }
-    return res.json();
+    return res;
   } catch (error) {
     console.error(error);
     throw error;
@@ -65,15 +58,14 @@ export const getPortfolioStatusAPI =
     }
   };
 
-export const getPortfolioInfoAPI = async (): Promise<ReportInfoResponse> => {
+export const getPortfolioDataAPI = async (): Promise<ChartResponse> => {
   try {
-    const res = await fetch(`${apiUrl}/portfolio/info`, {
+    const res = await fetch(`${apiUrl}/portfolio/data`, {
       method: "GET",
       ...fetchOptions,
     });
-
     if (!res.ok) {
-      throw new Error("포트폴리오 정보 조회에 실패했습니다.");
+      throw new Error("데이터 조회에 실패했습니다.");
     }
     return res.json();
   } catch (error) {
@@ -82,14 +74,16 @@ export const getPortfolioInfoAPI = async (): Promise<ReportInfoResponse> => {
   }
 };
 
-export const getPortfolioChartAPI = async (): Promise<ChartResponse> => {
+export const getPortfolioShareAPI = async (
+  githubId: string,
+): Promise<ChartResponse> => {
   try {
-    const res = await fetch(`${apiUrl}/portfolio/multiple/graph`, {
+    const res = await fetch(`${apiUrl}/portfolio/share/${githubId}`, {
       method: "GET",
       ...fetchOptions,
     });
     if (!res.ok) {
-      throw new Error("차트 조회에 실패했습니다.");
+      throw new Error("데이터 조회에 실패했습니다.");
     }
     return res.json();
   } catch (error) {
@@ -97,54 +91,3 @@ export const getPortfolioChartAPI = async (): Promise<ChartResponse> => {
     throw error;
   }
 };
-
-export const getPortfolioTimelineChartAPI =
-  async (): Promise<TimelineResponse> => {
-    try {
-      const res = await fetch(`${apiUrl}/portfolio/multiple/timeline`, {
-        method: "GET",
-        ...fetchOptions,
-      });
-      if (!res.ok) {
-        throw new Error("타임라인 차트 조회에 실패했습니다.");
-      }
-      return res.json();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
-export const getPortfolioWordCloudAPI =
-  async (): Promise<WordCloudResponse> => {
-    try {
-      const res = await fetch(`${flaskUrl}/portfolio/essay/wordcloud`, {
-        method: "GET",
-        ...fetchOptions,
-      });
-      if (!res.ok) {
-        throw new Error("워드클라우드 조회에 실패했습니다.");
-      }
-      return res.json();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
-export const getPortfolioAISummaryAPI =
-  async (): Promise<AISummaryResponse> => {
-    try {
-      const res = await fetch(`${flaskUrl}/portfolio/essay/ai-summary`, {
-        method: "GET",
-        ...fetchOptions,
-      });
-      if (!res.ok) {
-        throw new Error("AI 요약 조회에 실패했습니다.");
-      }
-      return res.json();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };

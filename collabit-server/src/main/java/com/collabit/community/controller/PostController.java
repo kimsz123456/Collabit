@@ -5,6 +5,7 @@ import com.collabit.community.domain.dto.CreatePostResponseDTO;
 import com.collabit.community.domain.dto.GetPostResponseDTO;
 import com.collabit.community.domain.dto.UpdatePostRequestDTO;
 import com.collabit.community.service.PostService;
+import com.collabit.global.common.PageResponseDTO;
 import com.collabit.global.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +27,7 @@ public class PostController {
     private final PostService postService;
 
     @Operation(summary="게시글 등록",description = "게시글을 등록하는 API입니다.")
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<CreatePostResponseDTO> createPost(@ModelAttribute CreatePostRequestDTO requestDTO){
         log.debug("CreatePost requestDTO: {}", requestDTO.toString());
         String userCode = SecurityUtil.getCurrentUserCode();
@@ -36,13 +37,13 @@ public class PostController {
     }
 
     @Operation(summary="게시글 목록 조회",description = "게시글 목록을 조회하는 API입니다.")
-    @GetMapping("/")
-    public ResponseEntity<List<GetPostResponseDTO>> getPostList(){
+    @GetMapping
+    public ResponseEntity<PageResponseDTO<GetPostResponseDTO>> getPostList(@RequestParam("pageNumber") int pageNumber){
         String userCode = SecurityUtil.getCurrentUserCode();
-        List<GetPostResponseDTO> list = postService.getPostList(userCode);
-        log.debug("getPost List: {}", Objects.toString(list, "null"));
-        if (list.isEmpty()) return ResponseEntity.status(204).build();
-        return ResponseEntity.status(200).body(list);
+        PageResponseDTO<GetPostResponseDTO> responseDTO = postService.getPostList(userCode,pageNumber);
+        log.debug("getPost List: {}", Objects.toString(responseDTO, "null"));
+        if (responseDTO.getContent().isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.status(200).body(responseDTO);
     }
 
     @Operation(summary="게시글 상세 조회",description = "게시글을 상세 조회하는 API입니다.")

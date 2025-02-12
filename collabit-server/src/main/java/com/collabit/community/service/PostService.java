@@ -5,6 +5,7 @@ import com.collabit.community.exception.ImageCountExceededException;
 import com.collabit.community.exception.PostNotFoundException;
 import com.collabit.community.repository.CommentRepository;
 import com.collabit.global.common.ErrorCode;
+import com.collabit.global.common.PageResponseDTO;
 import com.collabit.global.error.exception.BusinessException;
 import com.collabit.global.service.S3Service;
 import com.collabit.community.domain.dto.CreatePostRequestDTO;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -85,17 +87,29 @@ public class PostService {
         return responseDTO;
     }
 
-    public List<GetPostResponseDTO> getPostList(String userCode) {
-        List<GetPostResponseDTO> list = new ArrayList<>();
+    public PageResponseDTO<GetPostResponseDTO> getPostList(String userCode, int pageNumber) {
+        int size = 20;
+        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Order.desc("updatedAt")));
 
-        List<Post> posts = postRepository.findAll();
-        log.debug("Found {} posts", posts.size());
+        Page<Post> postPage = postRepository.findAll(pageable);
+        log.debug("Found {} posts, page {} of {}",
+            postPage.getTotalElements(),
+            pageNumber + 1,
+            postPage.getTotalPages());
 
-        for (Post post : posts) {
-            GetPostResponseDTO responseDTO = buildDTO(post, userCode);
-            list.add(responseDTO);
-        }
-        return list;
+        List<GetPostResponseDTO> content = postPage.getContent().stream()
+            .map(post -> buildDTO(post, userCode))
+            .collect(Collectors.toList());
+
+        return PageResponseDTO.<GetPostResponseDTO>builder()
+            .content(content)
+            .pageNumber(postPage.getNumber())
+            .pageSize(size)
+            .totalElements((int) postPage.getTotalElements())
+            .totalPages(postPage.getTotalPages())
+            .last(postPage.isLast())
+            .hasNext(postPage.hasNext())
+            .build();
     }
 
     public GetPostResponseDTO getPost(String userCode, int postCode) {

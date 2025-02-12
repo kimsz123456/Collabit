@@ -15,6 +15,7 @@ import {
   TimelineResponse,
 } from "@/shared/types/response/report";
 import ReportTitle from "@/entities/report/ui/ReportTitle";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -25,13 +26,27 @@ ChartJS.register(
   Legend,
 );
 
-interface HistoryRateSectionProps {
-  history: TimelineResponse;
-}
+const formatProjectName = (name: string): string[] => {
+  const maxCharsPerLine = 10;
+  if (name.length <= maxCharsPerLine) return [name];
 
-const HistoryRateSection = ({ history }: HistoryRateSectionProps) => {
-  const timeline = history.timeline;
+  const firstLine = name.slice(0, maxCharsPerLine);
+  const remaining = name.slice(maxCharsPerLine);
 
+  if (remaining.length <= maxCharsPerLine) {
+    return [firstLine, remaining];
+  } else {
+    // 두 번째 줄이 10글자보다 길 경우, 남은 글자 중 7글자만 표시하고 "..." 추가
+    const secondLine = remaining.slice(0, maxCharsPerLine - 3) + "...";
+    return [firstLine, secondLine];
+  }
+};
+
+const HistoryRateSection = ({
+  timeline,
+  minScore,
+  maxScore,
+}: TimelineResponse) => {
   const options = {
     responsive: true,
     plugins: {
@@ -41,8 +56,8 @@ const HistoryRateSection = ({ history }: HistoryRateSectionProps) => {
     },
     scales: {
       y: {
-        min: history.minScore,
-        max: history.maxScore,
+        min: minScore,
+        max: maxScore,
       },
     },
   };
@@ -56,8 +71,16 @@ const HistoryRateSection = ({ history }: HistoryRateSectionProps) => {
     leadership: "rgb(255, 159, 64)",
   };
 
+  const uniqueLabels = Array.from(
+    new Set(
+      timeline.map((project) =>
+        formatProjectName(project.projectName).join("\n"),
+      ),
+    ),
+  ).map((label) => label.split("\n"));
+
   const data = {
-    labels: [...new Set(timeline.map((project) => project.projectName))],
+    labels: uniqueLabels,
     datasets: Object.keys(timeline[0])
       .filter(
         (key) =>
@@ -67,13 +90,11 @@ const HistoryRateSection = ({ history }: HistoryRateSectionProps) => {
       )
       .map((key) => ({
         label: (timeline[0][key] as keyof SkillData as unknown as Skill).name,
-        data: [
-          ...timeline.map(
-            (project) =>
-              (project[key] as keyof SkillData as unknown as Skill)?.score ||
-              null,
-          ),
-        ],
+        data: timeline.map(
+          (project) =>
+            (project[key] as keyof SkillData as unknown as Skill)?.score ||
+            null,
+        ),
         borderColor: skillColors[key] || "gray",
         backgroundColor: skillColors[key] || "gray",
         tension: 0.3,

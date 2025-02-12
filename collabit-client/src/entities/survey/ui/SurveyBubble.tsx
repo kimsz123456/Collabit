@@ -40,7 +40,7 @@ const SurveyBubble = ({
   if (isMe) {
     return (
       <div className="flex justify-end gap-2">
-        <span className="ml-20 max-w-[350px] rounded-bl-lg rounded-br-lg rounded-tl-lg bg-violet-100 px-3 py-2 text-xs sm:max-w-lg md:max-w-xl md:text-sm">
+        <span className="ml-20 max-w-[350px] rounded-bl-lg rounded-br-lg rounded-tl-lg bg-violet-100 px-3 py-2 text-xs sm:max-w-lg md:max-w-xl md:text-base">
           {message}
         </span>
       </div>
@@ -58,7 +58,7 @@ const SurveyBubble = ({
           />
           <AvatarFallback>CB</AvatarFallback>
         </Avatar>
-        <div className="text-xs font-semibold md:text-sm">
+        <div className="md:text-md text-sm font-semibold">
           콜라빗AI
           {step && (
             <span className="ml-1 inline-flex items-center rounded-full bg-violet-100 px-2 py-0.5 text-[8px] font-medium text-violet-700 md:text-xs">
@@ -78,7 +78,7 @@ const SurveyBubble = ({
             />
           ) : (
             <>
-              <span className="text-xs md:text-sm">
+              <span className="block whitespace-pre-wrap break-all text-sm md:text-base">
                 {animation ? displayedText : message}
               </span>
               {(!animation || !isTyping) && showComponent && component}

@@ -13,7 +13,6 @@ public class SecurityUtil {
     public static String getCurrentUserCode() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.debug("Current user code: {}", authentication.getPrincipal());
-
         if(authentication == null || authentication.getName() == null)  {
             log.debug("Current user code is null");
             throw new RuntimeException("Security Context 에 인증 정보가 없습니다.");

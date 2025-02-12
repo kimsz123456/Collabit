@@ -14,17 +14,32 @@ import com.collabit.project.domain.entity.TotalScore;
 import com.collabit.project.repository.ProjectInfoRepository;
 import com.collabit.project.repository.TotalScoreRepository;
 import com.collabit.project.service.ProjectService;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 
+import com.collabit.user.domain.entity.User;
 import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
+// MongoDB 관련
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.bson.Document;
 
 @Slf4j
 @Service
@@ -37,6 +52,7 @@ public class PortfolioService {
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final ProjectService projectService;
+    private final MongoTemplate mongoTemplate;
 
     public GetMultipleHexagonProgressResponseDTO getHexagonAndProgressbarGraph(String userCode) {
 
@@ -145,9 +161,8 @@ public class PortfolioService {
     // 유저별 평균 계산
     private Map<String, Double>  getUserAverage(String userCode) {
         // 유저가 참여한 모든 프로젝트 조회(단 설문이 종료된 것만)
-        Portfolio portfolio = portfolioRepository.findByUserCode(userCode).orElseThrow(()->{
-            throw new RuntimeException("포트폴리오가 업데이트 되지 않았습니다.");
-        });
+        Portfolio portfolio = portfolioRepository.findByUserCode(userCode)
+                .orElseThrow(()-> new RuntimeException("포트폴리오가 업데이트 되지 않았습니다."));
         log.debug("portfolio: {}", portfolio);
 
         return calculateUserAverageScores(portfolio);
@@ -359,7 +374,7 @@ public class PortfolioService {
                     .expression(totalScores.getOrDefault("expression", 0L))
                     .problemSolving(totalScores.getOrDefault("problemSolving", 0L))
                     .leadership(totalScores.getOrDefault("leadership", 0L))
-                    .isUpdate(true)
+                    .isUpdate(false)
                     .updatedAt(LocalDateTime.now())
                     .build();
 
@@ -383,6 +398,101 @@ public class PortfolioService {
             .minScore(1)
             .maxScore(5)
             .build();
+    }
+
+    // mongoDB의 워드 클라우드 데이터 조회
+    private WordCloudData getWordCloudData(String userCode) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("user_code").is(userCode));
+
+        // wordcloud_collection에서 데이터 조회
+        Document wordcloudDoc = mongoTemplate.findOne(query, Document.class, "wordcloud_collection");
+        List<WordCloudItem> strength = new ArrayList<>();
+        List<WordCloudItem> weakness = new ArrayList<>();
+
+        if (wordcloudDoc != null) {
+            // strength 리스트 처리
+            strength = wordcloudDoc.getList("strength", Document.class, new ArrayList<>())
+                    .stream()
+                    .map(doc -> WordCloudItem.builder()
+                            .text(doc.getString("text"))
+                            .value(doc.get("value", Number.class).doubleValue())
+                            .build())
+                    .collect(Collectors.toList());
+
+            // weakness 리스트 처리
+            weakness = wordcloudDoc.getList("weakness", Document.class, new ArrayList<>())
+                    .stream()
+                    .map(doc -> WordCloudItem.builder()
+                            .text(doc.getString("text"))
+                            .value(doc.get("value", Number.class).doubleValue())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+
+        // WordCloudData 객체 생성하여 반환
+        return WordCloudData.builder()
+                .strength(strength)
+                .weakness(weakness)
+                .build();
+    }
+
+    // mongoDB의 AI 강약점 분석 데이터 조회
+    private AISummaryData getAISummaryData(String userCode) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("user_code").is(userCode));
+
+        // ai_analysis 컬렉션에서 데이터 조회
+        Document aiAnalysisDoc = mongoTemplate.findOne(query, Document.class, "ai_analysis");
+
+        if (aiAnalysisDoc != null) {
+            Document analysisResults = (Document) aiAnalysisDoc.get("analysis_results");
+
+            return AISummaryData.builder()
+                    .strength(analysisResults.getString("strength"))
+                    .weakness(analysisResults.getString("weakness"))
+                    .build();
+        }
+        return null;
+    }
+
+    // 로그인 유저 본인의 모든 포트폴리오 데이터 조회
+    public GetAllPortfolioResponseDTO getAllPortfolioByLoginUser(String userCode) {
+        return getAllPortfolio(userCode);
+    }
+
+    // 해당 닉네임을 가진 유저의 포트폴리오 데이터 조회 (로그인 없이 접근 가능)
+    public GetAllPortfolioResponseDTO getAllPortfolioByGithubId(String githubId) {
+        User user = userRepository.findByGithubId(githubId)
+                .orElseThrow(UserNotFoundException::new);
+        String userCode = user.getCode();
+        return getAllPortfolio(userCode);
+    }
+
+    // 유저 코드에 해당하는 모든 포트폴리오 데이터 조회
+    private GetAllPortfolioResponseDTO getAllPortfolio(String userCode) {
+        // 육각형, 프로그래스 그래프 데이터 조회
+        GetMultipleHexagonProgressResponseDTO multipleData = getHexagonAndProgressbarGraph(userCode);
+
+        return GetAllPortfolioResponseDTO.builder()
+                .portfolioInfo(getPortfolioInfo(userCode))
+                .hexagon(multipleData.getHexagon())
+                .progress(multipleData.getProgress())
+                .wordCloud(getWordCloudData(userCode))
+                .aiSummary(getAISummaryData(userCode))
+                .timeline(getTimelineGraph(userCode))
+                .build();
+    }
+
+    // 닉네임 decode
+    public String decodeGithubId(String encodedGithubId) {
+        try {
+            // URL Safe Base64 디코딩
+            byte[] decodedBytes = Base64.getUrlDecoder().decode(encodedGithubId);
+            return new String(decodedBytes);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.FAILED_DECODE_NICKNAME);
+        }
     }
 }
 

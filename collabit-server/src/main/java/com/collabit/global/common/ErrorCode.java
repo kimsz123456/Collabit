@@ -43,7 +43,8 @@ public enum ErrorCode {
     // =========== portfolio ===========
     SURVEY_NOT_CLOSED(HttpStatus.BAD_REQUEST, "설문이 마감되지 않아 프로젝트 결과를 조회할 수 없습니다."),
     PROJECT_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 프로젝트 정보를 찾을 수 없습니다."),
-    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당되는 피드백 정보를 찾을 수 없습니다.");
+    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당되는 피드백 정보를 찾을 수 없습니다."),
+    FAILED_DECODE_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임 정보를 알 수 없습니다.");
 
     // =========== Business ===========
 

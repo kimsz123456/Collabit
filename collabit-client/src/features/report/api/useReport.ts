@@ -1,22 +1,17 @@
 import {
-  getPortfolioAISummaryAPI,
-  getPortfolioChartAPI,
-  getPortfolioInfoAPI,
+  getPortfolioDataAPI,
+  getPortfolioShareAPI,
   getPortfolioStatusAPI,
-  getPortfolioTimelineChartAPI,
-  getPortfolioWordCloudAPI,
 } from "@/shared/api/report";
 import {
-  AISummaryResponse,
   ChartResponse,
-  ReportInfoResponse,
   ReportStatusResponse,
-  TimelineResponse,
-  WordCloudResponse,
 } from "@/shared/types/response/report";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 
 const useReport = () => {
+  const { hashedValue } = useParams();
   const { data: reportStatus, isLoading: reportStatusLoading } = useQuery<
     ReportStatusResponse,
     Error
@@ -25,44 +20,48 @@ const useReport = () => {
     queryFn: () => getPortfolioStatusAPI(),
   });
 
-  const { data: reportInfo } = useQuery<ReportInfoResponse, Error>({
-    queryKey: ["reportInfo"],
-    queryFn: () => getPortfolioInfoAPI(),
-    enabled: !!reportStatus?.exist,
-  });
-
   const { data: report } = useQuery<ChartResponse, Error>({
     queryKey: ["report"],
-    queryFn: () => getPortfolioChartAPI(),
+    queryFn: () => getPortfolioDataAPI(),
     enabled: !!reportStatus?.exist,
   });
 
-  const { data: wordCloud } = useQuery<WordCloudResponse, Error>({
-    queryKey: ["wordCloud"],
-    queryFn: () => getPortfolioWordCloudAPI(),
-    enabled: !!reportStatus?.exist,
+  
+  const fetchReportPDF = async ({
+    queryKey,
+  }: {
+    queryKey: [string, string];
+  }) => {
+    const [, hashedValue] = queryKey;
+    return getPortfolioShareAPI(hashedValue as string);
+  };
+
+  const { data: reportPDF } = useQuery<ChartResponse, Error>({
+    queryKey: ["reportPDF", hashedValue],
+    queryFn: () => fetchReportPDF({ queryKey: ["reportPDF", hashedValue] }),
+    enabled: !!reportStatus?.exist && !!hashedValue,
   });
 
-  const { data: summary } = useQuery<AISummaryResponse, Error>({
-    queryKey: ["summary"],
-    queryFn: () => getPortfolioAISummaryAPI(),
-    enabled: !!reportStatus?.exist,
-  });
+  if (!report)
+    return {
+      reportStatusLoading,
+      reportStatus,
+      reportPDF,
+    };
 
-  const { data: timeline } = useQuery<TimelineResponse, Error>({
-    queryKey: ["timeline"],
-    queryFn: () => getPortfolioTimelineChartAPI(),
-    enabled: !!reportStatus?.exist,
-  });
+  const { hexagon, progress, wordCloud, aiSummary, timeline, portfolioInfo } =
+    report;
 
   return {
     reportStatusLoading,
     reportStatus,
-    reportInfo,
-    report,
+    hexagon,
+    progress,
     wordCloud,
-    summary,
+    aiSummary,
     timeline,
+    portfolioInfo,
+    reportPDF,
   };
 };
 
