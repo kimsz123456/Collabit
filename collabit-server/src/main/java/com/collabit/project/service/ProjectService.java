@@ -199,6 +199,8 @@ public class ProjectService {
         log.info("프로젝트 목록 조회 시작 - userCode: {}, keyword: {}, sortOrder: {}",
                 userCode, keyword, sortOrder);
 
+        User user = findUserByCode(userCode);
+
         // 1. 로그인 유저의 ProjectInfo 리스트 조회
         // project와 함께 조회하여 N+1 문제 방지 (후에 project 테이블에 있는 정보 조회 시 발생)
         List<ProjectInfo> projectInfoList = projectInfoRepository.findByUserCodeWithProject(userCode);
@@ -236,7 +238,10 @@ public class ProjectService {
                                         .findByProjectCodeAndProjectInfoCodeLessThanEqual(
                                                 project.getCode(),
                                                 projectInfo.getCode()
-                                        );
+                                        )
+                                        .stream()
+                                        .filter(githubId -> !githubId.equals(user.getGithubId())) // 현재 사용자 제외
+                                        .collect(Collectors.toList());
 
                                 // 조회한 contributor들의 githubId, 프로필 이미지 조회
                                 List<ContributorDetailDTO> contributors = contributorRepository
@@ -252,7 +257,8 @@ public class ProjectService {
                                         .code(projectInfo.getCode())
                                         .title(project.getTitle())
                                         .isDone(projectInfo.getCompletedAt() != null)
-                                        .participant(projectInfo.getParticipant() + newSurveyResponseMap.getOrDefault(projectInfo.getCode(), 0))
+                                        //.participant(projectInfo.getParticipant() + newSurveyResponseMap.getOrDefault(projectInfo.getCode(), 0))
+                                        .participant(projectInfo.getParticipant())
                                         .newSurveyResponse(newSurveyResponseMap.containsKey(projectInfo.getCode()))
                                         .createdAt(projectInfo.getCreatedAt())
                                         .contributors(contributors)
@@ -491,6 +497,8 @@ public class ProjectService {
     public List<GetMainProjectListResponseDTO> findMainProjectList(String userCode) {
         log.info("메인페이지 프로젝트 목록 조회 시작 - userCode: {}", userCode);
 
+        User user = findUserByCode(userCode);
+
         // 1. 로그인 유저의 ProjectInfo 리스트 조회
         List<ProjectInfo> projectInfoList = projectInfoRepository.findByUserCodeWithProject(userCode);
         log.debug("사용자의 ProjectInfo 조회 완료 - 조회된 ProjectInfo 수: {}", projectInfoList.size());
@@ -508,7 +516,10 @@ public class ProjectService {
                             .findByProjectCodeAndProjectInfoCodeLessThanEqual(
                                     project.getCode(),
                                     projectInfo.getCode()
-                            );
+                            )
+                            .stream()
+                            .filter(githubId -> !githubId.equals(user.getGithubId())) // 현재 사용자 제외
+                            .collect(Collectors.toList());
 
                     // 조회한 contributor들의 githubId, 프로필 이미지 조회
                     List<ContributorDetailDTO> contributors = contributorRepository
@@ -524,7 +535,8 @@ public class ProjectService {
                             .organization(project.getOrganization())
                             .code(projectInfo.getCode())
                             .title(project.getTitle())
-                            .participant(projectInfo.getParticipant() + newSurveyResponseMap.getOrDefault(projectInfo.getCode(), 0))
+                            //.participant(projectInfo.getParticipant() + newSurveyResponseMap.getOrDefault(projectInfo.getCode(), 0))
+                            .participant(projectInfo.getParticipant())
                             .isDone(projectInfo.getCompletedAt() != null)
                             .newSurveyResponse(newSurveyResponseMap.containsKey(projectInfo.getCode()))
                             .createdAt(projectInfo.getCreatedAt())

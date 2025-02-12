@@ -119,7 +119,6 @@ class MongoDB:
         "projectInfoCode": int(project_info_code),
         "userCode": user_code
       })
-      print(result)
       return result
     except Exception as e:
       print(f"Failed to check survey: {e}")
