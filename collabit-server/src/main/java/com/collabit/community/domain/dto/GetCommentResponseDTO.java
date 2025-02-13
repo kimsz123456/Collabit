@@ -21,6 +21,6 @@ public class GetCommentResponseDTO {
     String content;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
-    int parentCommentCode;
+    Integer parentCommentCode;
     boolean isDeleted;
 }
