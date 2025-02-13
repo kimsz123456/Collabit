@@ -362,21 +362,18 @@ public class PortfolioService {
                 totalParticipants += info.getParticipant();
             }
 
-            portfolio = Portfolio.builder()
-                    .user(userRepository.findById(userCode)
-                            .orElseThrow(UserNotFoundException::new))
-                    .userCode(userCode)
-                    .project(totalProjects)
-                    .participant(totalParticipants)
-                    .sympathy(totalScores.getOrDefault("sympathy", 0L))
-                    .listening(totalScores.getOrDefault("listening", 0L))
-                    .conflictResolution(totalScores.getOrDefault("conflictResolution", 0L))
-                    .expression(totalScores.getOrDefault("expression", 0L))
-                    .problemSolving(totalScores.getOrDefault("problemSolving", 0L))
-                    .leadership(totalScores.getOrDefault("leadership", 0L))
-                    .isUpdate(false)
-                    .updatedAt(LocalDateTime.now())
-                    .build();
+            portfolio.updatePortfolio(
+                totalProjects,
+                totalParticipants,
+                totalScores.getOrDefault("sympathy", 0L),
+                totalScores.getOrDefault("listening", 0L),
+                totalScores.getOrDefault("conflictResolution", 0L),
+                totalScores.getOrDefault("expression", 0L),
+                totalScores.getOrDefault("problemSolving", 0L),
+                totalScores.getOrDefault("leadership", 0L),
+                true,
+                LocalDateTime.now()
+            );
 
             portfolioRepository.save(portfolio);
         }

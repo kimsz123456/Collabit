@@ -1,5 +1,7 @@
 package com.collabit.project.service;
 
+import com.collabit.global.common.ErrorCode;
+import com.collabit.global.error.exception.BusinessException;
 import com.collabit.portfolio.domain.dto.ScoreData;
 import com.collabit.portfolio.domain.entity.Description;
 import com.collabit.portfolio.domain.entity.Feedback;
@@ -82,6 +84,10 @@ public class ProjectService {
     // 프론트에서 받은 프로젝트 정보 검증 후 프로젝트 저장
      public void saveProject(CreateProjectRequestDTO createProjectRequestDTO, String userCode) {
         log.info("프로젝트 등록 시작 - CreateProjectRequestDTO: {}, userCode: {}", createProjectRequestDTO.toString(), userCode);
+
+        if(createProjectRequestDTO.getContributors().isEmpty()){
+            throw new BusinessException(ErrorCode.EMPTY_CONTRIBUTOR_LIST);
+        }
 
         // 1. 시용자 조회
         User user = findUserByCode(userCode);

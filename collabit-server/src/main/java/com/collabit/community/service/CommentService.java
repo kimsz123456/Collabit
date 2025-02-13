@@ -1,5 +1,6 @@
 package com.collabit.community.service;
 
+import com.collabit.community.domain.dto.Author;
 import com.collabit.community.domain.dto.CreateCommentRequestDTO;
 import com.collabit.community.domain.dto.CreateCommentResponseDTO;
 import com.collabit.community.domain.dto.GetCommentResponseDTO;
@@ -138,11 +139,16 @@ public class CommentService {
 
     public GetCommentResponseDTO buildDTO(Comment comment) {
         log.debug("Building DTO for comment: {}", comment.getCode());
+        User author = comment.getUser();
 
         GetCommentResponseDTO responseDTO = GetCommentResponseDTO.builder()
             .code(comment.getCode())
             .postCode(comment.getPost().getCode())
-            .userNickname(comment.getUser().getNickname())
+            .author(Author.builder()
+                .nickname(author.getNickname())
+                .profileImage(author.getProfileImage())
+                .githubId(author.getGithubId())
+                .build())
             .content(comment.getContent())
             .createdAt(comment.getCreatedAt())
             .updatedAt(comment.getUpdatedAt())

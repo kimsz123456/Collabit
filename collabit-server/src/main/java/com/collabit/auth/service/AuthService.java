@@ -10,6 +10,7 @@ import com.collabit.global.service.RedisService;
 import com.collabit.user.domain.entity.Role;
 import com.collabit.user.domain.entity.User;
 import com.collabit.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,7 @@ public class AuthService {
     }
 
     // 회원가입 메서드
+    @Transactional
     public UserSignupResponseDTO signup(UserSignupRequestDTO userSignupRequestDto) {
         String email = userSignupRequestDto.getEmail();
         String nickname = userSignupRequestDto.getNickname();
@@ -66,7 +68,7 @@ public class AuthService {
         userRepository.save(user);
 
         // 이메일 인증 여부 Redis에서 삭제 (더 이상 필요 없음)
-        redisService.delete(email);
+        redisService.delete(verifiedKey);
 
         // UserResponseDto 생성(FE 에게 정보 전달 용)
         // isGithub 은 회원가입시에는 false. 로그인 때 확인
@@ -79,6 +81,7 @@ public class AuthService {
     }
 
     // 이메일 중복 체크
+    @Transactional
     public void isEmailAlreadyExists(String email) {
         if (userRepository.existsByEmail(email)) {
             log.warn("이메일 중복 발생: {}", email);
@@ -88,6 +91,7 @@ public class AuthService {
     }
 
     // 닉네임 중복 체크
+    @Transactional
     public void isNicknameAlreadyExists(String nickname) {
         if (userRepository.existsByNickname(nickname)) {
             log.warn("닉네임 중복 발생: {}", nickname);

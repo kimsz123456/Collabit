@@ -13,6 +13,7 @@ public enum ErrorCode {
     INVALID_TYPE_VALUE(HttpStatus.BAD_REQUEST, "올바르지 않은 타입입니다"),
     MISSING_REQUIRED_FIELD(HttpStatus.BAD_REQUEST, "필수 입력값이 누락되었습니다."),
     METHOD_ARGUMENT_NOT_VALID(HttpStatus.BAD_REQUEST, "요청 데이터가 형식이 올바르지 않습니다."),
+    EMPTY_CONTRIBUTOR_LIST(HttpStatus.BAD_REQUEST, "컨트리뷰터가 없는 레포지토리는 등록할 수 없습니다."),
 
     // 401 Unauthorized (인증 실패)
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),

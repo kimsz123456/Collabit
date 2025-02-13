@@ -62,4 +62,28 @@ public class Portfolio {
     public void changeUpdateStatus(){
         this.isUpdate = true;
     }
+
+    public void updatePortfolio(
+        int project,
+        int participant,
+        long sympathy,
+        long listening,
+        long conflictResolution,
+        long expression,
+        long problemSolving,
+        long leadership,
+        boolean isUpdate,
+        LocalDateTime updatedAt
+    ) {
+        this.project = project;
+        this.participant = participant;
+        this.sympathy = sympathy;
+        this.listening = listening;
+        this.conflictResolution = conflictResolution;
+        this.expression = expression;
+        this.problemSolving = problemSolving;
+        this.leadership = leadership;
+        this.isUpdate = isUpdate;
+        this.updatedAt = updatedAt;
+    }
 }
