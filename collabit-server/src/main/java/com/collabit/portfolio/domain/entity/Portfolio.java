@@ -77,12 +77,12 @@ public class Portfolio {
     ) {
         this.project = project;
         this.participant = participant;
-        this.sympathy = sympathy;
-        this.listening = listening;
-        this.conflictResolution = conflictResolution;
-        this.expression = expression;
-        this.problemSolving = problemSolving;
-        this.leadership = leadership;
+        this.sympathy += sympathy;
+        this.listening += listening;
+        this.conflictResolution += conflictResolution;
+        this.expression += expression;
+        this.problemSolving += problemSolving;
+        this.leadership += leadership;
         this.isUpdate = isUpdate;
         this.updatedAt = updatedAt;
     }
