@@ -28,22 +28,22 @@ public class Portfolio {
     private int participant;
 
     @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
-    private Long sympathy;
+    private Long sympathy=0L;
 
     @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
-    private Long listening;
+    private Long listening=0L;
 
     @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
-    private Long expression;
+    private Long expression=0L;
 
     @Column(name = "problem_solving", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
-    private Long problemSolving;
+    private Long problemSolving=0L;
 
     @Column(name = "conflict_resolution", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
-    private Long conflictResolution;
+    private Long conflictResolution=0L;
 
     @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
-    private Long leadership;
+    private Long leadership=0L;
 
     @Column(name = "is_update", columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean isUpdate;

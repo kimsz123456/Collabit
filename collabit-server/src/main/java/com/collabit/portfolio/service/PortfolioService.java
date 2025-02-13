@@ -365,12 +365,12 @@ public class PortfolioService {
             portfolio.updatePortfolio(
                 totalProjects,
                 totalParticipants,
-                (portfolio.getSympathy() != null ? portfolio.getSympathy() : 0L) + totalScores.getOrDefault("sympathy", 0L),
-                (portfolio.getListening() != null ? portfolio.getListening() : 0L) + totalScores.getOrDefault("listening", 0L),
-                (portfolio.getConflictResolution() != null ? portfolio.getConflictResolution() : 0L) + totalScores.getOrDefault("conflictResolution", 0L),
-                (portfolio.getExpression() != null ? portfolio.getExpression() : 0L) + totalScores.getOrDefault("expression", 0L),
-                (portfolio.getProblemSolving() != null ? portfolio.getProblemSolving() : 0L) + totalScores.getOrDefault("problemSolving", 0L),
-                (portfolio.getLeadership() != null ? portfolio.getLeadership() : 0L) + totalScores.getOrDefault("leadership", 0L),
+                portfolio.getSympathy() + totalScores.getOrDefault("sympathy", 0L),
+                portfolio.getListening()+ totalScores.getOrDefault("listening", 0L),
+                portfolio.getConflictResolution() + totalScores.getOrDefault("conflictResolution", 0L),
+                portfolio.getExpression()  + totalScores.getOrDefault("expression", 0L),
+                portfolio.getProblemSolving() + totalScores.getOrDefault("problemSolving", 0L),
+                portfolio.getLeadership()  + totalScores.getOrDefault("leadership", 0L),
                 true,
                 LocalDateTime.now()
             );
