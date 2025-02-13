@@ -14,8 +14,9 @@ export type PostListResponse = Pick<
 export type PostDetailResponse = Pick<
   Post,
   "code" | "content" | "createdAt" | "updatedAt"
-> & { author: Pick<User, "nickname" | "profileImage"> } & {
+> & { author: Pick<User, "nickname" | "profileImage" | "githubId"> } & {
   images: Image["url"][];
   likeCount: number;
+  commentCount: number;
   liked: boolean;
 };

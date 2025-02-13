@@ -12,14 +12,25 @@ const LoginPage = () => {
   const router = useRouter();
 
   const handleLogin = () => {
+    const lastPath = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("lastPath="))
+      ?.split("=")[1];
+
+    // URL 디코딩을 수행
+    const decodedPath = lastPath ? decodeURIComponent(lastPath) : "/";
+
+    sessionStorage.setItem("returnTo", decodedPath);
     window.location.href = `${apiUri}/oauth2/authorization/github`;
   };
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   useEffect(() => {
-    if (isLoading && isAuthenticated) {
+    console.log(isAuthenticated);
+
+    if (isAuthenticated) {
       router.push("/");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, router]);
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-10 py-20">

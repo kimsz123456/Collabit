@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tools.ant.taskdefs.Get;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,19 +74,27 @@ public class PostController {
         return ResponseEntity.status(204).build();
     }
     
-    @Operation(summary="추천 게시글 조회",description = "추천 게시글을 조회 API입니다.")
+    @Operation(summary="추천 게시글 조회",description = "추천 게시글을 조회하는 API입니다.")
     @GetMapping("/recommend")
-    public ResponseEntity<List<GetPostResponseDTO>> recommend(){
+    public ResponseEntity<List<GetPostResponseDTO>> recommendPost(){
         String userCode = SecurityUtil.getCurrentUserCode();
         List<GetPostResponseDTO> list = postService.recommendPost(userCode);
         return ResponseEntity.status(200).body(list);
     }
 
-    @Operation(summary="최신 게시글 조회",description = "최신 게시글을 조회 API입니다.")
+    @Operation(summary="최신 게시글 조회",description = "최신 게시글을 조회하는 API입니다.")
     @GetMapping("/latest")
-    public ResponseEntity<List<GetPostResponseDTO>> latest(){
+    public ResponseEntity<List<GetPostResponseDTO>> latestPost(){
         String userCode = SecurityUtil.getCurrentUserCode();
         List<GetPostResponseDTO> list = postService.latestPost(userCode);
+        return ResponseEntity.status(200).body(list);
+    }
+
+    @Operation(summary="내가 쓴 글 조회",description = "내가 쓴 게시글을 조회하는 API입니다.")
+    @GetMapping("/myPost")
+    public ResponseEntity<PageResponseDTO<GetPostResponseDTO>> myPost(@RequestParam("pageNumber") int pageNumber){
+        String userCode = SecurityUtil.getCurrentUserCode();
+        PageResponseDTO<GetPostResponseDTO> list = postService.myPost(userCode,pageNumber);
         return ResponseEntity.status(200).body(list);
     }
 }

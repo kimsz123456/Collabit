@@ -1,4 +1,4 @@
-package com.collabit.project.service;
+package com.collabit.global.sse;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -36,20 +35,5 @@ public class SseEmitterService {
         }
 
         return emitter;
-    }
-
-    // targetUser에게 새로운 설문 응답 데이터를 SSE로 전송하는 메서드
-    public void sendToClientProjectInfo(String userCode, int projectInfoCode) {
-        SseEmitter emitter = sseEmitters.get(userCode);
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event()
-                        .name("newSurveyResponse")
-                        .data(projectInfoCode));
-            } catch (IOException e) {
-                emitter.complete();
-                sseEmitters.remove(userCode);
-            }
-        }
     }
 }

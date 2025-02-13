@@ -14,10 +14,18 @@ const useLoginCallback = () => {
     const checkAuth = async () => {
       const auth = await queryClient.fetchQuery({
         queryKey: ["auth"],
-        queryFn: () => getUserInfoAPI(),
+        queryFn: getUserInfoAPI,
       });
+
+      const returnTo = sessionStorage.getItem("returnTo");
+      console.log(returnTo);
+
       if (auth.isAuthenticated) {
-        router.push("/");
+        if (returnTo) {
+          router.push(returnTo);
+        } else {
+          router.push("/");
+        }
       } else {
         openModal(
           <OneButtonModal
@@ -33,6 +41,6 @@ const useLoginCallback = () => {
       }
     };
     checkAuth();
-  }, []);
+  }, [openModal, closeModal, queryClient, router]);
 };
 export default useLoginCallback;

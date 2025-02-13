@@ -22,7 +22,11 @@ const OneButtonModal = ({
         className="fixed inset-0 z-10 bg-black/50"
         onClick={(e) => {
           e.stopPropagation();
-          closeModal();
+          if (handleButtonClick) {
+            handleButtonClick();
+          } else {
+            closeModal();
+          }
         }}
       />
       <div
@@ -30,7 +34,14 @@ const OneButtonModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (handleButtonClick) {
+            handleButtonClick();
+          } else {
+            closeModal();
+          }
+        }}
       >
         <Button
           type="button"

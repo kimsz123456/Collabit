@@ -55,4 +55,13 @@ public class SurveyController {
         log.debug("surveyResponse: {}", responseDTO);
         return ResponseEntity.ok(responseDTO);
     }
+
+    @GetMapping("/{surveyCode}/verify")
+    @Operation(summary="설문조사 상태 조회", description = "설문조사를 가능한 userCode인지 조회하는 API입니다.")
+    public ResponseEntity<?> getSurveyStatus(@PathVariable int surveyCode) {
+        String userCode = SecurityUtil.getCurrentUserCode();
+        surveyService.verifySurvey(userCode,surveyCode);
+        log.debug("surveyVerifySuccess");
+        return ResponseEntity.ok().build();
+    }
 }

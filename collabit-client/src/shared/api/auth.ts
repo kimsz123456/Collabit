@@ -78,24 +78,27 @@ export const logoutAPI = async () => {
   });
   return res;
 };
-
+	
 export const loginCredentialAPI = async (body: LoginRequest) => {
+  const formData = new URLSearchParams();
+  formData.append("email", body.email);
+  formData.append("password", body.password);
+
   const res = await fetch(`${apiUrl}/auth/login`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     credentials: "include",
-    body: JSON.stringify(body),
+    body: formData.toString(), // FormData 대신 URLSearchParams 사용
   });
-
-  const data = await res.json();
-
+  
+  console.log(res)
   if (!res.ok) {
-    throw new Error(data.message || "로그인에 실패했습니다.");
+    throw new Error("로그인에 실패했습니다.");
   }
 
-  return data;
+  return res;
 };
 
 export const checkNicknameAPI = async (nickname: string) => {

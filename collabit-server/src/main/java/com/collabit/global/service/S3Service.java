@@ -34,7 +34,7 @@ public class S3Service {
         if (file.isEmpty()) {
             return null;
         }
-        String fileName = dirName + "/" + UUID.randomUUID() + file.getOriginalFilename();
+        String fileName = dirName + "/" + UUID.randomUUID();
         try (InputStream inputStream = file.getInputStream()) {
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(file.getSize());
@@ -42,7 +42,7 @@ public class S3Service {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-        return extractUrl(amazonS3.getUrl(bucket, fileName).toString());
+        return amazonS3.getUrl(bucket, fileName).toString();
     }
 
     public boolean delete(String fileUrl) {
@@ -55,9 +55,5 @@ public class S3Service {
             log.error(e.getMessage());
         }
         return false;
-    }
-
-    private String extractUrl(String Url) {
-        return Url.substring(baseUrl.length());
     }
 }

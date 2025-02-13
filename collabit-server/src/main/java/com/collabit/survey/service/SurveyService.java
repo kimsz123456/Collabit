@@ -1,5 +1,7 @@
 package com.collabit.survey.service;
 
+import com.collabit.global.common.ErrorCode;
+import com.collabit.global.error.exception.BusinessException;
 import com.collabit.project.domain.entity.ProjectContributor;
 import com.collabit.project.domain.entity.ProjectInfo;
 import com.collabit.project.repository.ProjectContributorRepository;
@@ -16,6 +18,7 @@ import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -220,7 +223,7 @@ public class SurveyService {
 
         if(projectInfo == null) {
             log.error("해당 ProjectInfo를 찾을 수 없습니다.");
-            throw new RuntimeException("해당 프로젝트 정보를 찾을 수 없습니다.");
+            throw new BusinessException(ErrorCode.PROJECT_INFO_NOT_FOUND);
         }
 
         log.debug("조회한 projectInfo: {}", projectInfo.toString());
@@ -232,5 +235,36 @@ public class SurveyService {
                 .surveyMultipleResponse(getMultipleResponse(userCode, projectInfoCode))
                 .surveyEssayResponse(getEssayResponse(userCode, projectInfoCode))
                 .build();
+    }
+
+    public void verifySurvey(String userCode, int projectInfoCode) {
+        log.debug("설문조사 상세조회 시작");
+
+        User user = userRepository.findByCode(userCode).orElseThrow(() -> {
+            log.debug("User not found");
+            return new UserNotFoundException();
+        });
+        log.debug("User GithubID: " + user.getGithubId());
+
+        ProjectInfo projectInfo = projectInfoRepository.findByCode(projectInfoCode);
+
+        if(projectInfo == null) {
+            log.error("해당 ProjectInfo를 찾을 수 없습니다.");
+            throw new BusinessException(ErrorCode.PROJECT_INFO_NOT_FOUND);
+        }
+
+        // projectInfoCode와 projectCode로
+        List<String> contributorsGithubId = projectContributorRepository
+            .findByProjectCodeAndProjectInfoCodeLessThanEqual(
+                projectInfo.getProject().getCode(),
+                projectInfo.getCode()
+            )
+            .stream()
+            .filter(githubId -> !githubId.equals(projectInfo.getUser().getGithubId()))
+            .collect(Collectors.toList());
+
+        if(!contributorsGithubId.contains(user.getGithubId())){
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
     }
 }

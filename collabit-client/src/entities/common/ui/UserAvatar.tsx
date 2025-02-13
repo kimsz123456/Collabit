@@ -8,8 +8,9 @@ interface UserAvatarProps {
   handleLogout?: () => void;
   handleToMyPage?: () => void;
   size?: "sm" | "md";
+  time?: string;
 }
-const UserAvatar = ({ user, size = "md" }: UserAvatarProps) => {
+const UserAvatar = ({ user, size = "md", time }: UserAvatarProps) => {
   return (
     <div className="flex items-center gap-2">
       <Avatar className={cn("h-10 w-10", size === "sm" && "h-6 w-6")}>
@@ -21,6 +22,7 @@ const UserAvatar = ({ user, size = "md" }: UserAvatarProps) => {
       <span className={cn("font-semibold", size === "sm" && "text-md")}>
         {user.nickname}
       </span>
+      {time && <span className="text-sm text-muted-foreground">{time}</span>}
     </div>
   );
 };

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ public class ChatRoomListService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRedisService chatRedisService;
     private final UserRepository userRepository;
+    private final ChatRoomDetailService chatRoomDetailService;
 
     // 닉네임으로 사용자 찾기
     private User getUserByNickname(String nickname) {
@@ -68,6 +70,9 @@ public class ChatRoomListService {
         ChatRoom chatRoom = chatRoomRepository.findByUniqueCode(uniqueCode)
                 .orElseGet(() -> createNewChatRoom(userCode, userCode2, uniqueCode));
         log.debug("Chat room code {} for user code {}", chatRoom.getCode(), userCode);
+
+        ChatMessageRequestDTO chatMessageRequestDTO = ChatMessageRequestDTO.builder().message(requestDTO.getMessage()).timestamp(LocalDateTime.now()).build();
+        chatRoomDetailService.saveMessage(chatMessageRequestDTO, userCode, chatRoom.getCode());
 
         return buildChatRoomResponseDTO(chatRoom);
     }

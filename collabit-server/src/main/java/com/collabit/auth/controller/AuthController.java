@@ -3,17 +3,14 @@ package com.collabit.auth.controller;
 import com.collabit.auth.domain.dto.*;
 import com.collabit.auth.service.AuthService;
 import com.collabit.auth.service.EmailService;
-import com.collabit.global.security.SecurityUtil;
+import com.collabit.global.service.RedisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -32,10 +29,10 @@ public class AuthController {
     public ResponseEntity<?> signUp(@Valid @RequestBody UserSignupRequestDTO userSignupRequestDTO) {
         log.debug("signUp Request: {}", userSignupRequestDTO.toString());
 
-        UserResponseDTO userResponseDto = authService.signup(userSignupRequestDTO);
-        log.debug("signUp Response: {}", userResponseDto.toString());
+        UserSignupResponseDTO responseDto = authService.signup(userSignupRequestDTO);
+        log.debug("signUp Response: {}", responseDto.toString());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     // 닉네임 중복 체크
@@ -65,14 +62,6 @@ public class AuthController {
 
     }
 
-    // 로그인
-    @Operation(summary = "일반 로그인", description = "일반 사이트 자체 로그인 하는 API입니다." )
-    @PostMapping("/login")
-    public ResponseEntity<UserResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO userLoginRequestDto, HttpServletResponse response) {
-        log.debug("login Request: {}", userLoginRequestDto.toString());
-        return ResponseEntity.ok(authService.login(userLoginRequestDto, response));
-    }
-
     // 이메일 인증 요청
     @Operation(summary = "이메일 인증 요청", description = "회원가입 시 이메일 인증을 요청하는 API입니다." )
     @PostMapping("/send-email")
@@ -92,7 +81,7 @@ public class AuthController {
         String result = emailService.verifyCode(email, code);
         switch (result) {
             case "성공":
-                return ResponseEntity.ok(new ApiTextResponseDTO("이메일 인증 성공"));
+                return ResponseEntity.ok(new ApiTextResponseDTO("이메일 인증 성공: 회원가입 자격이 부여되었습니다."));
             case "틀림":
                 return ResponseEntity.badRequest().body(new ApiTextResponseDTO("이메일 인증 실패: 코드가 틀립니다."));
             case "만료":

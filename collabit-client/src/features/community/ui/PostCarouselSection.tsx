@@ -11,10 +11,7 @@ import {
 import { useState } from "react";
 import MainCommunityCard from "./MainComminityCard";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getMainPostAPI,
-  getRecommendPostAPI,
-} from "@/shared/api/community";
+import { getMainPostAPI, getRecommendPostAPI } from "@/shared/api/community";
 
 const PostCarouselSection = ({ type }: { type: string }) => {
   const [api, setApi] = useState<CarouselApi>();
@@ -47,15 +44,15 @@ const PostCarouselSection = ({ type }: { type: string }) => {
           opts={{
             align: "start",
           }}
-          className="w-full"
+          className="h-full w-full"
         >
-          <CarouselContent>
+          <CarouselContent className="h-full">
             {data?.map((post) => (
               <CarouselItem
                 key={post.code}
                 className="md:basis-1/2 lg:basis-1/3"
               >
-                <div className="px-2 py-2">
+                <div className="h-full px-2 py-2">
                   <MainCommunityCard data={post} />
                 </div>
               </CarouselItem>

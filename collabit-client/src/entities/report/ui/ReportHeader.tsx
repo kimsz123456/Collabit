@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useRef, useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/api/useAuth";
 import { Button } from "@/shared/ui/button";
 import { Share, RefreshCw } from "lucide-react";
@@ -17,23 +18,37 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { FileDown, Link2 } from "lucide-react";
 import useReport from "@/features/report/api/useReport";
+import hashUser from "@/shared/utils/hashUser";
+import ReportPDF from "@/widget/report/ui/ReportPDF";
 
-const ReportHeader = () => {
+const ReportHeader = ({ handleRefresh }: { handleRefresh?: () => void }) => {
   const { userInfo } = useAuth();
+  const { report, reportStatus } = useReport();
+  const portfolioInfo = report?.portfolioInfo;
+  const reportPDFRef = useRef<{ handleDownloadPDF: () => void } | null>(null);
+  const [shareUrl, setShareUrl] = useState<string>("");
 
-  const { reportInfo } = useReport();
+  useEffect(() => {
+    const fetchHashedValue = async () => {
+      if (userInfo?.githubId) {
+        try {
+          const hashedValue = await hashUser(userInfo.githubId);
+          const shareUrl = `${process.env.NEXT_PUBLIC_SHARE_URL}/${hashedValue}`;
+          setShareUrl(shareUrl);
+        } catch (error) {
+          console.error("Hashing failed:", error);
+        }
+      }
+    };
+    fetchHashedValue();
+  }, [userInfo]);
 
-  const handlePdfShare = () => {
-    console.log("pdf share");
+  const handleDownloadPDF = () => {
+    reportPDFRef.current?.handleDownloadPDF();
   };
 
   const handleCopyLink = () => {
-    const currentUrl = window.location.href;
-    navigator.clipboard.writeText(currentUrl);
-  };
-
-  const handleRefresh = () => {
-    console.log("refresh");
+    navigator.clipboard.writeText(shareUrl);
   };
 
   return (
@@ -46,13 +61,13 @@ const ReportHeader = () => {
           <p className="text-sm">
             <span>참여인원 </span>
             <span className="font-semibold text-violet-500">
-              {reportInfo?.participant}명
+              {portfolioInfo?.participant}명
             </span>
           </p>
           <p className="text-sm">
             <span>프로젝트 </span>
             <span className="font-semibold text-violet-500">
-              {reportInfo?.project}회
+              {portfolioInfo?.project}회
             </span>
           </p>
         </div>
@@ -61,9 +76,11 @@ const ReportHeader = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleRefresh}>
-                <RefreshCw className="h-4 w-4 text-gray-600" />
-              </Button>
+              {reportStatus?.update && (
+                <Button variant="ghost" size="icon" onClick={handleRefresh}>
+                  <RefreshCw className="h-4 w-4 text-gray-600" />
+                </Button>
+              )}
             </TooltipTrigger>
             <TooltipContent>
               <p>새로고침</p>
@@ -84,7 +101,7 @@ const ReportHeader = () => {
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={handlePdfShare}>
+              <DropdownMenuItem onClick={handleDownloadPDF}>
                 <FileDown className="mr-2 h-4 w-4" />
                 PDF로 저장하기
               </DropdownMenuItem>
@@ -96,6 +113,7 @@ const ReportHeader = () => {
           </DropdownMenu>
         </TooltipProvider>
       </div>
+      <ReportPDF ref={reportPDFRef} shareUrl={shareUrl} />
     </div>
   );
 };

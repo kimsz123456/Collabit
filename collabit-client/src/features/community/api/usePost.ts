@@ -1,8 +1,20 @@
-import { createPostAPI } from "@/shared/api/community";
-import { useMutation } from "@tanstack/react-query";
+import {
+  createPostAPI,
+  deletePostAPI,
+  editPostAPI,
+} from "@/shared/api/community";
+import { EditPostAPIRequest } from "@/shared/types/request/post";
+import { PageResponse } from "@/shared/types/response/page";
+import { PostListResponse } from "@/shared/types/response/post";
+import {
+  InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
 const usePost = () => {
+  const queryClient = useQueryClient();
   const [images, setImages] = useState<File[]>([]);
   const [preview, setPreview] = useState<string[]>([]);
   const [content, setContent] = useState<string>("");
@@ -10,8 +22,42 @@ const usePost = () => {
   const { mutate: createPost } = useMutation({
     mutationKey: ["createPost"],
     mutationFn: createPostAPI,
+    onSuccess: () => {
+      setImages([]);
+      setPreview([]);
+      setContent("");
+      queryClient.invalidateQueries({ queryKey: ["posts", "infinite"] });
+    },
   });
-
+  const { mutate: editPost } = useMutation({
+    mutationKey: ["editPost"],
+    mutationFn: ({ postCode, post }: EditPostAPIRequest) =>
+      editPostAPI({ postCode, post }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts", "infinite"] });
+    },
+  });
+  const { mutate: deletePost } = useMutation({
+    mutationFn: (postCode: number) => deletePostAPI(postCode),
+    onSuccess: (_, postCode) => {
+      queryClient.setQueryData(
+        ["posts", "infinite"],
+        (old: InfiniteData<PageResponse<PostListResponse>> | undefined) => {
+          if (!old) return old;
+          return {
+            pages: old.pages.map((page) => ({
+              ...page,
+              content: page.content.filter((p) => p.code !== postCode),
+            })),
+            pageParams: old.pageParams,
+          };
+        },
+      );
+    },
+    onError: (error) => {
+      console.error("deletePost error:", error);
+    },
+  });
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -54,6 +100,8 @@ const usePost = () => {
     handleContentChange,
     handleDeleteImage,
     handleSubmit,
+    deletePost,
+    editPost,
   };
 };
 

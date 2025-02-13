@@ -1,4 +1,5 @@
-import { CreatePostRequest, EditPostRequest } from "../types/request/post";
+import { PageResponse } from "./../types/response/page";
+import { CreatePostRequest, EditPostAPIRequest } from "../types/request/post";
 import { PostDetailResponse, PostListResponse } from "../types/response/post";
 import optimizeImageToWebP from "../utils/optimizeImageToWebP";
 
@@ -19,7 +20,6 @@ export const createPostAPI = async (post: CreatePostRequest) => {
     post.images.map(async (image) => {
       try {
         const optimizedImage = await optimizeImageToWebP(image);
-
         const fileName = image.name.replace(/\.[^/.]+$/, "") + ".webp";
         formData.append("images", optimizedImage, fileName);
       } catch (error) {
@@ -32,25 +32,37 @@ export const createPostAPI = async (post: CreatePostRequest) => {
   const response = await fetch(`${apiUrl}/post`, {
     method: "POST",
     body: formData,
-    ...fetchOptions,
+    credentials: "include",
   });
+
   return response.json();
 };
+interface GetPostListAPIProps {
+  currentPage: number;
+}
+export const getPostListAPI = async ({
+  currentPage,
+}: GetPostListAPIProps): Promise<PageResponse<PostListResponse>> => {
+  const response = await fetch(`${apiUrl}/post?pageNumber=${currentPage}`, {
+    method: "GET",
+    ...fetchOptions,
+  });
 
-export const getPostListAPI = async (): Promise<PostListResponse[]> => {
-  try {
-    const response = await fetch(`${apiUrl}/post`, {
-      ...fetchOptions,
-    });
-    if (response.ok) {
-      return response.json();
-    } else {
-      throw new Error("Failed to fetch posts");
-    }
-  } catch (error) {
-    console.error(error);
-    return [];
+  if (response.status === 204) {
+    return {
+      content: [],
+      pageNumber: 0,
+      pageSize: 0,
+      totalElements: 0,
+      totalPages: 0,
+      last: true,
+      hasNext: false,
+    };
   }
+
+  const data = await response.json();
+
+  return data;
 };
 
 export const getPostAPI = async (
@@ -62,7 +74,10 @@ export const getPostAPI = async (
   return response.json();
 };
 
-export const editPostAPI = async (postCode: number, post: EditPostRequest) => {
+export const editPostAPI = async ({
+  postCode,
+  post,
+}: EditPostAPIRequest): Promise<{ code: number }> => {
   const formData = new FormData();
   formData.append("content", post.content);
 
@@ -83,7 +98,8 @@ export const deletePostAPI = async (postCode: number) => {
     method: "DELETE",
     ...fetchOptions,
   });
-  return response.json();
+
+  return response;
 };
 
 export const likePostAPI = async (postCode: number) => {

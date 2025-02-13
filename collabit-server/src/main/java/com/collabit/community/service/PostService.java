@@ -89,7 +89,7 @@ public class PostService {
 
     public PageResponseDTO<GetPostResponseDTO> getPostList(String userCode, int pageNumber) {
         int size = 20;
-        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Order.desc("updatedAt")));
+        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Order.desc("createdAt")));
 
         Page<Post> postPage = postRepository.findAll(pageable);
         log.debug("Found {} posts, page {} of {}",
@@ -262,5 +262,29 @@ public class PostService {
             .collect(Collectors.toList());
     }
 
+    public PageResponseDTO<GetPostResponseDTO> myPost(String userCode, int pageNumber) {
+        log.debug("Finding my posts");
+        int size = 20;
+        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Order.desc("createdAt")));
 
+        Page<Post> postPage = postRepository.findByUserCode(userCode,pageable);
+        log.debug("Found {} posts, page {} of {}",
+            postPage.getTotalElements(),
+            pageNumber + 1,
+            postPage.getTotalPages());
+
+        List<GetPostResponseDTO> content = postPage.getContent().stream()
+            .map(post -> buildDTO(post, userCode))
+            .collect(Collectors.toList());
+
+        return PageResponseDTO.<GetPostResponseDTO>builder()
+            .content(content)
+            .pageNumber(postPage.getNumber())
+            .pageSize(size)
+            .totalElements((int) postPage.getTotalElements())
+            .totalPages(postPage.getTotalPages())
+            .last(postPage.isLast())
+            .hasNext(postPage.hasNext())
+            .build();
+    }
 }

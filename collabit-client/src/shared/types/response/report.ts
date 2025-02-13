@@ -20,14 +20,13 @@ export interface SkillData {
   leadership: Skill;
 }
 
-// todo : 추후 백엔드 api 정리되면 옵셔널 제거
 export type ChartResponse = {
   hexagon: ChartRangeData & SkillData;
   progress: SkillData;
-  wordCloud?: WordCloudResponse;
-  aiSummary?: AISummaryResponse;
-  timeline?: Timeline[];
-  info?: ReportInfoResponse;
+  wordCloud: WordCloudResponse;
+  aiSummary: AISummaryResponse;
+  timeline: TimelineResponse;
+  portfolioInfo: ReportInfoResponse;
 };
 
 export type WordWeight = {

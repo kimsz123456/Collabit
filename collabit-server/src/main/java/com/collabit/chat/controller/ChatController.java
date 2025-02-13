@@ -79,13 +79,12 @@ public class ChatController {
     }
 
     @Operation(summary = "닉네임으로 채팅방 조회", description = "닉네임을 기반으로 채팅방을 조회합니다.")
-    @PostMapping("/rooms/search")
+    @GetMapping("/rooms/search")
     public ResponseEntity<ChatRoomResponseDTO> getChatRoomWithNickname(@RequestParam("nickname") String nickname) {
         log.debug("getChatRoomWithNickname requestDTO: {}", nickname);
         String userCode = SecurityUtil.getCurrentUserCode();
         ChatRoomResponseDTO responseDTO = chatRoomListService.getChatRoomByNickname(userCode, nickname);
         log.debug("getChatRoomWithNickname responseDTO: {}", responseDTO.toString());
-        if (responseDTO.getRoomCode() == 0) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(responseDTO);
     }
 

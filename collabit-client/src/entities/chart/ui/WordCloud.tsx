@@ -58,7 +58,7 @@ const WordCloud = ({ words, type }: WordCloudProps) => {
       "#FFCDD2",
     ], // Soft Pink],
   };
-  console.log(words);
+
   const chartData = {
     type: "wordcloud",
     options: {
