@@ -1,11 +1,11 @@
+import UserAvatar from "@/entities/common/ui/UserAvatar";
+import { CommunityCardActions } from "@/entities/community/ui/CommunityCardAction";
+import { CommunityCardMenu } from "@/entities/community/ui/CommunityCardMenu";
+import { cn } from "@/shared/lib/shadcn/utils";
 import { PostListResponse } from "@/shared/types/response/post";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import formatRelativeTime from "@/shared/utils/formatRelativeTime";
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/shared/lib/shadcn/utils";
-import formatRelativeTime from "@/shared/utils/formatRelativeTime";
-import { CommunityCardMenu } from "@/entities/community/ui/CommunityCardMenu";
-import { CommunityCardActions } from "@/entities/community/ui/CommunityCardAction";
 
 const CommunityCard = ({ post }: { post: PostListResponse }) => {
   return (
@@ -14,19 +14,17 @@ const CommunityCard = ({ post }: { post: PostListResponse }) => {
       className="flex w-full flex-col gap-2 border-b border-b-border px-2 py-5"
     >
       <div className="flex w-full items-center justify-between">
-        <div className="flex w-full items-center gap-2">
-          <Avatar>
-            <AvatarImage src={post.author.profileImage} />
-            <AvatarFallback>{post.author.nickname.slice(0, 2)}</AvatarFallback>
-          </Avatar>
-          <span className="text-base font-medium">{post.author.nickname}</span>
-          <span className="text-sm text-muted-foreground">
-            {formatRelativeTime(post.createdAt.toString())}
-          </span>
-        </div>
+        <UserAvatar
+          user={{
+            nickname: post.author.nickname,
+            profileImage: post.author.profileImage,
+            githubId: post.author.githubId,
+          }}
+          time={formatRelativeTime(post.createdAt.toString())}
+        />
         <CommunityCardMenu post={post} />
       </div>
-      <p className="px-2 text-sm">{post.content}</p>
+      <p className="px-2 text-base">{post.content}</p>
       <ul
         className={cn(
           post.images.length > 0 &&
@@ -45,6 +43,12 @@ const CommunityCard = ({ post }: { post: PostListResponse }) => {
               "relative h-full w-full",
               post.images.length === 3 && index > 0 && "h-[130px]",
               post.images.length === 3 && index === 0 && "h-[260px]",
+              ((post.images.length >= 2 && index % 2 === 1) ||
+                (post.images.length === 3 && index === 2)) &&
+                "border-l-2 border-gray-400",
+              post.images.length >= 2 &&
+                index >= 2 &&
+                "border-t-2 border-gray-400",
             )}
           >
             <Image

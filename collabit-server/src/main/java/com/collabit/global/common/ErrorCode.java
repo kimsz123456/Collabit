@@ -36,9 +36,16 @@ public enum ErrorCode {
     REFRESH_TOKEN_BLACKLISTED(HttpStatus.FORBIDDEN, "블랙리스트 Refresh Token 발견. 재발급 불가" ),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh Token 입니다."),
 
+    // 403 Forbidden (인가 실패)
+    EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "이메일 인증이 필요합니다."),
+
     // 409 Conflict (중복)
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 이메일입니다."),
     NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 닉네임입니다."),
+
+    // =========== Mypage ===========
+    // 401 Unauthorized (인증 실패)
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 틀립니다."),
 
     // =========== portfolio ===========
     SURVEY_NOT_CLOSED(HttpStatus.BAD_REQUEST, "설문이 마감되지 않아 프로젝트 결과를 조회할 수 없습니다."),

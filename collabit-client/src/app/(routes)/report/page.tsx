@@ -19,7 +19,7 @@ export default function Page() {
   const { openModal, closeModal } = useModalStore();
   const queryClient = useQueryClient();
 
-  const { reportStatus, reportStatusLoading } = useReport();
+  const { reportStatus, reportStatusLoading, report } = useReport();
   const [isExist, setIsExist] = useState(reportStatus?.exist);
 
   useEffect(() => {
@@ -62,7 +62,15 @@ export default function Page() {
       {isExist && reportStatus ? (
         <>
           <ReportHeader handleRefresh={handleGenerateReport} />
-          <SurveyResult />
+          {report && (
+            <SurveyResult
+              hexagon={report?.hexagon}
+              progress={report?.progress}
+              wordCloud={report?.wordCloud}
+              aiSummary={report?.aiSummary}
+              timeline={report?.timeline}
+            />
+          )}
         </>
       ) : (
         <NoReport

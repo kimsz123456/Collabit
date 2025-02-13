@@ -1,10 +1,9 @@
-import { UserInfo } from "@/shared/types/model/User";
+"use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import {
   Carousel,
-  CarouselApi,
   CarouselContent,
   CarouselItem,
   CarouselNext,
@@ -12,51 +11,35 @@ import {
 } from "@/shared/ui/carousel";
 import { ImagePlus, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 
 import TextareaAutosize from "react-textarea-autosize";
+import usePost from "../api/usePost";
+import { useAuth } from "@/features/auth/api/useAuth";
+import { usePathname } from "next/navigation";
+import { cn } from "@/shared/lib/shadcn/utils";
 
-interface PostProps {
-  userInfo?: UserInfo;
-  images: File[];
-  preview: string[];
-  content: string;
-  handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  handleDeleteImage: (index: number) => void;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-}
+const Post = () => {
+  const { userInfo } = useAuth();
 
-const Post = ({
-  userInfo,
-  images,
-  preview,
-  content,
-  handleImageChange,
-  handleContentChange,
-  handleDeleteImage,
-  handleSubmit,
-}: PostProps) => {
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [count, setCount] = useState(0);
+  const pathname = usePathname();
+  const isPostPage = pathname === "/community/post";
 
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-    });
-  }, [api]);
-
+  const {
+    images,
+    preview,
+    content,
+    handleImageChange,
+    handleContentChange,
+    handleDeleteImage,
+    handleSubmit,
+  } = usePost();
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full flex-col items-center gap-4 border-b p-4"
+      className={cn(
+        "w-full flex-col items-center gap-4 border-b p-4",
+        isPostPage ? "flex" : "hidden md:flex",
+      )}
     >
       <div className="flex w-full gap-1">
         <Avatar>
@@ -110,13 +93,13 @@ const Post = ({
           opts={{
             align: "start",
           }}
-          setApi={setApi}
+          // setApi={setApi}
           className="w-full px-10"
         >
           <CarouselContent>
             {preview.map((prev, index) => (
               <CarouselItem
-                key={index}
+                key={prev}
                 className={preview.length > 1 ? "basis-1/2" : "basis-full"}
               >
                 <div className="p-1">

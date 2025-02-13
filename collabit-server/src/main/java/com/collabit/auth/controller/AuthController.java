@@ -3,6 +3,7 @@ package com.collabit.auth.controller;
 import com.collabit.auth.domain.dto.*;
 import com.collabit.auth.service.AuthService;
 import com.collabit.auth.service.EmailService;
+import com.collabit.global.service.RedisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -80,7 +81,7 @@ public class AuthController {
         String result = emailService.verifyCode(email, code);
         switch (result) {
             case "성공":
-                return ResponseEntity.ok(new ApiTextResponseDTO("이메일 인증 성공"));
+                return ResponseEntity.ok(new ApiTextResponseDTO("이메일 인증 성공: 회원가입 자격이 부여되었습니다."));
             case "틀림":
                 return ResponseEntity.badRequest().body(new ApiTextResponseDTO("이메일 인증 실패: 코드가 틀립니다."));
             case "만료":

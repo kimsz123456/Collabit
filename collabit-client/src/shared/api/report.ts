@@ -75,12 +75,11 @@ export const getPortfolioDataAPI = async (): Promise<ChartResponse> => {
 };
 
 export const getPortfolioShareAPI = async (
-  githubId: string,
+  userId: string,
 ): Promise<ChartResponse> => {
   try {
-    const res = await fetch(`${apiUrl}/portfolio/share/${githubId}`, {
+    const res = await fetch(`${apiUrl}/portfolio/share/${userId}`, {
       method: "GET",
-      ...fetchOptions,
     });
     if (!res.ok) {
       throw new Error("데이터 조회에 실패했습니다.");

@@ -21,9 +21,10 @@ import useReport from "@/features/report/api/useReport";
 import hashUser from "@/shared/utils/hashUser";
 import ReportPDF from "@/widget/report/ui/ReportPDF";
 
-const ReportHeader = ({ handleRefresh }: { handleRefresh: () => void }) => {
+const ReportHeader = ({ handleRefresh }: { handleRefresh?: () => void }) => {
   const { userInfo } = useAuth();
-  const { portfolioInfo, reportStatus } = useReport();
+  const { report, reportStatus } = useReport();
+  const portfolioInfo = report?.portfolioInfo;
   const reportPDFRef = useRef<{ handleDownloadPDF: () => void } | null>(null);
   const [shareUrl, setShareUrl] = useState<string>("");
 

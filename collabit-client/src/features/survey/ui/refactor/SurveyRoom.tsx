@@ -20,7 +20,7 @@ import essaySurveyAPI from "@/entities/survey/api/essaySurvey";
 import useModalStore from "@/shared/lib/stores/modalStore";
 import { AIChatResponse } from "@/shared/types/response/survey";
 import OneButtonModal from "@/widget/ui/modals/OneButtonModal";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import useSendMultipleAnswer from "../../api/useSendMultipleAnswer";
 
 export type EssayStatus =
@@ -33,11 +33,13 @@ export type EssayStatus =
   | "READY"
   | "DONE";
 const SurveyRoom = () => {
+  const router = useRouter();
   const { userInfo } = useAuth();
+  const { openModal, closeModal } = useModalStore();
+
   const queryClient = useQueryClient();
   const { projectId } = useParams();
   const id = Number(projectId);
-  const { openModal, closeModal } = useModalStore();
   const [essayStatus, setEssayStatus] = useState<EssayStatus>("READY");
   const [currentStep, setCurrentStep] = useState(-1);
   const [mutipleStep, setMutipleStep] = useState(0);
@@ -55,7 +57,7 @@ const SurveyRoom = () => {
     staleTime: 1000 * 60,
   });
 
-  const { data: details } = useQuery({
+  const { data: details, isError } = useQuery({
     queryKey: ["surveyDetail", userInfo?.nickname, id],
     queryFn: () => getSurveyDetailAPI(id),
     enabled: !!userInfo?.nickname && !!id,
@@ -99,14 +101,38 @@ const SurveyRoom = () => {
         />,
       );
     }
-  }, [
-    essayStatus,
-    details?.nickname,
-    userInfo?.nickname,
-    queryClient,
-    openModal,
-    closeModal,
-  ]);
+  }, [essayStatus, details?.nickname, userInfo?.nickname, queryClient]);
+
+  // 유저 정보가 없거나 디테일이 없으면 렌더링 안함
+  // if (!userInfo) {
+  //   openModal(
+  //     <OneButtonModal
+  //       title="로그인이 필요합니다."
+  //       description="로그인 후 이용해주세요."
+  //       buttonText="로그인으로 이동"
+  //       handleButtonClick={() => {
+  //         router.push("/login");
+  //         closeModal();
+  //       }}
+  //     />,
+  //   );
+  //   return null;
+  // }
+
+  if (isError) {
+    openModal(
+      <OneButtonModal
+        title="권한이 없습니다."
+        description="권한이 없는 페이지입니다."
+        buttonText="확인"
+        handleButtonClick={() => {
+          router.push("/");
+          closeModal();
+        }}
+      />,
+    );
+    return null;
+  }
 
   const handleStartMultiple = () => {
     setCurrentStep(0);
@@ -180,10 +206,10 @@ const SurveyRoom = () => {
     });
   };
 
-  // 유저 정보가 없거나 디테일이 없으면 렌더링 안함
-  if (!userInfo || !details) {
+  if (!details || !userInfo) {
     return null;
   }
+
   return (
     <div className="flex h-screen w-full flex-col gap-3 py-4 md:h-[calc(100vh-108px)] md:px-2">
       <ChatHeader

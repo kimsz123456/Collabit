@@ -55,7 +55,11 @@ public class EmailService {
 
         Integer IntStoredCode = (Integer) storedCode;
         if (IntStoredCode.equals(code)) {
-            redisService.delete(email); // 인증 성공 시 Redis 에서 삭제
+            // 인증 성공 시 Redis 에서 삭제
+            redisService.delete(email);
+
+            // 인증 완료 저장
+            redisTemplate.opsForValue().set("verifiedEmailCode:" + email, true, 600, TimeUnit.SECONDS);
             return "성공";
         } else {
             return "틀림";

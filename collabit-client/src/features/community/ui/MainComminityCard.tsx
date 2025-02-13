@@ -5,7 +5,7 @@ import { Heart } from "lucide-react";
 
 const MainCommunityCard = ({ data }: { data: PostListResponse }) => {
   return (
-    <Card className="no-wrap flex cursor-pointer flex-col justify-between gap-4 overflow-hidden px-4 py-6 drop-shadow-lg">
+    <Card className="no-wrap flex h-full cursor-pointer flex-col justify-between gap-4 overflow-hidden px-4 py-6 drop-shadow-lg">
       <UserAvatar size="sm" user={data.author} />
       <p className="truncate text-sm">{data.content}</p>
       <div className="flex items-center gap-1 text-xs">

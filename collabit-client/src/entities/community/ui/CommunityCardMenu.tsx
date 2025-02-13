@@ -1,6 +1,8 @@
 "use client";
 
 import { useAuth } from "@/features/auth/api/useAuth";
+import usePost from "@/features/community/api/usePost";
+import { PostListResponse } from "@/shared/types/response/post";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,10 +10,10 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { DeleteIcon, Ellipsis, Pencil } from "lucide-react";
-import { PostListResponse } from "@/shared/types/response/post";
 
 export const CommunityCardMenu = ({ post }: { post: PostListResponse }) => {
   const { userInfo } = useAuth();
+  const { deletePost } = usePost();
 
   if (userInfo?.nickname !== post.author.nickname) {
     return null;
@@ -29,6 +31,7 @@ export const CommunityCardMenu = ({ post }: { post: PostListResponse }) => {
         <DropdownMenuItem
           onClick={(e) => {
             e.stopPropagation();
+            deletePost(post.code);
           }}
           className="cursor-pointer text-red-500"
         >

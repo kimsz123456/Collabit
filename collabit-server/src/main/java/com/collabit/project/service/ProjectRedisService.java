@@ -6,9 +6,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -16,6 +15,7 @@ import java.util.Set;
 public class ProjectRedisService {
 
     private static final String NEW_SURVEY_RESPONSE_KEY_PREFIX = "newSurveyResponse::";
+    private static final String NEW_SURVEY_REQUEST_KEY_PREFIX = "newSurveyRequest::";
     private final RedisTemplate<String, String> stringRedisTemplate;
 
     // 특정 userCode에 대한 모든 newSurveyResponse 키-값 쌍을 조회
@@ -84,7 +84,7 @@ public class ProjectRedisService {
                             projectInfoCodeMap.put(projectInfoCode, Integer.parseInt(value));
                         }
                     } catch (NumberFormatException e) {
-                        log.warn("Invalid projectInfoCode in Redis key: {}", key);
+                        log.warn("projectInfoCode가 올바르지 않음: {}", key);
                         throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");
                     }
                 }
@@ -99,6 +99,45 @@ public class ProjectRedisService {
         } catch (Exception e) {
             log.error("Redis에서 알림 삭제 중 오류 발생", e);
             return new HashMap<>();
+        }
+    }
+
+    public void saveNewSurveyRequest(String userCode, Integer projectInfoCode) {
+        try {
+            String key = NEW_SURVEY_REQUEST_KEY_PREFIX + userCode + "::" + projectInfoCode;
+            stringRedisTemplate.opsForValue().set(key, "1"); // 값은 의미 없음, 키 존재 여부만 중요
+            log.debug("Redis에 설문 요청 키 저장 완료 - key: {}", key);
+        } catch (Exception e) {
+            log.error("Redis 설문 요청 키 저장 중 오류 발생", e);
+            throw new RuntimeException("Redis 설문 요청 키 저장 실패");
+        }
+    }
+
+    // 특정 userCode에 대한 모든 projectInfoCode 조회
+    public List<Integer> findAllProjectInfoCodesByUserCode(String userCode) {
+        try {
+            String pattern = NEW_SURVEY_REQUEST_KEY_PREFIX + userCode + "::*";
+            Set<String> keys = stringRedisTemplate.keys(pattern);
+
+            if (keys == null || keys.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            return keys.stream()
+                    .map(key -> key.split("::"))
+                    .map(parts -> {
+                        try {
+                            return Integer.parseInt(parts[2]);
+                        } catch (NumberFormatException e) {
+                            log.warn("projectInfoCode가 올바르지 않음: {}", parts[2]);
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Redis에서 projectInfoCode 조회 중 오류 발생", e);
+            return new ArrayList<>();
         }
     }
 }

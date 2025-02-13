@@ -189,8 +189,28 @@ public class ProjectService {
             }
         }
 
+        // 레디스에 설문조사 요청을 저장
+        saveNewSurveyRequestForRedis(createProjectRequestDTO.getContributors(), projectInfo.getCode());
+
         log.info("프로젝트 등록 완료 - projectCode: {}, projectInfoCode: {}, 컨트리뷰터 수: {}",
                 project.getCode(), projectInfo.getCode(), createProjectRequestDTO.getContributors().size());
+    }
+
+    private void saveNewSurveyRequestForRedis(List<ContributorDetailDTO> contributors, Integer projectInfoCode) {
+        log.debug("설문 요청 처리 시작 - 컨트리뷰터 수: {}", contributors.size());
+
+        for (ContributorDetailDTO contributor : contributors) {
+            // 각 깃허브 아이디로 유저 조회
+            User user = userRepository.findByGithubId(contributor.getGithubId())
+                    .orElse(null);
+
+            // 유저가 존재하면 Redis에 키 등록
+            if (user != null) {
+                projectRedisService.saveNewSurveyRequest(user.getCode(), projectInfoCode);
+                log.debug("설문 요청 등록 완료 - userCode: {}, projectInfoCode: {}",
+                        user.getCode(), projectInfoCode);
+            }
+        }
     }
 
     // 로그인 유저의 전체 프로젝트 조회

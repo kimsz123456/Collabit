@@ -85,7 +85,7 @@ const MyProjectSection = () => {
                   key={`empty-${index}`}
                   className="md:basis-1/2 lg:basis-1/3"
                 >
-                  <div className="px-2 py-2">
+                  <div className="h-full px-2 py-2">
                     <EmptyProjectCard />
                   </div>
                 </CarouselItem>
