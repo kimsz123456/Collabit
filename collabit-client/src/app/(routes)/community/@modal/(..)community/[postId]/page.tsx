@@ -8,7 +8,6 @@ const CommunityDetailPage = async ({
 }) => {
   const { postId } = await params;
   const post = await getPostAPI(Number(postId));
-  console.log(post);
   return <ModalPostDetail post={post} />;
 };
 

@@ -47,9 +47,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
   }
+  console.log(request.nextUrl.pathname);
 
-  // 로그인 페이지가 아닌 경우에만 lastPath 저장
-  if (request.nextUrl.pathname !== "/login") {
+  // 로그인 페이지와 callback 페이지가 아닌 경우에만 lastPath 저장
+  if (
+    !request.nextUrl.pathname.includes("callback") &&
+    request.nextUrl.pathname !== "/login"
+  ) {
     const response = NextResponse.next();
     response.cookies.set("lastPath", request.nextUrl.pathname);
     return response;

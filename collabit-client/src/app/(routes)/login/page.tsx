@@ -5,8 +5,8 @@ import { ChevronsUpIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 const apiUri = process.env.NEXT_PUBLIC_API_URI;
-const LoginPage = () => {
 
+const LoginPage = () => {
   const handleLogin = () => {
     const lastPath = document.cookie
       .split("; ")

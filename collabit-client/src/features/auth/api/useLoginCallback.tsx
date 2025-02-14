@@ -17,15 +17,27 @@ const useLoginCallback = () => {
         queryFn: getUserInfoAPI,
       });
 
-      const returnTo = sessionStorage.getItem("returnTo");
-      console.log(returnTo);
+      const cookies = document.cookie.split(";");
+      const lastPathCookie = cookies.find((cookie) =>
+        cookie.trim().startsWith("lastPath="),
+      );
+      const returnTo = lastPathCookie
+        ? decodeURIComponent(lastPathCookie.split("=")[1])
+        : null;
 
       if (auth.isAuthenticated) {
         if (returnTo) {
-          router.push(returnTo);
+          if (returnTo.includes("callback")) {
+            router.push("/");
+          } else {
+            router.push(returnTo);
+          }
         } else {
           router.push("/");
         }
+
+        document.cookie =
+          "lastPath=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       } else {
         openModal(
           <OneButtonModal

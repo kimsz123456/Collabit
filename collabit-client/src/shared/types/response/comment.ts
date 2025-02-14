@@ -3,13 +3,18 @@ import { User } from "../model/User";
 
 export type CommentResponse = Pick<
   Comment,
-  "code" | "postCode" | "content" | "createdAt"
+  "code" | "postCode" | "content" | "createdAt" | "parentCommentCode"
 > & {
-  author: Pick<User, "nickname" | "profileImage">;
+  author: Pick<User, "nickname" | "profileImage" | "githubId">;
   children?: CommentResponse[];
 };
 export type CreateCommentResponse = Pick<
   Comment,
-  "code" | "postCode" | "content" | "createdAt" | "updatedAt" | "parentCode"
+  | "code"
+  | "postCode"
+  | "content"
+  | "createdAt"
+  | "updatedAt"
+  | "parentCommentCode"
 >;
 export type EditCommentResponse = CreateCommentResponse;

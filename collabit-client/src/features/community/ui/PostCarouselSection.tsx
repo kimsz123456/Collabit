@@ -8,7 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/shared/ui/carousel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MainCommunityCard from "./MainComminityCard";
 import { useQuery } from "@tanstack/react-query";
 import { getMainPostAPI, getRecommendPostAPI } from "@/shared/api/community";
@@ -29,8 +29,27 @@ const PostCarouselSection = ({ type }: { type: string }) => {
     queryFn: () => getRecommendPostAPI(),
     enabled: type === "recommend",
   });
-
   const data = type === "latest" ? latestPost : recommendPost;
+
+  useEffect(() => {
+    if (!api || !data) return;
+
+    const handleSelect = () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    };
+
+    setTimeout(() => {
+      const snapList = api.scrollSnapList();
+      setCount(snapList.length);
+      setCurrent(api.selectedScrollSnap() + 1);
+    }, 100);
+
+    api.on("select", handleSelect);
+
+    return () => {
+      api.off("select", handleSelect);
+    };
+  }, [api, data]);
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 border-b-2 border-gray-200 pb-10 md:gap-8">

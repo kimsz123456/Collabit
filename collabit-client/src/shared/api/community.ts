@@ -46,6 +46,10 @@ export const getPostListAPI = async ({
   const response = await fetch(`${apiUrl}/post?pageNumber=${currentPage}`, {
     method: "GET",
     ...fetchOptions,
+    next: {
+      revalidate: 10,
+      tags: ["postList"],
+    },
   });
 
   if (response.status === 204) {
@@ -70,6 +74,10 @@ export const getPostAPI = async (
 ): Promise<PostDetailResponse> => {
   const response = await fetch(`${apiUrl}/post/${postCode}`, {
     ...fetchOptions,
+    next: {
+      revalidate: 10,
+      tags: ["postDetail", postCode.toString()],
+    },
   });
   return response.json();
 };

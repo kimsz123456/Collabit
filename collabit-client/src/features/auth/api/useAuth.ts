@@ -3,15 +3,10 @@ import { getUserInfoAPI } from "@/shared/api/user";
 import { UserInfoResponse } from "@/shared/types/response/user";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [authState, setAuthState] = useState<UserInfoResponse>({
-    userInfo: undefined,
-    isAuthenticated: false,
-  });
 
   const { data, isLoading, isError } = useQuery<UserInfoResponse>({
     queryKey: ["auth"],
@@ -21,12 +16,6 @@ export const useAuth = () => {
     retry: false,
   });
 
-  useEffect(() => {
-    if (data) {
-      setAuthState(data);
-    }
-  }, [data]);
-
   const logout = async () => {
     try {
       await logoutAPI();
@@ -34,7 +23,8 @@ export const useAuth = () => {
         userInfo: undefined,
         isAuthenticated: false,
       });
-      setAuthState({ userInfo: undefined, isAuthenticated: false });
+      document.cookie =
+        "lastPath=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -42,11 +32,10 @@ export const useAuth = () => {
   };
 
   return {
-    userInfo: authState.userInfo,
-    isAuthenticated: authState.isAuthenticated,
+    userInfo: data?.userInfo,
+    isAuthenticated: data?.isAuthenticated ?? false,
     isLoading,
     isError,
     logout,
-    setAuthState,
   };
 };
