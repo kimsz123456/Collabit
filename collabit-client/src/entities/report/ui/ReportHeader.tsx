@@ -29,10 +29,10 @@ const ReportHeader = ({ handleRefresh }: { handleRefresh?: () => void }) => {
   const [shareUrl, setShareUrl] = useState<string>("");
 
   useEffect(() => {
-    const fetchHashedValue = async () => {
+    const fetchHashedValue = () => {
       if (userInfo?.githubId) {
         try {
-          const hashedValue = await hashUser(userInfo.githubId);
+          const hashedValue = hashUser(userInfo.githubId);
           const shareUrl = `${process.env.NEXT_PUBLIC_SHARE_URL}/${hashedValue}`;
           setShareUrl(shareUrl);
         } catch (error) {

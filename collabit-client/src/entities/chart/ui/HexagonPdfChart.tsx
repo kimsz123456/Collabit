@@ -14,7 +14,18 @@ const HexagonPdfChart = ({ hexagon }: HexagonPdfChartProps) => {
 
   useEffect(() => {
     if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
     const ctx = canvasRef.current.getContext("2d") as CanvasRenderingContext2D;
+
+    const width = 500;
+    const height = 500;
+    const pixelRatio = window.devicePixelRatio || 1;
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.scale(pixelRatio, pixelRatio);
+
     const hexagonChart = new Chart(ctx, {
       type: "radar",
       data: {
@@ -51,7 +62,7 @@ const HexagonPdfChart = ({ hexagon }: HexagonPdfChartProps) => {
           legend: {
             labels: {
               font: {
-                size: 6, 
+                size: 6,
               },
             },
           },
@@ -60,7 +71,7 @@ const HexagonPdfChart = ({ hexagon }: HexagonPdfChartProps) => {
               size: 6,
             },
             bodyFont: {
-              size: 6, 
+              size: 6,
             },
           },
         },
@@ -73,7 +84,9 @@ const HexagonPdfChart = ({ hexagon }: HexagonPdfChartProps) => {
   }, [hexagonItem, minScore, maxScore]);
 
   return (
-    <div style={{ width: "200px", height: "200px" }}> {/* ✅ 차트 크기 축소 */}
+    <div style={{ width: "200px", height: "200px" }}>
+      {" "}
+      {/* ✅ 차트 크기 축소 */}
       <canvas ref={canvasRef} />
     </div>
   );

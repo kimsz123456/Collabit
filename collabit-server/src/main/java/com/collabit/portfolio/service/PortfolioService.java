@@ -226,6 +226,8 @@ public class PortfolioService {
             throw new BusinessException(ErrorCode.PROJECT_INFO_NOT_FOUND);
         }
 
+        Collections.sort(projectInfoList, Comparator.comparing(ProjectInfo::getCompletedAt));
+
         // Description으로 name Map 변환
         Map<String, String> codeAndNameMap = descriptionRepository.findAll().stream()
                 .collect(Collectors.toMap(
@@ -273,8 +275,8 @@ public class PortfolioService {
 
     private TimelineData createDummyData(int num, Map<String, String> codeAndNameMap) {
         return TimelineData.builder()
-                .projectName("")
-                .organization("")
+                .projectName(" ")
+                .organization(" ")
                 .completedAt(null)
                 .sympathy(new ScoreData(codeAndNameMap.get("sympathy"), num))
                 .listening(new ScoreData(codeAndNameMap.get("listening"), num))
@@ -385,7 +387,7 @@ public class PortfolioService {
                 totalScores.getOrDefault("expression", 0L),
                 totalScores.getOrDefault("problemSolving", 0L),
                 totalScores.getOrDefault("leadership", 0L),
-                true,
+                false,
                 LocalDateTime.now()
             );
 

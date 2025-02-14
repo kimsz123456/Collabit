@@ -45,6 +45,7 @@ export default function Page() {
       closeModal();
 
       await queryClient.invalidateQueries({ queryKey: ["reportStatus"] });
+      await queryClient.invalidateQueries({ queryKey: ["report"] });
       setIsExist(reportStatus?.exist);
     } catch {
       toast({ title: "오류 발생", description: "리포트 생성에 실패했습니다." });
@@ -76,9 +77,11 @@ export default function Page() {
         <NoReport
           handleGenerateReport={handleGenerateReport}
           currentCount={reportStatus?.totalParticipant ?? 0}
-          requiredCount={Number(
-            process.env.NEXT_PUBLIC_MINIMUM_CREATE_CONDITION,
-          )}
+          requiredCount={
+            isNaN(Number(process.env.NEXT_PUBLIC_MINIMUM_CREATE_CONDITION))
+              ? 0
+              : Number(process.env.NEXT_PUBLIC_MINIMUM_CREATE_CONDITION)
+          }
         />
       )}
     </div>

@@ -1,7 +1,5 @@
-import HexagonChart from "@/entities/chart/ui/HexagonChart";
 import HexagonPdfChart from "@/entities/chart/ui/HexagonPdfChart";
 import { ChartRangeData, SkillData } from "@/shared/types/response/report";
-import { Badge } from "@/shared/ui/badge";
 
 const HexagonPdfSection = ({ data }: { data: ChartRangeData & SkillData }) => {
   const {
