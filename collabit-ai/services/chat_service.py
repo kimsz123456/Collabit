@@ -1,3 +1,5 @@
+from database.mongodb import mongodb
+from database.mysql import MySQL
 from huggingface_hub import InferenceClient
 from datetime import datetime
 from config.settings import (
@@ -79,5 +81,119 @@ class ChatService:
             top_p=MODEL_TOP_P,
             stream=True
         )
+
+    @staticmethod
+    def calculate_survey_scores(scores):
+        """
+        점수 배열을 받아서 6개 영역별로 점수를 계산합니다.
+
+        Args:
+            scores (list): 설문 응답 점수 리스트
+
+        Returns:
+            dict: 6개 영역별 점수를 담은 딕셔너리
+        """
+        areas = {
+            'sympathy': 0,
+            'listening': 0,
+            'expression': 0,
+            'problem_solving': 0,
+            'conflict_resolution': 0,
+            'leadership': 0
+        }
+
+        for i, score in enumerate(scores):
+            match i % 6:
+                case 0:
+                    areas['sympathy'] += score
+                case 1:
+                    areas['listening'] += score
+                case 2:
+                    areas['expression'] += score
+                case 3:
+                    areas['problem_solving'] += score
+                case 4:
+                    areas['conflict_resolution'] += score
+                case 5:
+                    areas['leadership'] += score
+
+        return areas
+
+    @staticmethod
+    def update_project_scores(connection, project_info_code, scores):
+        """
+        계산된 점수를 MySQL의 기존 값에 더합니다.
+
+        Args:
+            connection: MySQL 연결 객체
+            project_info_code (int): 프로젝트 정보 코드
+            scores (dict): 계산된 영역별 점수
+        """
+        try:
+            cursor = connection.cursor()
+
+            update_query = """
+                    UPDATE project_info p 
+                    SET 
+                        p.sympathy = p.sympathy + %(sympathy)s,
+                        p.listening = p.listening + %(listening)s,
+                        p.expression = p.expression + %(expression)s,
+                        p.problem_solving = p.problem_solving + %(problem_solving)s,
+                        p.conflict_resolution = p.conflict_resolution + %(conflict_resolution)s,
+                        p.leadership = p.leadership + %(leadership)s
+                    WHERE p.code = %(projectInfoCode)s
+                """
+
+            params = {
+                'sympathy': scores['sympathy'],
+                'listening': scores['listening'],
+                'expression': scores['expression'],
+                'problem_solving': scores['problem_solving'],
+                'conflict_resolution': scores['conflict_resolution'],
+                'leadership': scores['leadership'],
+                'projectInfoCode': project_info_code
+            }
+
+            cursor.execute(update_query, params)
+            connection.commit()
+
+        except Exception as e:
+            print(f"Error updating scores in MySQL: {str(e)}")
+            connection.rollback()
+            raise
+        finally:
+            cursor.close()
+
+    @classmethod
+    def process_survey_scores(cls, survey_code, user_code):
+        try:
+            # MongoDB에서 survey_multiple 문서 조회
+            survey_doc = mongodb.survey_multiple.find_one({
+                "projectInfoCode": int(survey_code),
+                "userCode": user_code
+            })
+
+            if not survey_doc or 'scores' not in survey_doc:
+                print(
+                    f"No scores found for survey_code: {survey_code}, user_code: {user_code}")
+                return False
+
+            # 점수 계산
+            calculated_scores = cls.calculate_survey_scores(
+                survey_doc['scores'])
+
+            # MySQL에 점수 업데이트
+            mysql_conn = MySQL.get_connection()
+            try:
+                cls.update_project_scores(mysql_conn,
+                                          survey_doc['projectInfoCode'],
+                                          calculated_scores)
+                return True
+            finally:
+                mysql_conn.close()
+
+        except Exception as e:
+            print(f"Error processing survey scores: {str(e)}")
+            return False
 
 chat_service = ChatService()

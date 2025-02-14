@@ -94,7 +94,8 @@ public class PostController {
     @GetMapping("/myPost")
     public ResponseEntity<PageResponseDTO<GetPostResponseDTO>> myPost(@RequestParam("pageNumber") int pageNumber){
         String userCode = SecurityUtil.getCurrentUserCode();
-        PageResponseDTO<GetPostResponseDTO> list = postService.myPost(userCode,pageNumber);
-        return ResponseEntity.status(200).body(list);
+        PageResponseDTO<GetPostResponseDTO> responseDTO = postService.myPost(userCode,pageNumber);
+        if (responseDTO.getContent().isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.status(200).body(responseDTO);
     }
 }

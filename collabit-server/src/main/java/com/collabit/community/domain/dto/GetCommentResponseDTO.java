@@ -1,6 +1,8 @@
 package com.collabit.community.domain.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,4 +25,6 @@ public class GetCommentResponseDTO {
     LocalDateTime updatedAt;
     Integer parentCommentCode;
     boolean isDeleted;
+    @Builder.Default
+    List<GetCommentResponseDTO> replies = new ArrayList<>();
 }

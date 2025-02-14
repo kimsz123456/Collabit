@@ -407,7 +407,7 @@ public class ProjectService {
             isUpdate = true;
         }
         // 포트폴리오가 이미 생성되었다면 포트폴리오 테이블의 isUpdate도 확인
-        else if(portfolio != null && portfolio.getIsUpdate() && participant >= minimumCreateCondition){
+        else if(portfolio != null && portfolio.getIsUpdate() && participant >= minimumCreateCondition + portfolio.getParticipant()){
             isUpdate = true;
         }
         return isUpdate;

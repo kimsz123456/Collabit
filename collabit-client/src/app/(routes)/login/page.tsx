@@ -1,15 +1,11 @@
 "use client";
 
-import { useAuth } from "@/features/auth/api/useAuth";
 import { Button } from "@/shared/ui/button";
 import { ChevronsUpIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 const apiUri = process.env.NEXT_PUBLIC_API_URI;
 const LoginPage = () => {
-  const router = useRouter();
 
   const handleLogin = () => {
     const lastPath = document.cookie
@@ -23,14 +19,6 @@ const LoginPage = () => {
     sessionStorage.setItem("returnTo", decodedPath);
     window.location.href = `${apiUri}/oauth2/authorization/github`;
   };
-  const { isAuthenticated } = useAuth();
-  useEffect(() => {
-    console.log(isAuthenticated);
-
-    if (isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, router]);
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-10 py-20">
