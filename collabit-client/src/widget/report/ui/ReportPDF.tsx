@@ -38,7 +38,7 @@ const ReportPDF = forwardRef(({ shareUrl }: ReportPDFProps, ref) => {
       const html2pdf = (await import("html2pdf.js")).default;
 
       const options = {
-        filename: "report.pdf",
+        filename: "collabit_report.pdf",
         image: { type: "jpeg", quality: 1 },
         html2canvas: {
           scale: 3,

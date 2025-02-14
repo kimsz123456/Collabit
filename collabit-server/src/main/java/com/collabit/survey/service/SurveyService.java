@@ -130,42 +130,6 @@ public class SurveyService {
                 .build();
         log.debug("surveyResponse: {}", surveyMultiple);
 
-        // 각 영역별 점수 초기화
-        int sympathy = 0;
-        int listening = 0;
-        int expression = 0;
-        int problemSolving = 0;
-        int conflictResolution = 0;
-        int leadership = 0;
-
-        // 인덱스를 6으로 나눈 나머지를 기준으로 점수 합산
-        for (int i = 0; i < scores.size(); i++) {
-            switch (i % 6) {
-                case 0:
-                    sympathy += scores.get(i);
-                    break;
-                case 1:
-                    listening += scores.get(i);
-                    break;
-                case 2:
-                    expression += scores.get(i);
-                    break;
-                case 3:
-                    problemSolving += scores.get(i);
-                    break;
-                case 4:
-                    conflictResolution += scores.get(i);
-                    break;
-                case 5:
-                    leadership += scores.get(i);
-                    break;
-            }
-        }
-
-        log.debug("Calculated Scores - Sympathy: {}, Listening: {}, Expression: {}, ProblemSolving: {}, ConflictResolution: {}, Leadership: {}",
-                sympathy, listening, expression, problemSolving, conflictResolution, leadership);
-
-        projectInfoRepository.updateSurveyScores(projectInfoCode, sympathy, listening, expression, problemSolving, conflictResolution, leadership);
         surveyMultipleRepository.save(surveyMultiple);
     }
 

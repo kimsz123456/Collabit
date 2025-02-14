@@ -98,8 +98,9 @@ def chat_survey(survey_code):
                 if "설문을 종료합니다" in bot_reply:
                     try:
                         yield stream_service.create_pending_message()
-                        # Save to MongoDB
 
+                        chat_service.process_survey_scores(survey_code,user_code)
+                        # Save to MongoDB
                         mongodb.save_survey(survey_code, user_code, messages)
 
                         # 먼저 완료 메시지를 클라이언트에 보냄

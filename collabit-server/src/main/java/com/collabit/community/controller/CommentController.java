@@ -36,7 +36,7 @@ public class CommentController {
 
     @Operation(summary="댓글 목록 조회",description = "댓글목록을 조회하는 API입니다.")
     @GetMapping("/post/{postCode}/comment")
-    public ResponseEntity<?> getCommentList(@PathVariable("postCode") int postCode) {
+    public ResponseEntity<List<GetCommentResponseDTO>> getCommentList(@PathVariable("postCode") int postCode) {
         List<GetCommentResponseDTO> list = commentService.getCommentList(postCode);
         log.debug("getComment List: {}", Objects.toString(list, "null"));
         if (list.isEmpty()) return ResponseEntity.status(204).build();

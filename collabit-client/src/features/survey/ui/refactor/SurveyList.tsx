@@ -15,30 +15,27 @@ export default function SurveyList() {
     enabled: !!userInfo?.nickname,
   });
 
-  if (!surveyList) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <EmptySurveyList />
-      </div>
-    );
-  }
   return (
     <div className="flex flex-col items-center gap-3 px-2 md:py-4">
       <ChatNav />
       <div className="flex h-[calc(100vh-220px)] w-full flex-col gap-2 overflow-y-auto md:h-[calc(100vh-192px)]">
-        {surveyList?.map((item) => (
-          <ChatListCard
-            type="survey"
-            key={item.surveyCode}
-            id={item.surveyCode}
-            nickname={item.nickname}
-            profileImage={item.profileImage}
-            title={item.nickname}
-            description={item.title}
-            updatedAt={item.updatedAt}
-            unRead={item.status}
-          />
-        ))}
+        {surveyList && surveyList.length > 0 ? (
+          surveyList?.map((item) => (
+            <ChatListCard
+              type="survey"
+              key={item.surveyCode}
+              id={item.surveyCode}
+              nickname={item.nickname}
+              profileImage={item.profileImage}
+              title={item.nickname}
+              description={item.title}
+              updatedAt={item.updatedAt}
+              unRead={item.status}
+            />
+          ))
+        ) : (
+          <EmptySurveyList />
+        )}
       </div>
     </div>
   );

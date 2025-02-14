@@ -1,5 +1,6 @@
 package com.collabit.community.service;
 
+import com.collabit.community.domain.dto.Author;
 import com.collabit.community.domain.dto.CreateCommentRequestDTO;
 import com.collabit.community.domain.dto.CreateCommentResponseDTO;
 import com.collabit.community.domain.dto.GetCommentResponseDTO;
@@ -16,7 +17,10 @@ import com.collabit.user.exception.UserDifferentException;
 import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,19 +49,44 @@ public class CommentService {
     }
 
     public List<GetCommentResponseDTO> getCommentList(int postCode) {
-
-        List<GetCommentResponseDTO> list = new ArrayList<>();
         List<Comment> commentList = commentRepository.findByPostCode(postCode);
-
         log.debug("Found {} comments for post: {}", commentList.size(), postCode);
 
+        // 부모 댓글만 먼저 추가
+        Map<Integer, GetCommentResponseDTO> commentMap = new HashMap<>();
+        List<GetCommentResponseDTO> rootComments = new ArrayList<>();
+
+        // 1단계: 모든 댓글을 DTO로 변환하고 맵에 저장
         for (Comment comment : commentList) {
-            if (!comment.isDeleted()) {
-                list.add(buildDTO(comment));
+
+            GetCommentResponseDTO dto = buildDTO(comment);
+            commentMap.put(dto.getCode(), dto);
+
+            if (dto.getParentCommentCode() == null) {
+                // 부모 댓글인 경우 루트 리스트에 추가
+                rootComments.add(dto);
             }
         }
 
-        return list;
+        // 2단계: 대댓글들을 부모 댓글의 replies에 추가
+        for (GetCommentResponseDTO dto : commentMap.values()) {
+            if (dto.getParentCommentCode() != null) {
+                GetCommentResponseDTO parentDTO = commentMap.get(dto.getParentCommentCode());
+                if (parentDTO != null) {
+                    parentDTO.getReplies().add(dto);
+                }
+            }
+        }
+
+        // 각 댓글의 replies를 시간순으로 정렬
+        for (GetCommentResponseDTO dto : commentMap.values()) {
+            dto.getReplies().sort(Comparator.comparing(GetCommentResponseDTO::getCreatedAt));
+        }
+
+        // 루트 댓글들을 시간순으로 정렬
+        rootComments.sort(Comparator.comparing(GetCommentResponseDTO::getCreatedAt));
+
+        return rootComments;
     }
 
     public GetCommentResponseDTO updateComment(String userCode, int commentCode,
@@ -126,7 +155,8 @@ public class CommentService {
         if (requestDTO.getParentCommentCode() != null) {
             Comment parentComment = commentRepository.findByCode(requestDTO.getParentCommentCode())
                 .orElseThrow(() -> {
-                    log.debug("Parent comment with code {} not found", requestDTO.getParentCommentCode());
+                    log.debug("Parent comment with code {} not found",
+                        requestDTO.getParentCommentCode());
                     return new ParentCommentNotFoundException();
                 });
             comment.setParentComment(parentComment);
@@ -138,11 +168,16 @@ public class CommentService {
 
     public GetCommentResponseDTO buildDTO(Comment comment) {
         log.debug("Building DTO for comment: {}", comment.getCode());
+        User author = comment.getUser();
 
         GetCommentResponseDTO responseDTO = GetCommentResponseDTO.builder()
             .code(comment.getCode())
             .postCode(comment.getPost().getCode())
-            .userNickname(comment.getUser().getNickname())
+            .author(Author.builder()
+                .nickname(author.getNickname())
+                .profileImage(author.getProfileImage())
+                .githubId(author.getGithubId())
+                .build())
             .content(comment.getContent())
             .createdAt(comment.getCreatedAt())
             .updatedAt(comment.getUpdatedAt())
