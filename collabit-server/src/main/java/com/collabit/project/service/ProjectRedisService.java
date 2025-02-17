@@ -36,7 +36,7 @@ public class ProjectRedisService {
 
             for (String key : keys) {
                 String[] keyParts = key.split("::");
-                if (keyParts.length == 3) {
+                if (keyParts.length >= 3) {
                     try {
                         // projectInfoCode 추출 후 Map(key 기준 중복x)에 저장
                         int projectInfoCode = Integer.parseInt(keyParts[2]);
