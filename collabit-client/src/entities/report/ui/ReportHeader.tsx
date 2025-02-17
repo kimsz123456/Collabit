@@ -55,7 +55,7 @@ const ReportHeader = ({ handleRefresh }: { handleRefresh?: () => void }) => {
     <div className="flex justify-between border-b py-2">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold">
-          {userInfo?.nickname}님의 협업 역량 리포트
+          {portfolioInfo?.nickname}님의 협업 역량 리포트
         </h1>
         <div className="flex gap-2">
           <p className="text-sm">

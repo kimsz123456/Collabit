@@ -2,6 +2,7 @@ package com.collabit.chat.config;
 
 import com.collabit.chat.websocket.WebSocketEvent;
 import com.collabit.global.security.CustomUserDetails;
+import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import com.collabit.user.domain.entity.User;
 
@@ -21,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
@@ -33,19 +35,8 @@ public class StompHandler implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
-        if (accessor == null) {
-            throw new RuntimeException("Invalid STOMP message");
-        }
-
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            return handleConnect(message, accessor);
-        } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            validateSubscription(accessor);
-        } else if (StompCommand.SEND.equals(accessor.getCommand())) {
-            validateMessage(accessor);
-        }
-
+        if (accessor == null) throw new RuntimeException("Invalid STOMP message");
+        if (StompCommand.CONNECT.equals(accessor.getCommand())) return handleConnect(message, accessor);
         return message;
     }
 
@@ -53,8 +44,7 @@ public class StompHandler implements ChannelInterceptor {
         try {
             String nickname = extractNickname(accessor);
             User user = userRepository.findByNickname(nickname)
-                    .orElseThrow(() -> new RuntimeException("User not found: " + nickname));
-
+                    .orElseThrow(UserNotFoundException::new);
             Authentication auth = createAuthentication(user);
             accessor.setUser(auth);
             SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -63,9 +53,7 @@ public class StompHandler implements ChannelInterceptor {
 
             log.debug("WebSocket authentication success: userCode={}", user.getCode());
 
-            // Publish user connection event
             eventPublisher.publishEvent(new WebSocketEvent.UserConnectEvent(nickname));
-
             return message;
         } catch (Exception e) {
             log.error("WebSocket authentication failed: {}", e.getMessage());
@@ -74,7 +62,7 @@ public class StompHandler implements ChannelInterceptor {
     }
 
     private String extractNickname(StompHeaderAccessor accessor) {
-        return accessor.getNativeHeader("nickname").stream()
+        return Objects.requireNonNull(accessor.getNativeHeader("nickname")).stream()
                 .findFirst()
                 .filter(nick -> !nick.isBlank())
                 .orElseThrow(() -> new RuntimeException("Nickname is required"));
@@ -98,20 +86,6 @@ public class StompHandler implements ChannelInterceptor {
         );
     }
 
-    private void validateSubscription(StompHeaderAccessor accessor) {
-        if (accessor.getUser() == null) {
-            throw new RuntimeException("Unauthorized subscription attempt");
-        }
-        // Add additional subscription validation if needed
-    }
-
-    private void validateMessage(StompHeaderAccessor accessor) {
-        if (accessor.getUser() == null) {
-            throw new RuntimeException("Unauthorized message attempt");
-        }
-        // Add additional message validation if needed
-    }
-
     @Override
     public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
         SecurityContextHolder.clearContext();
@@ -131,15 +105,12 @@ public class StompHandler implements ChannelInterceptor {
         if (accessor.getUser() == null) {
             throw new RuntimeException("Unauthorized subscription attempt");
         }
-
         String destination = accessor.getDestination();
         if (destination != null && destination.startsWith("/topic/chat/")) {
             try {
                 int roomCode = Integer.parseInt(destination.substring(destination.lastIndexOf('/') + 1));
                 String nickname = accessor.getUser().getName();
-
                 eventPublisher.publishEvent(new WebSocketEvent.UserSubscribeEvent(nickname, roomCode));
-
                 log.debug("User {} subscribed to room {}", nickname, roomCode);
             } catch (Exception e) {
                 log.error("Failed to process subscription", e);
@@ -151,9 +122,7 @@ public class StompHandler implements ChannelInterceptor {
     private void handleDisconnect(StompHeaderAccessor accessor) {
         if (accessor.getUser() != null) {
             String nickname = accessor.getUser().getName();
-
             eventPublisher.publishEvent(new WebSocketEvent.UserDisconnectEvent(nickname));
-
             SecurityContextHolder.clearContext();
             log.debug("User {} disconnected", nickname);
         }

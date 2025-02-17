@@ -86,6 +86,9 @@ public class RedisConfig {
 		// 채팅 메시지 리스너 등록
 		container.addMessageListener(chatMessageListenerAdapter, channelTopic);
 
+		// 채팅 키 이벤트 리스너 등록
+		container.addMessageListener(chatMessageListenerAdapter, new PatternTopic("__keyevent@*__:*"));
+
 		// 프로젝트 키 이벤트 리스너 등록
 		container.addMessageListener(projectListenerAdapter, new PatternTopic("__keyevent@*__:*"));
 

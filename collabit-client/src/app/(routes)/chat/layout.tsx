@@ -1,8 +1,7 @@
 "use client";
 
-import { useAuth } from "@/features/auth/api/useAuth";
 import { ChatListProvider } from "@/features/chat/context/ChatListProvider";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useChatRoomList } from "@/features/chat/api/useChatRoomList";
 import useSocket from "@/features/chat/api/useSocket";
@@ -16,18 +15,10 @@ const ChatLayout = ({
   list: React.ReactNode;
   room: React.ReactNode;
 }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
   const isChatRoom =
     (pathname.includes("/chat/") && pathname !== "/chat") ||
     (pathname.includes("/survey/") && pathname !== "/survey");
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   // WebSocket 연결
   const { clientRef, connectionStatus } = useSocket();

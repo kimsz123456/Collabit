@@ -34,24 +34,8 @@ public class MypageController {
         return ResponseEntity.ok(mypageCurrentUserResponseDTO);
     }
 
-    @Operation(summary="마이페이지 비밀번호 변경 가능한 일반회원인지 조회",description = "(일반회원만 비밀번호 변경 창을 열 수 있으므로) github회원인지 일반회원인지에 따라 비밀변호 변경창을 띄울지 여부를 반환하는 API입니다.")
-    @GetMapping("/password")
-    public ResponseEntity<ApiTextResponseDTO> isPasswordChangeAllowed() {
-        String userCode = SecurityUtil.getCurrentUserCode();
-        log.debug("getCurrentUser: {}", userCode);
-
-        boolean isAllowed = mypageService.isCommenUser(userCode);
-        log.debug("isAllowed: {}", isAllowed);
-        if(isAllowed){
-            return ResponseEntity.ok(new ApiTextResponseDTO("일반 회원: 비밀번호 변경이 가능합니다."));
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ApiTextResponseDTO("Github 회원: 비밀번호 변경이 불가능합니다."));
-        }
-    }
-
-    @Operation(summary="마이페이지 유저 비밀번호 변경을 위해 현재 비밀번호를 -검증-.", description ="마이페이지에서 비밀번호를 변경하기 위한 임시토큰을 발급받는 API입니다.")
-    @PostMapping("/password-check")
+    @Operation(summary="마이페이지 유저 비밀번호 변경을 위해 현재 비밀번호 검증", description ="마이페이지에서 비밀번호를 변경하기 위한 임시토큰을 발급받는 API입니다.")
+    @PostMapping("/password")
     public ResponseEntity<ApiTextResponseDTO> verifyCurrentPasswordForChange(@RequestBody VerifyPasswordRequestDTO verifyPasswordRequestDTO) {
         String userCode = SecurityUtil.getCurrentUserCode();
         log.debug("getCurrentUser: {}", userCode);
@@ -66,7 +50,7 @@ public class MypageController {
     }
 
     @Operation(summary="마이페이지 유저 비밀번호 변경", description ="마이페이지에서 비밀번호를 변경하는 API입니다.")
-    @PatchMapping("/password-change")
+    @PatchMapping("/password")
     public ResponseEntity<ApiTextResponseDTO> changePassword(@RequestBody ChangePasswordRequestDTO changePasswordRequestDTO) {
         String userCode = SecurityUtil.getCurrentUserCode();
         log.debug("getCurrentUser: {}", userCode);

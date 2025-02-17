@@ -36,6 +36,7 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Refresh Token이 존재하지 않습니다."),
     REFRESH_TOKEN_BLACKLISTED(HttpStatus.FORBIDDEN, "블랙리스트 Refresh Token 발견. 재발급 불가" ),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh Token 입니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Token 입니다."),
 
     // 403 Forbidden (인가 실패)
     EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "이메일 인증이 필요합니다."),

@@ -1,7 +1,6 @@
 "use client";
 import PageHeader from "@/entities/common/ui/PageHeader";
 import SearchBar from "@/entities/common/ui/SearchBar";
-import { useAuth } from "@/features/auth/api/useAuth";
 import { Button } from "@/shared/ui/button";
 import {
   Select,
@@ -11,22 +10,14 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import ProjectList from "@/widget/project/ui/ProjectList";
-import ProjectListSkeleton from "@/widget/project/ui/ProjectListSkeleton";
 import { useRouter } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Page() {
-  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [keyword, setKeyword] = useState("");
   const [sort, setSort] = useState("LATEST");
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   const handleSort = (value: string) => {
     setSort(value);
@@ -55,9 +46,7 @@ export default function Page() {
           </Select>
           <Button onClick={handleCreateProject}>프로젝트 등록</Button>
         </div>
-        <Suspense fallback={<ProjectListSkeleton />}>
-          <ProjectList keyword={keyword} sort={sort} />
-        </Suspense>
+        <ProjectList keyword={keyword} sort={sort} />
       </div>
     </div>
   );

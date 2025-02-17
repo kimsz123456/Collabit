@@ -3,8 +3,8 @@ export interface Comment {
   postCode: number;
   userCode: string;
   content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  parentCode: number;
+  createdAt: string;
+  updatedAt: string;
+  parentCommentCode: number;
   isDeleted: boolean;
 }

@@ -49,7 +49,7 @@ const usePasswordChange = () => {
     setIsLoading(true);
     try {
       await checkUserPasswordAPI({
-        password: passwordValue,
+        currentPassword: passwordValue,
       });
       setStep(2);
       toast({
@@ -118,7 +118,7 @@ const usePasswordChange = () => {
     setIsLoading(true);
     try {
       const requestData = {
-        password: data.password,
+        newPassword: data.password,
       };
       await updateUserPasswordAPI(requestData);
       openModal(
@@ -132,6 +132,8 @@ const usePasswordChange = () => {
           }}
         />,
       );
+      form.reset();
+      router.push("/mypage/profile");
     } catch (error) {
       toast({
         title: "비밀번호 변경 실패",

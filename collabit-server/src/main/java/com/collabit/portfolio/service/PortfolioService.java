@@ -3,20 +3,14 @@ package com.collabit.portfolio.service;
 import com.collabit.global.common.ErrorCode;
 import com.collabit.global.error.exception.BusinessException;
 import com.collabit.portfolio.domain.dto.*;
-import com.collabit.portfolio.domain.entity.Portfolio;
-import com.collabit.portfolio.domain.entity.Description;
-import com.collabit.portfolio.domain.entity.Feedback;
-import com.collabit.portfolio.repository.DescriptionRepository;
-import com.collabit.portfolio.repository.FeedbackRepository;
-import com.collabit.portfolio.repository.PortfolioRepository;
+import com.collabit.portfolio.domain.entity.*;
+import com.collabit.portfolio.repository.*;
 import com.collabit.project.domain.entity.ProjectInfo;
 import com.collabit.project.domain.entity.TotalScore;
 import com.collabit.project.repository.ProjectInfoRepository;
 import com.collabit.project.repository.TotalScoreRepository;
 import com.collabit.project.service.ProjectService;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.LocalDateTime;
 
 import com.collabit.user.domain.entity.User;
@@ -24,22 +18,12 @@ import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
-// MongoDB 관련
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.bson.Document;
 
 @Slf4j
 @Service
@@ -53,6 +37,8 @@ public class PortfolioService {
     private final UserRepository userRepository;
     private final ProjectService projectService;
     private final MongoTemplate mongoTemplate;
+    private final WordcloudCollectionRepository wordcloudCollectionRepository;
+    private final AIAnalysisRepository aiAnalysisRepository;
 
     public GetMultipleHexagonProgressResponseDTO getHexagonAndProgressbarGraph(String userCode) {
 
@@ -415,55 +401,26 @@ public class PortfolioService {
 
     // mongoDB의 워드 클라우드 데이터 조회
     private WordCloudData getWordCloudData(String userCode) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("user_code").is(userCode));
-
         // wordcloud_collection에서 데이터 조회
-        Document wordcloudDoc = mongoTemplate.findOne(query, Document.class, "wordcloud_collection");
-        List<WordCloudItem> strength = new ArrayList<>();
-        List<WordCloudItem> weakness = new ArrayList<>();
+        WordCloud wordCloud = wordcloudCollectionRepository.findByUserCode(userCode);
 
-        if (wordcloudDoc != null) {
-            // strength 리스트 처리
-            strength = wordcloudDoc.getList("strength", Document.class, new ArrayList<>())
-                    .stream()
-                    .map(doc -> WordCloudItem.builder()
-                            .text(doc.getString("text"))
-                            .value(doc.get("value", Number.class).doubleValue())
-                            .build())
-                    .collect(Collectors.toList());
-
-            // weakness 리스트 처리
-            weakness = wordcloudDoc.getList("weakness", Document.class, new ArrayList<>())
-                    .stream()
-                    .map(doc -> WordCloudItem.builder()
-                            .text(doc.getString("text"))
-                            .value(doc.get("value", Number.class).doubleValue())
-                            .build())
-                    .collect(Collectors.toList());
+        if(wordCloud != null){
+            return WordCloudData.builder()
+                    .strength(wordCloud.getStrength())
+                    .weakness(wordCloud.getWeakness())
+                    .build();
         }
-
-        // WordCloudData 객체 생성하여 반환
-        return WordCloudData.builder()
-                .strength(strength)
-                .weakness(weakness)
-                .build();
+        return null;
     }
 
     // mongoDB의 AI 강약점 분석 데이터 조회
     private AISummaryData getAISummaryData(String userCode) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("user_code").is(userCode));
+        AIAnalysis aiAnalysis = aiAnalysisRepository.findByUserCode(userCode);
 
-        // ai_analysis 컬렉션에서 데이터 조회
-        Document aiAnalysisDoc = mongoTemplate.findOne(query, Document.class, "ai_analysis");
-
-        if (aiAnalysisDoc != null) {
-            Document analysisResults = (Document) aiAnalysisDoc.get("analysis_results");
-
+        if (aiAnalysis != null) {
             return AISummaryData.builder()
-                    .strength(analysisResults.getString("strength"))
-                    .weakness(analysisResults.getString("weakness"))
+                    .strength(aiAnalysis.getAnalysisResults().getStrength())
+                    .weakness(aiAnalysis.getAnalysisResults().getWeakness())
                     .build();
         }
         return null;

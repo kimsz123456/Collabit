@@ -37,7 +37,6 @@ public class ChatRoom {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // 중복 방지 코드 생성 로직
     public static String generateChatRoomCode(String userCode1, String userCode2) {
         if (userCode1.compareTo(userCode2) < 0) {
             return userCode1 + "-" + userCode2;
@@ -48,12 +47,12 @@ public class ChatRoom {
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();  // 채팅방 생성 시점 설정
-        this.updatedAt = this.createdAt;  // 생성 시간과 마지막 업데이트 시간을 동일하게 설정
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
     }
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();  // 메시지가 추가될 때마다 업데이트 시간 갱신
+        this.updatedAt = LocalDateTime.now();
     }
 }

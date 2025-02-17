@@ -10,7 +10,7 @@ import Link from "next/link";
 const CommunityCard = ({ post }: { post: PostListResponse }) => {
   return (
     <Link
-      href={`/community/${post.code}`}
+      href={`/community/posts/${post.code}`}
       className="flex w-full flex-col gap-2 border-b border-b-border px-2 py-5"
     >
       <div className="flex w-full items-center justify-between">

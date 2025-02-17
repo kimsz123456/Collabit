@@ -1,6 +1,7 @@
 package com.collabit.global.sse;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -8,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 @Configuration
 @RequiredArgsConstructor
@@ -19,8 +21,15 @@ public class SseEmitterService {
     public SseEmitter subscribe(String userCode) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
 
-        emitter.onCompletion(() -> sseEmitters.remove(userCode));
-        emitter.onTimeout(() -> sseEmitters.remove(userCode));
+        emitter.onCompletion(() -> {
+            sseEmitters.remove(userCode);
+            log.debug("SSE 연결 완료: {}", userCode);
+        });
+
+        emitter.onTimeout(() -> {
+            sseEmitters.remove(userCode);
+            log.debug("SSE 연결 타임아웃: {}", userCode);
+        });
 
         sseEmitters.put(userCode, emitter);
 
