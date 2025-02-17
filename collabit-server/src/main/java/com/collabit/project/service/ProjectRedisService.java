@@ -36,18 +36,13 @@ public class ProjectRedisService {
 
             for (String key : keys) {
                 String[] keyParts = key.split("::");
-                if (keyParts.length >= 3) {
-                    try {
-                        // projectInfoCode 추출 후 Map(key 기준 중복x)에 저장
-                        int projectInfoCode = Integer.parseInt(keyParts[2]);
-                        String value = ops.get(key); // Redis에서 해당 키의 value(참여자 수) 조회
-                        if (value != null) {
-                            projectInfoCodeMap.put(projectInfoCode, Integer.parseInt(value));
-                        }
-                    } catch (NumberFormatException e) {
-                        log.warn("Invalid projectInfoCode in Redis key: {}", key);
-                        throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");
-                    }
+                try {
+                    int projectInfoCode = Integer.parseInt(keyParts[2]); // projectInfoCode 추출 후 Map(key 기준 중복x)에 저장
+                    int currentValue = projectInfoCodeMap.getOrDefault(projectInfoCode, 0) + 1;
+                    projectInfoCodeMap.put(projectInfoCode, currentValue);
+                } catch (NumberFormatException e) {
+                    log.warn("projectInfoCode가 올바르지 않음: {}", key);
+                    throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");
                 }
             }
             return projectInfoCodeMap;
@@ -76,17 +71,13 @@ public class ProjectRedisService {
 
             for (String key : keys) {
                 String[] keyParts = key.split("::");
-                if (keyParts.length >= 3) {
-                    try {
-                        int projectInfoCode = Integer.parseInt(keyParts[2]);
-                        String value = ops.get(key);
-                        if (value != null) {
-                            projectInfoCodeMap.put(projectInfoCode, Integer.parseInt(value));
-                        }
-                    } catch (NumberFormatException e) {
-                        log.warn("projectInfoCode가 올바르지 않음: {}", key);
-                        throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");
-                    }
+                try {
+                    int projectInfoCode = Integer.parseInt(keyParts[2]);
+                    int currentValue = projectInfoCodeMap.getOrDefault(projectInfoCode, 0) + 1;
+                    projectInfoCodeMap.put(projectInfoCode, currentValue);
+                } catch (NumberFormatException e) {
+                    log.warn("projectInfoCode가 올바르지 않음: {}", key);
+                    throw new RuntimeException("프로젝트 정보 코드가 올바르지 않습니다: ");
                 }
             }
 
