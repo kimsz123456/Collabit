@@ -28,11 +28,9 @@ const useSocket = () => {
       heartbeatIncoming: 0,
       heartbeatOutgoing: 0,
       onConnect: () => {
-        console.log("✅ WebSocket 연결 성공");
         setConnectionStatus("connected");
       },
       onDisconnect: () => {
-        console.log("🔴 WebSocket 연결 해제");
         if (chatList) {
           chatList.forEach((room) => {
             const roomCode = room.roomCode;
@@ -76,7 +74,6 @@ const useSocket = () => {
       return;
     }
 
-    console.log(`✅ 채팅방 ${roomCode} 구독 시작`);
     clientRef.current?.subscribe(`/topic/chat/${roomCode}`, (message) => {
       const receivedMessage = JSON.parse(message.body);
 

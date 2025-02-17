@@ -23,9 +23,6 @@ const ReportPDF = forwardRef(({ shareUrl }: ReportPDFProps, ref) => {
 
   useImperativeHandle(ref, () => ({ handleDownloadPDF }));
   const handleDownloadPDF = async () => {
-    console.log("📄 PDF 다운로드 요청 중...");
-    console.log("📄 contentRef.current:", contentRef.current);
-
     const element = contentRef.current;
     if (!element) {
       toast({

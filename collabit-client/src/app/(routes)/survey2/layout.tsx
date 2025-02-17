@@ -64,8 +64,6 @@ const SurveyLayout = ({
         profileImage: surveyDetail.profileImage,
         title: surveyDetail.title,
       };
-      console.log("surveyDetail:", surveyDetail);
-      console.log("messages:", surveyDetail.surveyEssayResponse?.messages);
 
       setSurveyDetail(detail);
       setSurveyEssayResponse(surveyDetail.surveyEssayResponse?.messages);

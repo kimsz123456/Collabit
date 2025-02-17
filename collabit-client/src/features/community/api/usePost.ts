@@ -69,7 +69,6 @@ const usePost = () => {
       setImages((prev) => [...prev, ...imageArray]);
       const newPreview = imageArray.map((file) => URL.createObjectURL(file));
       setPreview((prev) => [...prev, ...newPreview]);
-      console.log(preview);
     }
   };
 

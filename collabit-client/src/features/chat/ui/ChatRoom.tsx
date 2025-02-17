@@ -77,8 +77,6 @@ const ChatRoom = () => {
 
     if (!message.trim()) return;
     if (!userInfo || !sendMessage || !chatRoomDetail) {
-      console.log(userInfo, sendMessage, chatRoomDetail);
-      console.error("❌ WebSocket이 연결되지 않거나 채팅방 정보가 없습니다.");
       return;
     }
 

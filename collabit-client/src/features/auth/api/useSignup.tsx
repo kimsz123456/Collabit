@@ -202,7 +202,6 @@ const useSignup = () => {
 
   // 회원가입 폼 제출 함수
   const onSubmit = async (data: z.infer<typeof SignupSchema>) => {
-    console.log("onSubmit 호출");
     if (isLoading) return;
     setIsLoading(true);
     try {
@@ -212,7 +211,6 @@ const useSignup = () => {
         nickname: data.nickname,
       };
       await signupAPI(requestData);
-      console.log("회원가입 성공");
 
       openModal(
         <OneButtonModal

@@ -46,7 +46,6 @@ export const sendMultipleSurveyAnswerAPI = async (
     credentials: "include",
     body: JSON.stringify({ scores }),
   });
-  console.log(response);
 
   if (!response.ok) {
     throw new Error("객관식 설문 답변 전송 실패");
@@ -82,8 +81,6 @@ export const essaySurveyProgressAPI = async (
   surveyCode: number,
   body: string,
 ): Promise<Response> => {
-  console.log(body);
-
   const response = await fetch(`${flaskApiUrl}/survey/${surveyCode}/essay`, {
     method: "POST",
     headers: {

@@ -15,7 +15,6 @@ export const createCommentAPI = async ({
   content: string;
   parentCommentCode?: number;
 }): Promise<CreateCommentResponse> => {
-  console.log("createCommentAPI", postCode, content, parentCommentCode);
   const response = await fetch(`${apiUrl}/post/${postCode}/comment`, {
     method: "POST",
     headers: {
