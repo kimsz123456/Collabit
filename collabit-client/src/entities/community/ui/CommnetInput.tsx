@@ -45,10 +45,12 @@ const CommponetInput = ({
       comment: "",
     },
   });
+  console.log(postCode, parentCode);
 
   const { mutate: createComment } = useMutation({
     mutationFn: ({
       content,
+      postCode,
       parentCode,
     }: {
       content: string;
@@ -80,7 +82,7 @@ const CommponetInput = ({
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(postCode, parentCode, values.comment);
+    console.log("제출", postCode, parentCode, values.comment);
 
     createComment({
       content: values.comment,
@@ -104,7 +106,7 @@ const CommponetInput = ({
           <div className="flex w-full items-center gap-2">
             <Avatar className={cn(parentCode !== 0 ? "" : "ml-2 h-6 w-6")}>
               <AvatarImage src={img} />
-              <AvatarFallback>{nickname.slice(0, 2)}</AvatarFallback>
+              <AvatarFallback>{nickname?.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <FormField
               control={form.control}

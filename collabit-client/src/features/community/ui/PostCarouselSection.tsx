@@ -29,7 +29,11 @@ const PostCarouselSection = ({ type }: { type: string }) => {
     queryFn: () => getRecommendPostAPI(),
     enabled: type === "recommend",
   });
+
   const data = type === "latest" ? latestPost : recommendPost;
+
+  // data가 배열인지 확인하고, 배열이 아니면 빈 배열을 사용
+  const posts = Array.isArray(data) ? data : [];
 
   useEffect(() => {
     if (!api || !data) return;
@@ -58,35 +62,45 @@ const PostCarouselSection = ({ type }: { type: string }) => {
       </h3>
 
       <div className="flex w-full flex-col items-center justify-center gap-4">
-        <Carousel
-          setApi={setApi}
-          opts={{
-            align: "start",
-          }}
-          className="h-full w-full"
-        >
-          <CarouselContent className="h-full">
-            {data?.map((post) => (
-              <CarouselItem
-                key={post.code}
-                className="md:basis-1/2 lg:basis-1/3"
-              >
-                <div className="h-full px-2 py-2">
-                  <MainCommunityCard data={post} />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
-        </Carousel>
-        <DotIndicator
-          current={current}
-          count={count}
-          api={api}
-          setCurrent={setCurrent}
-          setCount={setCount}
-        />
+        {!posts || posts.length === 0 ? (
+          <p className="py-8 text-center text-gray-500">
+            {type === "latest"
+              ? "아직 게시물이 없습니다."
+              : "추천 게시물이 없습니다."}
+          </p>
+        ) : (
+          <>
+            <Carousel
+              setApi={setApi}
+              opts={{
+                align: "start",
+              }}
+              className="h-full w-full"
+            >
+              <CarouselContent className="h-full">
+                {posts.map((post) => (
+                  <CarouselItem
+                    key={post.code}
+                    className="md:basis-1/2 lg:basis-1/3"
+                  >
+                    <div className="h-full px-2 py-2">
+                      <MainCommunityCard data={post} />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
+            <DotIndicator
+              current={current}
+              count={count}
+              api={api}
+              setCurrent={setCurrent}
+              setCount={setCount}
+            />
+          </>
+        )}
       </div>
     </div>
   );

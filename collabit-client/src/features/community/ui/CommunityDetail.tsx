@@ -2,6 +2,7 @@ import UserAvatar from "@/entities/common/ui/UserAvatar";
 import CommentList from "@/entities/community/ui/CommentList";
 import CommponetInput from "@/entities/community/ui/CommnetInput";
 import { CommunityCardActions } from "@/entities/community/ui/CommunityCardAction";
+import { CommunityCardMenu } from "@/entities/community/ui/CommunityCardMenu";
 import { PostDetailResponse } from "@/shared/types/response/post";
 import { Card, CardContent } from "@/shared/ui/card";
 import {
@@ -22,16 +23,16 @@ const CommunityDetail = ({ post }: { post: PostDetailResponse }) => {
         <div className="flex w-full items-center justify-between">
           <UserAvatar
             user={{
-              nickname: post.author.nickname,
-              profileImage: post.author.profileImage,
-              githubId: post.author.githubId,
+              nickname: post.author?.nickname,
+              profileImage: post.author?.profileImage,
+              githubId: post.author?.githubId,
             }}
             time={formatRelativeTime(post.createdAt)}
           />
-          {/* <CommunityCardMenu post={post} /> */}
+          <CommunityCardMenu post={post} />
         </div>
         <p className="px-2 py-5 text-lg">{post.content}</p>
-        {post.images.length > 0 && (
+        {post.images?.length > 0 && (
           <Carousel
             opts={{
               align: "start",
@@ -44,12 +45,14 @@ const CommunityDetail = ({ post }: { post: PostDetailResponse }) => {
                 <CarouselItem
                   key={item}
                   className={
-                    post.images.length > 1 ? "basis-1/2" : "basis-full"
+                    post.images.length > 1
+                      ? "basis-full md:basis-1/2"
+                      : "basis-full"
                   }
                 >
                   <div className="p-1">
                     <Card className="">
-                      <CardContent className="relative flex h-[100px] items-center justify-center p-6 md:h-[300px]">
+                      <CardContent className="relative flex h-[300px] items-center justify-center p-6">
                         <Image
                           className="object-contain"
                           src={item}
@@ -78,8 +81,8 @@ const CommunityDetail = ({ post }: { post: PostDetailResponse }) => {
         <CommunityCardActions post={post} />
       </div>
       <CommponetInput
-        img={post.author.profileImage}
-        nickname={post.author.nickname}
+        img={post.author?.profileImage}
+        nickname={post.author?.nickname}
         postCode={post.code}
       />
       <CommentList postCode={post.code} />

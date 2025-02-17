@@ -82,10 +82,10 @@ public class ProjectService {
     }
 
     // 프론트에서 받은 프로젝트 정보 검증 후 프로젝트 저장
-     public void saveProject(CreateProjectRequestDTO createProjectRequestDTO, String userCode) {
+    public void saveProject(CreateProjectRequestDTO createProjectRequestDTO, String userCode) {
         log.info("프로젝트 등록 시작 - CreateProjectRequestDTO: {}, userCode: {}", createProjectRequestDTO.toString(), userCode);
 
-        if(createProjectRequestDTO.getContributors().isEmpty()){
+        if (createProjectRequestDTO.getContributors().isEmpty()) {
             throw new BusinessException(ErrorCode.EMPTY_CONTRIBUTOR_LIST);
         }
 
@@ -105,13 +105,12 @@ public class ProjectService {
                     .build();
             project = projectRepository.save(project);
             log.debug("새 프로젝트 저장 완료 - projectCode: {}", project.getCode());
-        }
-        else {
+        } else {
             log.debug("기존 프로젝트 발견 - projectCode: {}, title: {}, organization: {}",
                     project.getCode(), project.getTitle(), project.getOrganization());
 
             // 기존에 있던 organization 이미지 변경이 발생한 경우 이미지 업데이트
-            if(!project.getOrganizationImage().equals(createProjectRequestDTO.getOrganizationImage())) {
+            if (!project.getOrganizationImage().equals(createProjectRequestDTO.getOrganizationImage())) {
                 project.updateOrganizationImage(createProjectRequestDTO.getOrganizationImage());
                 project = projectRepository.save(project);
                 log.debug("기존 프로젝트의 organization 이미지 업데이트");
@@ -126,7 +125,7 @@ public class ProjectService {
         ProjectInfo projectInfo = ProjectInfo.builder()
                 .project(project)
                 .user(user)
-                .total(createProjectRequestDTO.getContributors().size()-1) // 본인 제외
+                .total(createProjectRequestDTO.getContributors().size() - 1) // 본인 제외
                 .build();
         projectInfo = projectInfoRepository.save(projectInfo);
         log.debug("ProjectInfo 저장 완료 - projectInfoCode: {}", projectInfo.getCode());
@@ -139,32 +138,25 @@ public class ProjectService {
         log.debug("기존 컨트리뷰터 조회 완료 - projectCode: {}, 기존 컨트리뷰터 수: {}",
                 project.getCode(), existingContributors.size());
 
-        // 프론트에서 받아온 contributor와 저장된 contributor를 비교하여 중복되지 않은 contributor만 저장
-        for(ContributorDetailDTO contributorDetailDTO : createProjectRequestDTO.getContributors()) {
+        // 로그인 user는 해당 projectInfo의 contributor에 포함하지 않음
+        List<ContributorDetailDTO> filteredContributors = createProjectRequestDTO.getContributors().stream()
+                .filter(contributor -> !contributor.getGithubId().equals(user.getGithubId()))
+                .toList();
 
-            // 로그인 user는 해당 projectInfo의 contributor로 저장하지 않음
-            if(contributorDetailDTO.getGithubId().equals(user.getGithubId())){
-                // 기존에 있던 contributor의 프로필 이미지 변경이 발생한 경우 이미지 업데이트
-                if(!contributorDetailDTO.getProfileImage().equals(user.getProfileImage())) {
-                    user.updateProfileImage(contributorDetailDTO.getProfileImage());
-                    userRepository.save(user);
-                    log.debug("기존 contributor의 프로필 이미지 업데이트");
-                }
-                continue;
-            }
-
+        // FE에서 받아온 contributor와 저장된 contributor를 비교하여 중복되지 않은 contributor만 저장
+        for (ContributorDetailDTO contributorDetailDTO : filteredContributors) {
             boolean exists = existingContributors.stream()
                     .anyMatch(pc -> pc.getId().getGithubId().equals(contributorDetailDTO.getGithubId()));
 
             // 현재 DB에 해당 project 소속으로 없는 contributor인 경우
-            if(!exists) {
+            if (!exists) {
                 // Contributor 테이블에서 조회 (다른 프로젝트의 contributor로 등록되어 있을 수 있음)
                 Contributor contributor = contributorRepository
                         .findByGithubId(contributorDetailDTO.getGithubId())
                         .orElse(null);
 
                 // 다른 프로젝트에도 소속되어 있지 않는 경우 contributor 저장
-                if(contributor == null) {
+                if (contributor == null) {
                     contributor = Contributor.builder()
                             .githubId(contributorDetailDTO.getGithubId())
                             .profileImage(contributorDetailDTO.getProfileImage())
@@ -173,6 +165,12 @@ public class ProjectService {
                     log.debug("새 컨트리뷰터 저장 - githubId: {}", contributor.getGithubId());
                 } else {
                     log.debug("기존 컨트리뷰터 발견 - githubId: {}", contributor.getGithubId());
+                    // 기존에 있던 contributor의 프로필 이미지 변경이 발생한 경우 이미지 업데이트
+                    if (!contributorDetailDTO.getProfileImage().equals(contributor.getProfileImage())) {
+                        contributor.updateProfileImage(contributorDetailDTO.getProfileImage());
+                        contributorRepository.save(contributor);
+                        log.debug("기존 contributor의 프로필 이미지 업데이트");
+                    }
                 }
 
                 // 해당 project 소속으로 없는 contributor이므로 ProjectContributor에 관계 저장
@@ -196,10 +194,10 @@ public class ProjectService {
         }
 
         // 레디스에 설문조사 요청을 저장
-        saveNewSurveyRequestForRedis(createProjectRequestDTO.getContributors(), projectInfo.getCode());
+        saveNewSurveyRequestForRedis(filteredContributors, projectInfo.getCode());
 
         log.info("프로젝트 등록 완료 - projectCode: {}, projectInfoCode: {}, 컨트리뷰터 수: {}",
-                project.getCode(), projectInfo.getCode(), createProjectRequestDTO.getContributors().size());
+                project.getCode(), projectInfo.getCode(), filteredContributors.size());
     }
 
     private void saveNewSurveyRequestForRedis(List<ContributorDetailDTO> contributors, Integer projectInfoCode) {

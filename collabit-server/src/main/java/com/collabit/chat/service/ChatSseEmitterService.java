@@ -1,8 +1,7 @@
-package com.collabit.project.service;
+package com.collabit.chat.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -15,28 +14,20 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ProjectSseEmitterService {
+public class ChatSseEmitterService {
 
     private final ConcurrentHashMap<String, SseEmitter> sseEmitters;
-    private final ProjectRedisService projectRedisService;
+    private final ChatRedisService chatRedisService;
 
-    // targetUser에게 새로운 설문 응답이 왔음을 SSE로 전송
-    public void sendNewSurveyResponse(String userCode, List<Integer> projectInfoCodes) {
-        sendEventSafely("newSurveyResponse", projectInfoCodes, userCode);
+    // 헤더의 채팅 알림 전송
+    public void sendHeaderChatNotification(String userCode){
+        List<Integer> unreadChatRooms = chatRedisService.getUnreadChatRoomForUser(userCode);
+        sendUnreadChatRooms(userCode, unreadChatRooms);
     }
 
-    // 해당 유저에게 설문 요청이 있는 projectInfoCode SSE로 전송
-    public void sendNewSurveyRequest(String userCode, List<Integer> projectInfoCodes) {
-        sendEventSafely("newSurveyRequest", projectInfoCodes, userCode);
-    }
-
-    // (헤더에서 사용) 해당 유저에게 요청된 설문 알림 리스트, 신규 응답이 있는 알림 리스트
-    public void sendHeaderNotification(String userCode) {
-        List<Integer> newSurveyRequestList = projectRedisService.findAllNewSurveyRequest(userCode);
-        List<Integer> newSurveyResponseList = projectRedisService.findAllNewSurveyResponse(userCode);
-
-        sendEventSafely("newSurveyRequest", newSurveyRequestList, userCode);
-        sendEventSafely("newSurveyResponse", newSurveyResponseList, userCode);
+    // 채팅 알림 전송
+    public void sendUnreadChatRooms(String userCode, List<Integer> roomCodes) {
+        sendEventSafely("newChat", roomCodes, userCode);
     }
 
     private void sendEventSafely(String eventName, Object data, String userCode) {

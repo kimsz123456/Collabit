@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from config.settings import MONGODB_URI
-from datetime import datetime
+from datetime import datetime, timedelta
 import certifi
 import dns.resolver
 
@@ -41,7 +41,7 @@ class MongoDB:
     """Save survey data to MongoDB"""
     try:
       survey_data = {
-        "submittedAt": datetime.now(),
+        "submittedAt": datetime.utcnow(),
         "messages": messages,
         "projectInfoCode": int(survey_code),
         "userCode": user_code

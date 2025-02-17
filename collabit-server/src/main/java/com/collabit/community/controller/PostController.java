@@ -79,6 +79,7 @@ public class PostController {
     public ResponseEntity<List<GetPostResponseDTO>> recommendPost(){
         String userCode = SecurityUtil.getCurrentUserCode();
         List<GetPostResponseDTO> list = postService.recommendPost(userCode);
+        if(list.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.status(200).body(list);
     }
 
@@ -87,6 +88,7 @@ public class PostController {
     public ResponseEntity<List<GetPostResponseDTO>> latestPost(){
         String userCode = SecurityUtil.getCurrentUserCode();
         List<GetPostResponseDTO> list = postService.latestPost(userCode);
+        if(list.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.status(200).body(list);
     }
 

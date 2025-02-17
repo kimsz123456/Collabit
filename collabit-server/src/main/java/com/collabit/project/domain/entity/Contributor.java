@@ -28,4 +28,7 @@ public class Contributor {
         this.profileImage = profileImage;
     }
 
+    public void updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
 }

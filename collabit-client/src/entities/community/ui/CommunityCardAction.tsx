@@ -18,7 +18,7 @@ export const CommunityCardActions = ({
 }: {
   post: PostListResponse | PostDetailResponse;
 }) => {
-  const nickname = post.author.nickname;
+  const nickname = post?.author?.nickname;
   const { userInfo } = useAuth();
   const router = useRouter();
   const { openModal } = useModalStore();
@@ -32,7 +32,7 @@ export const CommunityCardActions = ({
     if (chatRoom.roomCode != -1) {
       router.push(`/chat/${chatRoom.roomCode}`);
     } else {
-      openModal(<ChatMessageModal author={post.author} />);
+      openModal(<ChatMessageModal author={post?.author} />);
     }
   };
 
@@ -40,14 +40,14 @@ export const CommunityCardActions = ({
     <div className="flex items-center gap-1 text-muted-foreground">
       <div className="flex items-center gap-1 px-2 py-1">
         <MessageCircle className="size-4" />
-        <span className="text-sm">{post.commentCount}</span>
+        <span className="text-sm">{post?.commentCount}</span>
       </div>
       <div className="flex items-center">
         <Button variant="ghost" className="flex items-center px-2 py-1">
           <Heart
-            className={cn("size-4", post.liked && "fill-red-500 text-red-500")}
+            className={cn("size-4", post?.liked && "fill-red-500 text-red-500")}
           />
-          <span className="text-sm">{post.likeCount}</span>
+          <span className="text-sm">{post?.likeCount}</span>
         </Button>
       </div>
       {nickname !== userInfo?.nickname && (

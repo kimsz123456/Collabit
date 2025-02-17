@@ -1,5 +1,6 @@
 import { logoutAPI } from "@/shared/api/auth";
 import { getUserInfoAPI } from "@/shared/api/user";
+
 import { UserInfoResponse } from "@/shared/types/response/user";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";

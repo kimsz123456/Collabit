@@ -77,7 +77,7 @@ const CompareScoreSection = () => {
         </div>
         <div className="h-10/12 relative w-10/12 min-w-[280px] pt-2 sm:min-w-[360px]">
           <HexagonChart hexagon={data} />
-          <div className="absolute bottom-0 left-0 right-0 text-center text-[11px] text-gray-500">
+          <div className="absolute -bottom-2 left-0 right-0 text-center text-[11px] text-gray-500">
             * 6가지 핵심 역량을 5점 만점으로 평가
           </div>
         </div>

@@ -1,4 +1,6 @@
 "use client";
+import { getProjectListAPI } from "@/shared/api/project";
+import { ProjectListResponse } from "@/shared/types/response/project";
 import {
   Accordion,
   AccordionContent,
@@ -6,19 +8,22 @@ import {
   AccordionTrigger,
 } from "@/shared/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import SurveySharingModal from "@/widget/project/ui/SurveySharingModal";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { ProjectListResponse } from "@/shared/types/response/project";
 import SurveyResultModal from "@/widget/project/ui/SurveyResultModal";
-import { getProjectListAPI } from "@/shared/api/project";
+import SurveySharingModal from "@/widget/project/ui/SurveySharingModal";
+import { useQuery } from "@tanstack/react-query";
+import ProjectListSkeleton from "./ProjectListSkeleton";
 
 const ProjectList = ({ keyword, sort }: { keyword: string; sort: string }) => {
-  const { data } = useSuspenseQuery<ProjectListResponse>({
+  const { data, isLoading } = useQuery<ProjectListResponse>({
     queryKey: ["projectList", keyword, sort],
     queryFn: () => getProjectListAPI({ keyword, sort }),
   });
 
   const projectList: ProjectListResponse = Array.isArray(data) ? data : [];
+
+  if (isLoading) {
+    return <ProjectListSkeleton />;
+  }
 
   if (projectList.length === 0) {
     return (

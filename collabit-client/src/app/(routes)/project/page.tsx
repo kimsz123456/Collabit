@@ -10,16 +10,14 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import ProjectList from "@/widget/project/ui/ProjectList";
-import ProjectListSkeleton from "@/widget/project/ui/ProjectListSkeleton";
 import { useRouter } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 
 export default function Page() {
   const router = useRouter();
 
   const [keyword, setKeyword] = useState("");
   const [sort, setSort] = useState("LATEST");
-
 
   const handleSort = (value: string) => {
     setSort(value);
@@ -48,9 +46,7 @@ export default function Page() {
           </Select>
           <Button onClick={handleCreateProject}>프로젝트 등록</Button>
         </div>
-        <Suspense fallback={<ProjectListSkeleton />}>
-          <ProjectList keyword={keyword} sort={sort} />
-        </Suspense>
+        <ProjectList keyword={keyword} sort={sort} />
       </div>
     </div>
   );

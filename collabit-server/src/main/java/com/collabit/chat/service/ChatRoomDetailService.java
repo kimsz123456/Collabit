@@ -43,6 +43,7 @@ public class ChatRoomDetailService {
                 .profileImage(otherUser.getProfileImage())
                 .nickname(otherUser.getNickname())
                 .build();
+        markMessagesAsRead(roomCode, userCode);
         log.debug("ChatRoomDetail {}", chatRoomDetail);
         return chatRoomDetail;
     }
@@ -54,11 +55,8 @@ public class ChatRoomDetailService {
             log.debug("User {} is not in chat room", userCode);
             throw new UserNotInChatRoomException();
         }
-
         Pageable pageable = PageRequest.of(pageNumber, 50);
         Page<ChatMessage> chatMessagePage = chatMessageRepository.findByRoomCodeOrderByTimestampDesc(roomCode, pageable);
-        log.debug("ChatMessagePage {}", chatMessagePage.toString());
-
         PageResponseDTO<ChatMessageResponseDTO> chatMessages = PageResponseDTO.<ChatMessageResponseDTO>builder()
                 .content(chatMessagePage.getContent().stream()
                         .map(this::convertToResponseDTO)
@@ -70,7 +68,6 @@ public class ChatRoomDetailService {
                 .last(chatMessagePage.isLast())
                 .hasNext(chatMessagePage.hasNext())
                 .build();
-
         log.debug("ChatMessages {}", chatMessages);
         return chatMessages;
     }
@@ -90,17 +87,14 @@ public class ChatRoomDetailService {
 
         log.debug("ChatMessage saving... {}", chatMessage);
         chatMessageRepository.save(chatMessage);
-
         ChatRoom chatRoom = chatRoomRepository.findById(roomCode).orElseThrow(ChatRoomNotFoundException::new);
+        //상대방 유저코드 얻어오기
         String receiverCode;
         if (chatRoom.getUser1().getCode().equals(userCode)) {receiverCode = chatRoom.getUser2().getCode();}
         else {receiverCode = chatRoom.getUser1().getCode();}
-
         chatRedisService.updateRoomMessageStatus(roomCode, receiverCode, false);
-
         chatRoom.setUpdatedAt(LocalDateTime.now());
         chatRoomRepository.save(chatRoom);
-
         log.info("메시지 저장 완료: Room {}, Message {}", roomCode, chatMessageRequestDTO.getMessage());
     }
 

@@ -23,26 +23,34 @@ public class ProjectRedisSubscriber implements MessageListener { //Redis의 특�
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
-            String channel = new String(message.getChannel(), StandardCharsets.UTF_8);
+            String body = new String(message.getBody(), StandardCharsets.UTF_8);
 
-            // key 구조 = newSurveyResponse::f76f4f15-bab2-413b-881e-ae34799f9b84::9
-            String[] keyParts = channel.split("::");
+            // key 구조 = newSurveyResponse::f76f4f15-bab2-413b-881e-ae34799f9b84::9::f86f4f15-bab2-413b-881e-ae34799f9b84
+            String[] keyParts = body.split("::");
             String key = keyParts[0];
-            String userCode = keyParts[1];
+            String targetUserCode = keyParts[1]; // 설문조사의 대상 userCode
+            String projectInfoCode = keyParts[2];
 
+            // 새로운 설문 응답이 들어올 때 처리
             if (key != null) {
-                // 새로운 설문 응답이 들어올 때 처리
                 if (key.startsWith("newSurveyResponse")) {
-                    int projectInfoCode = Integer.parseInt(keyParts[2]);
-                    log.debug("설문조사 응답 알림 - targetUser: {}, projectInfoCode: {}", userCode, projectInfoCode);
-                    projectSseEmitterService.sendNewSurveyResponse(userCode, projectInfoCode);
+                    List<Integer> newResponseCodes = projectRedisService.findAllNewSurveyResponse(targetUserCode);
+                    projectSseEmitterService.sendNewSurveyResponse(targetUserCode, newResponseCodes);
+                    log.debug("설문조사 응답 알림 전송 완료");
+
+                    // 설문 응답이 들어옴 = 응답을 했으므로 설문 요청이 삭제되어야 함 (삭제 후 해당 유저의 요청 알림 반환)
+                    String responseUserCode = keyParts[3]; // 설문조사 응답한 사람의 userCode
+                    projectRedisService.removeNewSurveyRequest(responseUserCode, projectInfoCode);
+                    List<Integer> newRequestCodes = projectRedisService.findAllNewSurveyRequest(responseUserCode);
+                    projectSseEmitterService.sendNewSurveyRequest(responseUserCode, newRequestCodes);
                 }
 
                 // 새로운 설문 요청이 등록될 때 처리
                 else if (key.startsWith("newSurveyRequest")) {
-                    List<Integer> projectInfoCodes = projectRedisService.findAllProjectInfoCodesByUserCode(userCode);
-                    log.debug("설문 요청 알림 - targetUser: {}, projectInfoCodes: {}", userCode, projectInfoCodes);
-                    projectSseEmitterService.sendNewSurveyRequest(userCode, projectInfoCodes);
+                    List<Integer> projectInfoCodes = projectRedisService.findAllNewSurveyRequest(targetUserCode);
+                    log.debug("설문 요청 SSE 알림 전송");
+                    projectSseEmitterService.sendNewSurveyRequest(targetUserCode, projectInfoCodes);
+                    log.debug("설문 요청 SSE 알림 전송 완료");
                 }
             }
         } catch (Exception e) {
