@@ -69,15 +69,6 @@ public class ChatController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @Operation(summary = "읽지 않은 메시지 조회", description = "사용자가 읽지 않은 메시지 수를 조회합니다.")
-    @GetMapping("/messages/unread")
-    public ResponseEntity<ChatUnreadResponseDTO> getUnreadMessages() {
-        String userCode = SecurityUtil.getCurrentUserCode();
-        ChatUnreadResponseDTO responseDTO = chatRoomListService.getUnreadMessagesCount(userCode);
-        log.debug("getUnreadMessages responseDTO: {}", responseDTO.toString());
-        return ResponseEntity.ok(responseDTO);
-    }
-
     @Operation(summary = "닉네임으로 채팅방 조회", description = "닉네임을 기반으로 채팅방을 조회합니다.")
     @GetMapping("/rooms/search")
     public ResponseEntity<ChatRoomResponseDTO> getChatRoomWithNickname(@RequestParam("nickname") String nickname) {

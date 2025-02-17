@@ -8,6 +8,8 @@ import "./globals.css";
 import ModalContainer from "@/shared/ui/ModalContainer";
 import { Toaster } from "@/shared/ui/toaster";
 
+import NotificationInitializer from "@/widget/ui/NotificationInitializer";
+
 const inter = Inter({
   subsets: ["latin"],
 });
@@ -29,6 +31,7 @@ export default function RootLayout({
     <html lang="ko-KR">
       <body className={`${inter.className}`}>
         <QueryProviders>
+          <NotificationInitializer />
           <Header />
           <main className="w-full px-5 pb-10 md:px-20 md:pb-0">
             {children}

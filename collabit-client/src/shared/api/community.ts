@@ -46,6 +46,10 @@ export const getPostListAPI = async ({
   const response = await fetch(`${apiUrl}/post?pageNumber=${currentPage}`, {
     method: "GET",
     ...fetchOptions,
+    next: {
+      revalidate: 10,
+      tags: ["postList"],
+    },
   });
 
   if (response.status === 204) {
@@ -70,6 +74,10 @@ export const getPostAPI = async (
 ): Promise<PostDetailResponse> => {
   const response = await fetch(`${apiUrl}/post/${postCode}`, {
     ...fetchOptions,
+    next: {
+      revalidate: 10,
+      tags: ["postDetail", postCode.toString()],
+    },
   });
   return response.json();
 };
@@ -140,4 +148,35 @@ export const getRecommendPostAPI = async (): Promise<PostListResponse[]> => {
     console.error(error);
     return [];
   }
+};
+
+interface GetMyPostListAPIProps {
+  currentPage: number;
+}
+export const getMyPostListAPI = async ({
+  currentPage,
+}: GetMyPostListAPIProps): Promise<PageResponse<PostListResponse>> => {
+  const response = await fetch(
+    `${apiUrl}/post/myPost?pageNumber=${currentPage}`,
+    {
+      method: "GET",
+      ...fetchOptions,
+    },
+  );
+
+  if (response.status === 204) {
+    return {
+      content: [],
+      pageNumber: 0,
+      pageSize: 0,
+      totalElements: 0,
+      totalPages: 0,
+      last: true,
+      hasNext: false,
+    };
+  }
+
+  const data = await response.json();
+
+  return data;
 };

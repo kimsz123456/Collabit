@@ -21,7 +21,6 @@ const HeaderDesktop = ({
   handleLogout,
   handleToMyPage,
   menuList,
-  hasNewChat,
   userInfo,
 }: HeaderProps) => {
   const pathname = usePathname();
@@ -50,7 +49,7 @@ const HeaderDesktop = ({
               <NavigationMenuItem
                 key={i.name}
                 className={cn(
-                  "rounded-md px-4 py-2 hover:bg-slate-100",
+                  "relative rounded-md px-4 py-2 hover:bg-slate-100",
                   (pathname.startsWith(i.href) ||
                     (i.href === "/chat" && pathname.startsWith("/survey"))) &&
                     "bg-slate-100",
@@ -59,10 +58,10 @@ const HeaderDesktop = ({
                 <NavigationMenuLink className="text-sm" href={i.href}>
                   {i.name}
                 </NavigationMenuLink>
-                {hasNewChat && i.name === "채팅" && (
-                  <div className="absolute -right-1 -top-2 h-3 w-3">
-                    <span className="absolute right-0.5 top-1.5 inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-50"></span>
-                    <span className="relative inline-flex size-2 rounded-full bg-violet-500"></span>
+                {i.isNew && (
+                  <div className="absolute -top-2 right-0 h-3 w-3">
+                    <span className="absolute right-0.5 top-1.5 inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-50" />
+                    <span className="relative inline-flex size-2 rounded-full bg-violet-500" />
                   </div>
                 )}
               </NavigationMenuItem>

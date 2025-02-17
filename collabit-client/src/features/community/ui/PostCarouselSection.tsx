@@ -8,7 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/shared/ui/carousel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MainCommunityCard from "./MainComminityCard";
 import { useQuery } from "@tanstack/react-query";
 import { getMainPostAPI, getRecommendPostAPI } from "@/shared/api/community";
@@ -32,6 +32,29 @@ const PostCarouselSection = ({ type }: { type: string }) => {
 
   const data = type === "latest" ? latestPost : recommendPost;
 
+  // data가 배열인지 확인하고, 배열이 아니면 빈 배열을 사용
+  const posts = Array.isArray(data) ? data : [];
+
+  useEffect(() => {
+    if (!api || !data) return;
+
+    const handleSelect = () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    };
+
+    setTimeout(() => {
+      const snapList = api.scrollSnapList();
+      setCount(snapList.length);
+      setCurrent(api.selectedScrollSnap() + 1);
+    }, 100);
+
+    api.on("select", handleSelect);
+
+    return () => {
+      api.off("select", handleSelect);
+    };
+  }, [api, data]);
+
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 border-b-2 border-gray-200 pb-10 md:gap-8">
       <h3 className="text-lg font-bold md:text-xl">
@@ -39,35 +62,45 @@ const PostCarouselSection = ({ type }: { type: string }) => {
       </h3>
 
       <div className="flex w-full flex-col items-center justify-center gap-4">
-        <Carousel
-          setApi={setApi}
-          opts={{
-            align: "start",
-          }}
-          className="h-full w-full"
-        >
-          <CarouselContent className="h-full">
-            {data?.map((post) => (
-              <CarouselItem
-                key={post.code}
-                className="md:basis-1/2 lg:basis-1/3"
-              >
-                <div className="h-full px-2 py-2">
-                  <MainCommunityCard data={post} />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
-        </Carousel>
-        <DotIndicator
-          current={current}
-          count={count}
-          api={api}
-          setCurrent={setCurrent}
-          setCount={setCount}
-        />
+        {!posts || posts.length === 0 ? (
+          <p className="py-8 text-center text-gray-500">
+            {type === "latest"
+              ? "아직 게시물이 없습니다."
+              : "추천 게시물이 없습니다."}
+          </p>
+        ) : (
+          <>
+            <Carousel
+              setApi={setApi}
+              opts={{
+                align: "start",
+              }}
+              className="h-full w-full"
+            >
+              <CarouselContent className="h-full">
+                {posts.map((post) => (
+                  <CarouselItem
+                    key={post.code}
+                    className="md:basis-1/2 lg:basis-1/3"
+                  >
+                    <div className="h-full px-2 py-2">
+                      <MainCommunityCard data={post} />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
+            <DotIndicator
+              current={current}
+              count={count}
+              api={api}
+              setCurrent={setCurrent}
+              setCount={setCount}
+            />
+          </>
+        )}
       </div>
     </div>
   );

@@ -21,6 +21,13 @@ public class CorsConfig {
         config.addAllowedHeader("*"); // 모든 헤더 허용
         config.addAllowedMethod("*"); // 모든 메서드(GET, POST, PUT, DELETE 등) 허용
 
+        // 브라우저가 응답 헤더를 읽을 수 있도록
+        config.addExposedHeader("*");
+        config.addExposedHeader("Content-Type");
+        config.addExposedHeader("Accept");
+        config.addExposedHeader("X-Requested-With");
+        config.addExposedHeader("remember-me");
+
         // 해당 URL에 설정한 config를 등록
         source.registerCorsConfiguration("/api/**", config);
 

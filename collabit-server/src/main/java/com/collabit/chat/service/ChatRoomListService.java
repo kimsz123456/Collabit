@@ -60,20 +60,16 @@ public class ChatRoomListService {
     // 채팅방 생성
     public ChatRoomResponseDTO saveChatRoom(String userCode, ChatRoomRequestDTO requestDTO) {
         String nickname = requestDTO.getNickname();
-
         User user = getUserByNickname(nickname);
         String userCode2 = user.getCode();
-
         // 채팅방 고유 코드 생성
         String uniqueCode = ChatRoom.generateChatRoomCode(userCode, userCode2);
         // 채팅방 중복 확인 또는 새 채팅방 생성
         ChatRoom chatRoom = chatRoomRepository.findByUniqueCode(uniqueCode)
                 .orElseGet(() -> createNewChatRoom(userCode, userCode2, uniqueCode));
         log.debug("Chat room code {} for user code {}", chatRoom.getCode(), userCode);
-
         ChatMessageRequestDTO chatMessageRequestDTO = ChatMessageRequestDTO.builder().message(requestDTO.getMessage()).timestamp(LocalDateTime.now()).build();
         chatRoomDetailService.saveMessage(chatMessageRequestDTO, userCode, chatRoom.getCode());
-
         return buildChatRoomResponseDTO(chatRoom);
     }
 
@@ -100,20 +96,16 @@ public class ChatRoomListService {
 
     public PageResponseDTO<ChatRoomListResponseDTO> getChatRoomList(String userCode, int pageNumber) {
         int size = 15;
-        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Order.desc("updatedAt"))); // 최초 쿼리에서 `updatedAt` 기준으로 정렬
-
+        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Order.desc("updatedAt")));
         User user = userRepository.findById(userCode).orElseThrow();
-
         // 채팅방 리스트 조회
         Page<ChatRoom> chatRoomPage = chatRoomRepository.findByUser1OrUser2(user, user, pageable);
         log.debug("Chat room count {}", chatRoomPage.toString());
-
         // 채팅방 리스트를 생성하고, 각 채팅방의 최신 메시지와 함께 반환
         List<ChatRoomListResponseDTO> chatRoomList = chatRoomPage.getContent().stream()
                 .map(chatRoom -> buildChatRoomListResponse(chatRoom, userCode)) // 최신 메시지 시간 포함하여 생성
                 .sorted(Comparator.comparing(ChatRoomListResponseDTO::getLastMessageTime).reversed()) // 최신 메시지 기준으로 한 번 더 정렬
                 .collect(Collectors.toList());
-
         return PageResponseDTO.<ChatRoomListResponseDTO>builder()
                 .content(chatRoomList)
                 .pageNumber(pageNumber)
@@ -126,33 +118,20 @@ public class ChatRoomListService {
     }
 
 
-
     // Redis와 연동하여 채팅방 리스트 응답 DTO 생성
     private ChatRoomListResponseDTO buildChatRoomListResponse(ChatRoom chatRoom, String userCode) {
-        // MongoDB에서 가장 최근 메시지 조회
         ChatMessage lastMessage = chatMessageRepository.findTopByRoomCodeOrderByTimestampDesc(chatRoom.getCode());
-
-        // 읽지 않은 메시지 수 조회 (Redis)
         int unreadCount = chatRedisService.getUnreadMessagesCount(chatRoom.getCode(), userCode);
 
         // 상대 유저 정보 조회
         User otherUser = getOtherUser(chatRoom, userCode);
-
         return ChatRoomListResponseDTO.builder()
                 .roomCode(chatRoom.getCode())
                 .lastMessage(lastMessage != null ? lastMessage.getMessage() : null)
-                .lastMessageTime(lastMessage != null ? lastMessage.getTimestamp() : null) // 최신 메시지 시간
+                .lastMessageTime(lastMessage != null ? lastMessage.getTimestamp() : null)
                 .unreadMessageCount(unreadCount)
                 .nickname(otherUser.getNickname())
                 .profileImage(otherUser.getProfileImage())
-                .build();
-    }
-
-
-    // Redis와 연계하여 읽지 않은 메시지 확인
-    public ChatUnreadResponseDTO getUnreadMessagesCount(String userCode) {
-        return ChatUnreadResponseDTO.builder()
-                .isExist(chatRedisService.getUnreadMessagesForUser(userCode) > 0)
                 .build();
     }
 

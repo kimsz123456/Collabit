@@ -34,9 +34,9 @@ class RedisClient:
         messages_json = self.client.get(f"messages_{session_id}")
         return json.loads(messages_json) if messages_json else None
 
-    def update_response_count(self, project_user_code, survey_code):
+    def update_response_count(self, project_user_code, survey_code, user_code):
         """Update survey response count"""
-        response_count_key = f"newSurveyResponse::{project_user_code}::{survey_code}"
+        response_count_key = f"newSurveyResponse::{project_user_code}::{survey_code}::{user_code}"
         current_count = self.client.get(response_count_key)
         if current_count:
             self.client.set(response_count_key, int(current_count) + 1)

@@ -112,7 +112,7 @@ def chat_survey(survey_code):
                         if project_user_code:
                             # Update response count in Redis
                             redis_client.update_response_count(
-                                project_user_code, survey_code)
+                                project_user_code, survey_code,user_code)
 
                             # HuggingFace 요청 및 저장 로직
                             summary_messages = messages.copy()

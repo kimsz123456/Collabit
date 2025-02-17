@@ -5,8 +5,7 @@ export interface HeaderProps {
   handleToLogin: () => void;
   handleLogout: () => void;
   handleToMyPage: () => void;
-  menuList?: { name: string; href: string }[];
-  hasNewChat?: boolean;
+  menuList?: { name: string; href: string; isNew: boolean }[];
   userInfo?: UserInfo;
   isChatRoom?: boolean;
 }

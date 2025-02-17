@@ -13,6 +13,10 @@ import formatRelativeTime from "@/shared/utils/formatRelativeTime";
 import { DeleteIcon, Ellipsis, GithubIcon } from "lucide-react";
 import { useProjectList } from "@/features/project/api/useProjectList";
 import calcRatio from "@/shared/utils/calcRatio";
+import { useNotificationStore } from "@/shared/lib/stores/NotificationStore";
+import { useShallow } from "zustand/shallow";
+import { useEffect } from "react";
+import { toast } from "@/shared/hooks/use-toast";
 
 interface ProjectListCardProps {
   organization: string;
@@ -29,7 +33,20 @@ const ProjectListCard = ({
 
   const contributorsCount = project.contributors?.length;
   const participantsRatio = calcRatio(project.participant, contributorsCount);
-
+  const { surveyResponses } = useNotificationStore(
+    useShallow((state) => ({
+      surveyResponses: state.surveyResponses,
+    })),
+  );
+  useEffect(() => {
+    if (surveyResponses.includes(project.code)) {
+      toast({
+        title: `[${project.title}] 새로운 응답이 도착했습니다`,
+        description:
+          "현재 참여율을 확인하고, 목표 응답률 달성 시 설문을 종료하실 수 있습니다.",
+      });
+    }
+  }, [surveyResponses, project.code, project.title]);
   return (
     <Card
       onClick={onClick}

@@ -18,6 +18,7 @@ const HexagonChart = ({ hexagon }: HexagonChartProps) => {
     const ctx = canvasRef.current.getContext("2d") as CanvasRenderingContext2D;
     const hexagonChart = new Chart(ctx, {
       type: "radar", // 육각형 차트는 레이더 차트로 구현
+
       data: {
         labels: Object.values(hexagonItem).map((skill) => skill.name),
         datasets: [
@@ -46,9 +47,8 @@ const HexagonChart = ({ hexagon }: HexagonChartProps) => {
     };
   }, [hexagonItem, minScore, maxScore]);
 
-
   return (
-    <div>
+    <div className="flex h-full w-full items-center justify-center">
       <canvas ref={canvasRef} />
     </div>
   );
