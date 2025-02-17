@@ -63,11 +63,11 @@ export const useCreateProject = (org: string, title: string) => {
       return;
     }
 
-    if (project.contributors.length === 1) {
+    if (project.contributors.length < 2) {
       openModal(
         <OneButtonModal
           title="프로젝트 등록 실패"
-          description="개인 프로젝트는 등록할 수 없습니다."
+          description="최소 2명 이상의 참여자가 필요합니다."
           buttonText="확인"
           handleButtonClick={() => closeModal()}
         />,
@@ -94,5 +94,6 @@ export const useCreateProject = (org: string, title: string) => {
     isLoading: isAddedLoading,
     isAdded,
     handleAddProject,
+    addedProjects,
   };
 };

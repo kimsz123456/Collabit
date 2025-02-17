@@ -74,10 +74,10 @@ export const getPostAPI = async (
 ): Promise<PostDetailResponse> => {
   const response = await fetch(`${apiUrl}/post/${postCode}`, {
     ...fetchOptions,
-    next: {
-      revalidate: 10,
-      tags: ["postDetail", postCode.toString()],
-    },
+    // next: {
+    //   revalidate: 10,
+    //   tags: ["postDetail", postCode.toString()],
+    // },
   });
   return response.json();
 };
@@ -110,7 +110,7 @@ export const deletePostAPI = async (postCode: number) => {
   return response;
 };
 
-export const likePostAPI = async (postCode: number) => {
+export const likePostAPI = async (postCode: number): Promise<void> => {
   const response = await fetch(`${apiUrl}/post/${postCode}/like`, {
     method: "POST",
     ...fetchOptions,
@@ -118,7 +118,7 @@ export const likePostAPI = async (postCode: number) => {
   return response.json();
 };
 
-export const unlikePostAPI = async (postCode: number) => {
+export const unlikePostAPI = async (postCode: number): Promise<void> => {
   const response = await fetch(`${apiUrl}/post/${postCode}/like`, {
     method: "DELETE",
     ...fetchOptions,

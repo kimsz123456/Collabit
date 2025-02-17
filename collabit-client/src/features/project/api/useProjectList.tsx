@@ -30,6 +30,7 @@ export const useProjectList = () => {
     mutationFn: updateProjectDoneAPI,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projectList"] });
+      queryClient.refetchQueries({ queryKey: ["projectList"] });
       openModal(
         <OneButtonModal
           title="프로젝트 종료"

@@ -5,10 +5,12 @@ import useGetGithubContributors from "@/features/project/api/useGetGithubContrib
 
 interface ProjectCreateButtonProps {
   project: FormattedGithubRepo;
+  className?: string;
 }
 
 export default function ProjectCreateButton({
   project,
+  className,
 }: ProjectCreateButtonProps) {
   const { contributors } = useGetGithubContributors(
     project.organization,
@@ -33,7 +35,7 @@ export default function ProjectCreateButton({
     return (
       <Button
         variant="outline"
-        className="w-[60px] cursor-not-allowed bg-gray-500 text-white"
+        className={`w-[60px] cursor-not-allowed bg-gray-500 text-white ${className}`}
         disabled
       >
         완료
@@ -42,7 +44,7 @@ export default function ProjectCreateButton({
   }
 
   return (
-    <Button className="w-[60px] bg-black" onClick={handleClick}>
+    <Button className={`w-[60px] bg-black ${className}`} onClick={handleClick}>
       등록
     </Button>
   );

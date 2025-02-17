@@ -6,7 +6,7 @@ export type CommentResponse = Pick<
   "code" | "postCode" | "content" | "createdAt" | "parentCommentCode"
 > & {
   author: Pick<User, "nickname" | "profileImage" | "githubId">;
-  children?: CommentResponse[];
+  replies?: CommentResponse[];
 };
 export type CreateCommentResponse = Pick<
   Comment,

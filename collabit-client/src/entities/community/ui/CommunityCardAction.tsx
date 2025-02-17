@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import useModalStore from "@/shared/lib/stores/modalStore";
 import ChatMessageModal from "@/widget/ui/modals/ChatMessageModal";
 import { useAuth } from "@/features/auth/api/useAuth";
+import useLike from "@/features/community/api/useLike";
 
 export const CommunityCardActions = ({
   post,
@@ -27,6 +28,7 @@ export const CommunityCardActions = ({
     e: React.MouseEvent<HTMLButtonElement>,
   ) => {
     e.preventDefault();
+    if (!userInfo) return;
     const chatRoom = await getChatRoomWithNicknameAPI(nickname);
     //채팅방이 있으면 채팅방으로 이동, 없으면 채팅방 생성
     if (chatRoom.roomCode != -1) {
@@ -34,6 +36,17 @@ export const CommunityCardActions = ({
     } else {
       openModal(<ChatMessageModal author={post?.author} />);
     }
+  };
+  const { mutate: likePost } = useLike({
+    postCode: post.code,
+    isLiked: post.liked,
+  });
+  const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log("click");
+
+    e.preventDefault();
+    e.stopPropagation();
+    likePost();
   };
 
   return (
@@ -43,7 +56,12 @@ export const CommunityCardActions = ({
         <span className="text-sm">{post?.commentCount}</span>
       </div>
       <div className="flex items-center">
-        <Button variant="ghost" className="flex items-center px-2 py-1">
+        <Button
+          variant="ghost"
+          className="flex items-center px-2 py-1"
+          disabled={!userInfo}
+          onClick={handleLike}
+        >
           <Heart
             className={cn("size-4", post?.liked && "fill-red-500 text-red-500")}
           />
@@ -54,6 +72,7 @@ export const CommunityCardActions = ({
         <Button
           variant="ghost"
           className="flex items-center px-2 py-1"
+          disabled={!userInfo}
           onClick={handleCheckChatRoom}
         >
           <Send className="size-4" />

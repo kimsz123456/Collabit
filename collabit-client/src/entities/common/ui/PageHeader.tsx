@@ -6,14 +6,12 @@ interface PageHeaderProps {
   mainTitle: string;
   subTitle: string;
   handleBack?: () => void | null;
-  rightButton?: React.ReactNode;
 }
 
 const PageHeader = ({
   mainTitle,
   subTitle,
   handleBack,
-  rightButton,
 }: PageHeaderProps) => {
   return (
     <div className="relative flex items-center justify-center">
@@ -35,14 +33,6 @@ const PageHeader = ({
           {subTitle}
         </h2>
       </div>
-      {/* <Button
-        variant="ghost"
-        className={`h-8 w-8 ${isList ? "" : "invisible"}`}
-        onClick={handleCreateProject}
-      >
-        <PlusIcon className="h-full w-full" />
-      </Button> */}
-      <div className="absolute right-0">{rightButton}</div>
     </div>
   );
 };

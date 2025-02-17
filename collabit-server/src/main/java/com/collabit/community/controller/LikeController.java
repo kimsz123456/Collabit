@@ -20,7 +20,7 @@ public class LikeController {
     private final LikeService likeService;
 
     @Operation(summary="게시글 좋아요",description = "게시글 좋아요 요청 API입니다.")
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<?> likePost(@PathVariable("postCode")int postCode){
         String userCode = SecurityUtil.getCurrentUserCode();
         LikeResponseDTO responseDTO = likeService.like(userCode, postCode);
@@ -29,7 +29,7 @@ public class LikeController {
     }
 
     @Operation(summary="게시글 좋아요 취소",description = "게시글 좋아요 취소 API입니다.")
-    @DeleteMapping("/")
+    @DeleteMapping
     public ResponseEntity<?> cancelLikePost(@PathVariable("postCode")int postCode){
         String userCode = SecurityUtil.getCurrentUserCode();
         LikeResponseDTO responseDTO = likeService.cancelLike(userCode, postCode);

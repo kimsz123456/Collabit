@@ -9,18 +9,19 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 export const createCommentAPI = async ({
   postCode,
   content,
-  parentCode,
+  parentCommentCode,
 }: {
   postCode: number;
   content: string;
-  parentCode?: number;
+  parentCommentCode?: number;
 }): Promise<CreateCommentResponse> => {
+  console.log("createCommentAPI", postCode, content, parentCommentCode);
   const response = await fetch(`${apiUrl}/post/${postCode}/comment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ content, parentCode }),
+    body: JSON.stringify({ content, parentCommentCode }),
     credentials: "include",
   });
   return response.json();

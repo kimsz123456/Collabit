@@ -27,7 +27,8 @@ export type ProjectUpdateCheckResponse = {
   isUpdated: boolean;
 };
 
-export type ProjectAddedResponse = ProjectTitle & {
-  isAdded: boolean;
-  contributors: Contributor[];
-};
+export type ProjectAddedResponse = ProjectTitle &
+  Pick<ProjectInfo, "code"> & {
+    isAdded: boolean;
+    contributors: Contributor[];
+  };

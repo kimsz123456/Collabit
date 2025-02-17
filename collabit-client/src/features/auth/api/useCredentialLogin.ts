@@ -42,21 +42,16 @@ const useCredentialLogin = () => {
     }
 
     try {
-      await onSubmit(form.getValues());
+      await loginCredentialAPI(form.getValues());
       router.push("/auth/callback");
     } catch (error) {
-      console.error(error);
+      toast({
+        title: "이메일 또는 비밀번호를 확인해주세요.",
+        variant: "destructive",
+      });
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
-    try {
-      await loginCredentialAPI(data);
-      window.location.href ="/auth/callback";
-    } catch (error) {
-      console.error(error);
-    }
-  };
   return { form, handleLogin };
 };
 export default useCredentialLogin;

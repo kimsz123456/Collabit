@@ -183,8 +183,9 @@ const useSignup = () => {
           title="사용 가능한 닉네임"
           description="회원가입을 진행하시겠습니까?"
           buttonText="가입하기"
-          handleButtonClick={() => {
-            onSubmit(form.getValues());
+          handleButtonClick={async () => {
+            closeModal();
+            await onSubmit(form.getValues());
           }}
         />,
       );
@@ -201,6 +202,7 @@ const useSignup = () => {
 
   // 회원가입 폼 제출 함수
   const onSubmit = async (data: z.infer<typeof SignupSchema>) => {
+    if (isLoading) return;
     setIsLoading(true);
     try {
       const requestData = {
@@ -215,8 +217,9 @@ const useSignup = () => {
           description="회원가입이 완료되었습니다."
           buttonText="로그인"
           handleButtonClick={() => {
-            router.push("/login/credential");
             closeModal();
+            router.push("/login/credential");
+            setIsLoading(false);
           }}
         />,
       );
