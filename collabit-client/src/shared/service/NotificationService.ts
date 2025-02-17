@@ -107,7 +107,7 @@ class NotificationService {
     this.eventSource?.close();
     this.eventSource = null;
     this.connectionStatus = "disconnected";
-    console.log("SSE 연결 종료");
+    // console.log("SSE 연결 종료");
   }
 
   subscribe(callback: (event: NotificationEvent) => void) {

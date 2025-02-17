@@ -1,5 +1,8 @@
+import { toast } from "@/shared/hooks/use-toast";
 import useModalStore from "@/shared/lib/stores/modalStore";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 import { X } from "lucide-react";
 
 interface NotificationModalProps {
@@ -16,6 +19,21 @@ const NotificationModal = ({
   handleButtonClick,
 }: NotificationModalProps) => {
   const closeModal = useModalStore((state) => state.closeModal);
+  const surveyUrl = "https://forms.gle/FRGJ7QyBSwBvxRMx7";
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(surveyUrl);
+      await navigator.clipboard.writeText(surveyUrl);
+      toast({
+        description: "링크가 복사되었습니다.",
+      });
+    } catch {
+      toast({
+        variant: "destructive",
+        description: "링크 복사에 실패했습니다.",
+      });
+    }
+  };
   return (
     <>
       <div
@@ -44,9 +62,31 @@ const NotificationModal = ({
           <h1 id="modal-title" className="text-xl font-bold text-gray-800">
             {title}
           </h1>
-          <p className="text-center text-sm text-gray-600 whitespace-pre-line">
+          <p className="whitespace-pre-line text-center text-sm text-gray-600">
             {description}
           </p>
+          <div className="flex items-center space-x-2">
+            <div className="grid flex-1 gap-2">
+              <Label htmlFor="link" className="sr-only">
+                Link
+              </Label>
+              <Input
+                id="link"
+                value={surveyUrl}
+                className="select-all"
+                readOnly
+              />
+            </div>
+            <Button
+              onClick={handleCopy}
+              type="submit"
+              size="sm"
+              className="px-3"
+            >
+              <span className="sr-only">Copy</span>
+              링크 복사
+            </Button>
+          </div>
         </div>
         <div className="mt-8 flex w-full justify-center">
           <Button

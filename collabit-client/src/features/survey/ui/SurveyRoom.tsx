@@ -45,7 +45,6 @@ const SurveyRoom = ({ id }: { id: number }) => {
   const multipleAnswers = useSurveyStore((state) => state.multipleAnswers);
 
   const params = useParams();
-  console.log(params);
 
   useEffect(() => {
     setId(id);

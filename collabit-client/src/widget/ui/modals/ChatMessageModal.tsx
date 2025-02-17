@@ -23,6 +23,7 @@ const ChatMessageModal = ({ author }: ChatMessageModalProps) => {
       nickname: author.nickname,
       message: chatMessage,
     });
+    closeModal();
     router.push(`/chat/${newChatRoom.roomCode}`);
   };
 

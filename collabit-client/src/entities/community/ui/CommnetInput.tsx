@@ -55,6 +55,9 @@ const CommponetInput = ({ postCode }: CommponetInputProps) => {
       queryClient.refetchQueries({
         queryKey: ["postDetail", Number(postCode)],
       });
+      queryClient.refetchQueries({
+        queryKey: ["posts", "infinite"],
+      });
     },
     onError: () => {
       toast({

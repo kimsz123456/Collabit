@@ -25,7 +25,7 @@ public class ProjectRedisSubscriber implements MessageListener { //Redis의 특�
         try {
             String body = new String(message.getBody(), StandardCharsets.UTF_8);
 
-            if (!body.startsWith("newSurveyRequest") || !body.startsWith("newSurveyResponse")){
+            if (!body.startsWith("newSurveyRequest") && !body.startsWith("newSurveyResponse")){
                 return;
             }
 

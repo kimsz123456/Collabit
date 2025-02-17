@@ -78,7 +78,7 @@ export const logoutAPI = async () => {
   });
   return res;
 };
-	
+
 export const loginCredentialAPI = async (body: LoginRequest) => {
   const formData = new URLSearchParams();
   formData.append("email", body.email);
@@ -92,7 +92,7 @@ export const loginCredentialAPI = async (body: LoginRequest) => {
     credentials: "include",
     body: formData.toString(), // FormData 대신 URLSearchParams 사용
   });
-  
+
   if (!res.ok) {
     throw new Error("로그인에 실패했습니다.");
   }
@@ -110,7 +110,6 @@ export const checkNicknameAPI = async (nickname: string) => {
   });
 
   const data = await res.json();
-  console.log(res);
 
   if (!res.ok) {
     throw new Error(data.message || "닉네임 중복 확인에 실패했습니다.");

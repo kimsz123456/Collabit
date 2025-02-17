@@ -42,8 +42,6 @@ export const CommunityCardActions = ({
     isLiked: post.liked,
   });
   const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
-    console.log("click");
-
     e.preventDefault();
     e.stopPropagation();
     likePost();

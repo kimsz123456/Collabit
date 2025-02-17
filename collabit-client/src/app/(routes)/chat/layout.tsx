@@ -28,13 +28,10 @@ const ChatLayout = ({
     if (!clientRef.current) return;
 
     const handleSendMessage = async (message: WebSocketMessage) => {
-      console.log("📩 메시지 전송:", message);
       if (!clientRef.current?.connected) {
-        console.error("❌ WebSocket이 연결되지 않음.");
         return;
       }
       if (!chatId) {
-        console.error("❌ chatId가 설정되지 않음.");
         return;
       }
       addMessage(message);
@@ -45,7 +42,6 @@ const ChatLayout = ({
           destination: `/app/chat.message/${chatId}`,
           body: JSON.stringify(message),
         });
-        console.log("✅ Message sent successfully");
       } catch (error) {
         console.error("❌ Failed to send message:", error);
       }

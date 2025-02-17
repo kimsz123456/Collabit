@@ -87,7 +87,7 @@ export default async function Page({ params }: SharePageProps) {
   const { user } = await params;
   const reportShare = await fetchReportShare(user);
   const portfolioInfo = reportShare?.portfolioInfo;
-  console.log(reportShare);
+
   return (
     <div className="mx-auto mb-20 mt-5 w-full p-4 md:max-w-5xl">
       <div className="flex flex-col gap-2">

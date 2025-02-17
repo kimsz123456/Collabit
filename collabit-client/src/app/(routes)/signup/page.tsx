@@ -25,7 +25,6 @@ export default function Page() {
     handleValidCode,
     handleValidPassword,
     handleValidNickname,
-    onSubmit,
     handleBack,
   } = useSignup();
   return (
@@ -39,10 +38,7 @@ export default function Page() {
       <Progress className="bg-gray-200" value={25 * step} />
       {/* 폼시작 */}
       <Form {...form}>
-        <form
-          className="flex w-full flex-col items-center gap-2"
-          onSubmit={form.handleSubmit(onSubmit)}
-        >
+        <form className="flex w-full flex-col items-center gap-2">
           {step === 1 && (
             <div className="flex w-full flex-col items-center gap-2">
               <FormField

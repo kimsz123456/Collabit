@@ -29,8 +29,6 @@ const CommentReplyInput = ({
   postCode,
   onCancel,
 }: CommentReplyInputProps) => {
-  console.log("부모 댓글 : ", parentCommentCode);
-
   const { userInfo } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -77,16 +75,6 @@ const CommentReplyInput = ({
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(
-      "제출",
-      "게시글 : ",
-      postCode,
-      "댓글 : ",
-      values.comment,
-      "부모 댓글 : ",
-      parentCommentCode,
-    );
-
     createComment({
       content: values.comment,
       postCode,

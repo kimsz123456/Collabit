@@ -21,6 +21,7 @@ const OneButtonModal = ({
       <div
         className="fixed inset-0 z-10 bg-black/50"
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           if (handleButtonClick) {
             handleButtonClick();
