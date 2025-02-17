@@ -27,7 +27,7 @@ public class ChatSseEmitterService {
 
     // 채팅 알림 전송
     public void sendUnreadChatRooms(String userCode, List<Integer> roomCodes) {
-        sendEventSafely("newChat", roomCodes, userCode);
+        sendEventSafely("newChatRequest", roomCodes, userCode);
     }
 
     private void sendEventSafely(String eventName, Object data, String userCode) {

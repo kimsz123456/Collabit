@@ -1,7 +1,8 @@
 "use client";
 
 import CommunityDetail from "@/features/community/ui/CommunityDetail";
-import { PostDetailResponse } from "@/shared/types/response/post";
+import { getPostAPI } from "@/shared/api/community";
+
 import {
   Dialog,
   DialogContent,
@@ -9,22 +10,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-const ModalPostDetail = ({ post }: { post: PostDetailResponse }) => {
+const ModalPostDetail = ({ postId }: { postId: number }) => {
+  const [isOpen, setIsOpen] = useState(true);
   const router = useRouter();
+
+  const { data: post } = useQuery({
+    queryKey: ["postDetail", Number(postId)],
+    queryFn: () => getPostAPI(Number(postId)),
+  });
+  if (!post) return null;
 
   return (
     <Dialog
-      open={true}
+      open={isOpen}
       onOpenChange={() => {
+        setIsOpen(!isOpen);
         router.back();
       }}
     >
       <DialogContent
         className="max-h-[80vh] max-w-[800px] overflow-y-auto"
-        onEscapeKeyDown={() => router.back()}
-        onInteractOutside={() => router.back()}
+        onEscapeKeyDown={() => setIsOpen(!isOpen)}
+        onInteractOutside={() => setIsOpen(!isOpen)}
       >
         <DialogHeader>
           <DialogTitle className="sr-only">{`${post.code}번 게시글`}</DialogTitle>
@@ -34,7 +45,7 @@ const ModalPostDetail = ({ post }: { post: PostDetailResponse }) => {
               : post.content}
           </DialogDescription>
         </DialogHeader>
-        <CommunityDetail post={post} />
+        <CommunityDetail postId={postId} />
       </DialogContent>
     </Dialog>
   );

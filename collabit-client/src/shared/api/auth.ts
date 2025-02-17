@@ -93,7 +93,6 @@ export const loginCredentialAPI = async (body: LoginRequest) => {
     body: formData.toString(), // FormData 대신 URLSearchParams 사용
   });
   
-  console.log(res)
   if (!res.ok) {
     throw new Error("로그인에 실패했습니다.");
   }

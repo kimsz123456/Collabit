@@ -27,7 +27,7 @@ export default function Layout({
         handleBack={
           isDetailView && isMobile
             ? () => router.push("/project/create")
-            : undefined
+            : () => router.push("/project")
         }
       />
 

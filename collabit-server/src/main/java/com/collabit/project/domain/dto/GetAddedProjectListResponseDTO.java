@@ -9,6 +9,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class GetAddedProjectListResponseDTO {
+    private final int code;
     private final String organization;
     private final String title;
 }

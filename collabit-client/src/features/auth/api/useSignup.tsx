@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useShallow } from "zustand/shallow";
 
 const useSignup = () => {
   const router = useRouter();
@@ -22,8 +23,7 @@ const useSignup = () => {
   // 폼 단계 상태
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const openModal = useModalStore((state) => state.openModal);
-  const closeModal = useModalStore((state) => state.closeModal);
+  const { openModal, closeModal } = useModalStore(useShallow((state) => state));
 
   // 회원가입 폼 생성
   const form = useForm<z.infer<typeof SignupSchema>>({
@@ -176,8 +176,8 @@ const useSignup = () => {
 
     setIsLoading(true);
     try {
-      // 닉네임 중복 API 호출
       await checkNicknameAPI(nicknameValue);
+      // submit 상태 대신 직접 모달 열기
       openModal(
         <OneButtonModal
           title="사용 가능한 닉네임"
@@ -185,6 +185,7 @@ const useSignup = () => {
           buttonText="가입하기"
           handleButtonClick={() => {
             onSubmit(form.getValues());
+            closeModal();
           }}
         />,
       );
@@ -201,6 +202,8 @@ const useSignup = () => {
 
   // 회원가입 폼 제출 함수
   const onSubmit = async (data: z.infer<typeof SignupSchema>) => {
+    console.log("onSubmit 호출");
+    if (isLoading) return;
     setIsLoading(true);
     try {
       const requestData = {
@@ -209,23 +212,26 @@ const useSignup = () => {
         nickname: data.nickname,
       };
       await signupAPI(requestData);
+      console.log("회원가입 성공");
+
       openModal(
         <OneButtonModal
           title="회원가입 성공"
           description="회원가입이 완료되었습니다."
           buttonText="로그인"
           handleButtonClick={() => {
-            router.push("/login/credential");
             closeModal();
+            setIsLoading(false);
+            router.push("/login/credential");
           }}
         />,
       );
     } catch (error) {
-      toast({
-        title: "회원가입 실패",
-        description: (error as Error).message,
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "회원가입 실패",
+      //   description: (error as Error).message,
+      //   variant: "destructive",
+      // });
     } finally {
       setIsLoading(false);
     }

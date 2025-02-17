@@ -39,7 +39,13 @@ export const CommunityCardMenu = ({ post }: { post: PostListResponse }) => {
           게시물 삭제
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={() => {}} className="cursor-pointer">
+        <DropdownMenuItem
+          disabled
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="cursor-pointer"
+        >
           <Pencil />
           게시물 수정
         </DropdownMenuItem>

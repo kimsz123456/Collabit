@@ -39,7 +39,7 @@ const Post = () => {
       <form
         onSubmit={handleSubmit}
         className={cn(
-          "w-full flex-col gap-4 border-b p-4",
+          "w-full flex-col gap-4 border-b p-2",
           isPostPage ? "flex" : "hidden md:flex",
         )}
       >
@@ -64,7 +64,7 @@ const Post = () => {
 
           <div className="flex-1">
             <TextareaAutosize
-              className="min-h-[500px] w-full resize-none border-none bg-transparent px-0 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full resize-none border-none bg-transparent px-0 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="무슨 생각을 하고 계신가요?"
               minRows={2}
               readOnly={!userInfo}

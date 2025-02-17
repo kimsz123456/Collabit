@@ -5,7 +5,13 @@ import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { BookA, Bug, Clock3, GitFork, Star } from "lucide-react";
 import Image from "next/image";
-import useGetGithubContributors from "../api/useGetGithubContributors";
+import useGetGithubContributors from "@/features/project/api/useGetGithubContributors";
+import { useCreateProject } from "@/features/project/api/useCreateProject";
+import ProjectCreateButton from "@/entities/project/ui/ProjectCreateButton";
+import { Label } from "@/shared/ui/label";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { useToast } from "@/shared/hooks/use-toast";
 
 interface ProjectInfoCardProps {
   repo: FormattedGithubRepo;
@@ -16,9 +22,35 @@ export function ProjectInfoCard({ repo }: ProjectInfoCardProps) {
     repo.organization,
     repo.title,
   );
+  const { toast } = useToast();
+  const { addedProjects, isAdded } = useCreateProject(
+    repo.organization,
+    repo.title,
+  );
+  const DEPLOY_URL = process.env.NEXT_PUBLIC_DEPLOY_URL;
+  const project = addedProjects?.find((project) => {
+    return (
+      project.organization === repo.organization && project.title === repo.title
+    );
+  });
+  const surveyUrl = `${DEPLOY_URL}/survey/${project?.code}`;
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(surveyUrl);
+      await navigator.clipboard.writeText(surveyUrl);
+      toast({
+        description: "링크가 복사되었습니다.",
+      });
+    } catch {
+      toast({
+        variant: "destructive",
+        description: "링크 복사에 실패했습니다.",
+      });
+    }
+  };
 
   return (
-    <ScrollArea className="flex h-full max-h-[calc(100vh-260px)] flex-col gap-4 overflow-y-auto rounded-lg border p-4">
+    <ScrollArea className="flex h-full max-h-[calc(100vh-300px)] flex-col gap-4 overflow-y-auto rounded-lg border p-4 md:max-h-[calc(100vh-260px)]">
       <div className="mb-5 flex w-full items-center justify-between gap-4">
         <div className="flex w-full items-center gap-2">
           <Avatar>
@@ -76,6 +108,37 @@ export function ProjectInfoCard({ repo }: ProjectInfoCardProps) {
           <Bug className="h-5 w-5" />
           <span>{repo.open_issues_count}</span>
         </Badge>
+      </div>
+      <div className="my-4">
+        {isAdded ? (
+          <div className="flex items-center space-x-2">
+            <div className="grid flex-1 gap-2">
+              <Label htmlFor="link" className="sr-only">
+                Link
+              </Label>
+              <Input
+                id="link"
+                value={surveyUrl}
+                className="select-all"
+                readOnly
+              />
+            </div>
+            <Button
+              onClick={handleCopy}
+              type="submit"
+              size="sm"
+              className="px-3"
+            >
+              <span className="sr-only">Copy</span>
+              링크 복사
+            </Button>
+          </div>
+        ) : (
+          <ProjectCreateButton
+            project={repo}
+            className="w-full bg-violet-600"
+          />
+        )}
       </div>
       <hr className="my-5" />
       <div>

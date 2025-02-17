@@ -43,6 +43,17 @@ const Header = () => {
       });
     }
   }, [hasNewChat, pathname]);
+
+  // 프로젝트 알림
+  useEffect(() => {
+    if (hasNewResponse && pathname === "/") {
+      toast({
+        title: "새로운 프로젝트 피드백이 있습니다.",
+        description: "프로젝트 확인해주세요.",
+      });
+    }
+  }, [hasNewResponse, pathname]);
+
   const handleToLogin = () => {
     router.push("/login");
   };

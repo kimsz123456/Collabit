@@ -28,32 +28,35 @@ export default function Page() {
     }
   }, [reportStatus]);
 
-  // ✅ 리포트 생성 함수
   const handleGenerateReport = async () => {
     openModal(<ReportLoadingModal context="AI가 리포트를 생성하고 있어요." />);
 
     try {
-      await Promise.allSettled([
+      const responses = await Promise.allSettled([
         createPortfolioSpringAPI(),
         createPortfolioFlaskAPI(),
       ]);
-      toast({
-        title: "리포트가 생성되었습니다!",
-        description: "최신 결과를 확인하세요.",
-      });
 
+      const isSuccess = responses.some((res) => res.status === "fulfilled");
+
+      if (isSuccess) {
+        toast({
+          title: "리포트가 생성되었습니다!",
+          description: "최신 결과를 확인하세요.",
+        });
+      } else {
+        throw new Error("리포트 생성 실패");
+      }
+      await queryClient.refetchQueries({ queryKey: ["reportStatus"] });
+      await queryClient.refetchQueries({ queryKey: ["report"] });
+      setIsExist(reportStatus?.exist ?? false);
       closeModal();
-
-      await queryClient.invalidateQueries({ queryKey: ["reportStatus"] });
-      await queryClient.invalidateQueries({ queryKey: ["report"] });
-      setIsExist(reportStatus?.exist);
-    } catch {
+    } catch (error) {
       toast({ title: "오류 발생", description: "리포트 생성에 실패했습니다." });
       closeModal();
     }
   };
 
-  // ✅ 데이터 로딩 중이면 로딩 화면 표시
   if (reportStatusLoading) {
     return <ReportLoadingModal context="리포트 상태를 불러오는 중입니다..." />;
   }

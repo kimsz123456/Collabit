@@ -333,6 +333,7 @@ public class ProjectService {
         // 2. ProjectInfo로 Project 정보 추출해 DTO에 매핑 후 반환
         List<GetAddedProjectListResponseDTO> result = projectInfoList.stream()
                 .map(pi -> GetAddedProjectListResponseDTO.builder()
+                        .code(pi.getCode())
                         .organization(pi.getProject().getOrganization())
                         .title(pi.getProject().getTitle())
                         .build()

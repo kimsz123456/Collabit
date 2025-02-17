@@ -1,9 +1,10 @@
+"use client";
 import UserAvatar from "@/entities/common/ui/UserAvatar";
 import CommentList from "@/entities/community/ui/CommentList";
 import CommponetInput from "@/entities/community/ui/CommnetInput";
 import { CommunityCardActions } from "@/entities/community/ui/CommunityCardAction";
 import { CommunityCardMenu } from "@/entities/community/ui/CommunityCardMenu";
-import { PostDetailResponse } from "@/shared/types/response/post";
+import { getPostAPI } from "@/shared/api/community";
 import { Card, CardContent } from "@/shared/ui/card";
 import {
   Carousel,
@@ -14,9 +15,15 @@ import {
 } from "@/shared/ui/carousel";
 
 import formatRelativeTime from "@/shared/utils/formatRelativeTime";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 
-const CommunityDetail = ({ post }: { post: PostDetailResponse }) => {
+const CommunityDetail = ({ postId }: { postId: number }) => {
+  const { data: post } = useQuery({
+    queryKey: ["postDetail", Number(postId)],
+    queryFn: () => getPostAPI(Number(postId)),
+  });
+  if (!post) return null;
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="flex h-full w-full flex-col gap-2 border-b border-b-border py-5">
@@ -80,11 +87,7 @@ const CommunityDetail = ({ post }: { post: PostDetailResponse }) => {
         )}
         <CommunityCardActions post={post} />
       </div>
-      <CommponetInput
-        img={post.author?.profileImage}
-        nickname={post.author?.nickname}
-        postCode={post.code}
-      />
+      <CommponetInput postCode={post.code} />
       <CommentList postCode={post.code} />
     </div>
   );
