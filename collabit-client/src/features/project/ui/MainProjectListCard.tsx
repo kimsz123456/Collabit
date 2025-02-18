@@ -47,7 +47,7 @@ const MainProjectListCard = ({
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleRemoveProject(project.code);
+                  handleRemoveProject(project.code, project.participant);
                 }}
                 className="cursor-pointer text-red-500"
               >
