@@ -19,7 +19,7 @@ public class ChatSseEmitterService {
     private final ConcurrentHashMap<String, SseEmitter> sseEmitters;
     private final ChatRedisService chatRedisService;
 
-    // 헤더의 채팅 알림 전송
+    // 존재하는 chat_room code의 리스트 반환
     public void sendHeaderChatNotification(String userCode){
         List<Integer> unreadChatRooms = chatRedisService.getUnreadChatRoomForUser(userCode);
         sendUnreadChatRooms(userCode, unreadChatRooms);
