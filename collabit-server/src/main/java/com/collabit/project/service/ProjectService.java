@@ -360,7 +360,7 @@ public class ProjectService {
         removeAllNotification(userCode);
 
         // 설문 참여자가 전체 컨트리뷰터 수의 1/2 이상일 경우에만 마감 가능
-        if(projectInfo.getParticipant() < projectInfo.getTotal()/2) {
+        if(projectInfo.getParticipant() < 3) { // projectInfo.getTotal()/2
             log.error("설문 참여자가 부족한 경우 - 해당 ProjectInfo의 participant 수: {}, total 수: {}", projectInfo.getParticipant(), projectInfo.getTotal());
             throw new RuntimeException("해당 프로젝트의 설문 참여자 수가 부족합니다. 전체 인원의 반 이상이 참여해야 마감이 가능합니다.");
         }
