@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,12 @@ public class ProjectSseEmitterService {
 
         sendEventSafely("newSurveyRequest", newSurveyRequestList, userCode);
         sendEventSafely("newSurveyResponse", newSurveyResponseList, userCode);
+    }
+
+    // 해당 사용자의 newSurveyRequest를 모두 삭제 후 해당 상태 전송
+    public void sendAfterDeleteSurveyReqeust(String userCode) {
+        projectRedisService.removeNewSurveyRequestByUser(userCode); // 해당 유저의 newSurveyRequest 모두 삭제
+        sendEventSafely("newSurveyRequest", new ArrayList<>(), userCode); // Redis에서 해당 키를 다 삭제했으므로 조회 의미x
     }
 
     private void sendEventSafely(String eventName, Object data, String userCode) {

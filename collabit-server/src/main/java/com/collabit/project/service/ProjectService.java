@@ -13,6 +13,7 @@ import com.collabit.project.domain.dto.*;
 import com.collabit.project.domain.entity.*;
 import com.collabit.project.exception.ProjectInfoNotFoundException;
 import com.collabit.project.repository.*;
+import com.collabit.survey.repository.SurveyMultipleRepository;
 import com.collabit.user.domain.entity.User;
 import com.collabit.user.exception.UserNotFoundException;
 import com.collabit.user.repository.UserRepository;
@@ -41,6 +42,8 @@ public class ProjectService {
     private final DescriptionRepository descriptionRepository;
     private final PortfolioRepository portfolioRepository;
     private final FeedbackRepository feedbackRepository;
+    private final SurveyMultipleRepository surveyMultipleRepository;
+    private final ProjectSseEmitterService projectSseEmitterService;
 
     @Value("${minimum.create.condition}")
     private int minimumCreateCondition;
@@ -357,7 +360,7 @@ public class ProjectService {
         removeAllNotification(userCode);
 
         // 설문 참여자가 전체 컨트리뷰터 수의 1/2 이상일 경우에만 마감 가능
-        if(projectInfo.getParticipant() < projectInfo.getTotal()/2) {
+        if(projectInfo.getParticipant() < 3) { // projectInfo.getTotal()/2
             log.error("설문 참여자가 부족한 경우 - 해당 ProjectInfo의 participant 수: {}, total 수: {}", projectInfo.getParticipant(), projectInfo.getTotal());
             throw new RuntimeException("해당 프로젝트의 설문 참여자 수가 부족합니다. 전체 인원의 반 이상이 참여해야 마감이 가능합니다.");
         }
@@ -515,6 +518,17 @@ public class ProjectService {
                 }
             }
         }
+        // 해당 projectInfoCode의 newSurveyRequest 모두 삭제
+        List<String> contributorUserCodes = projectRedisService.removeAllNewSurveyRequestByProjectInfoCode(projectInfo.getCode());
+
+        // newSurveyRequest를 지운 후 알림 상태를 각 user에게 다시 SSE 전송
+        for (String contributorUserCode : contributorUserCodes) {
+            List<Integer> projectInfoCodes = projectRedisService.findAllNewSurveyResponse(contributorUserCode);
+            projectSseEmitterService.sendNewSurveyRequest(contributorUserCode, projectInfoCodes);
+        }
+
+        // MongoDB 객관식 정보 삭제 (객관식까지 참여한 경우에는 참여자로 인식하지 않음)
+        surveyMultipleRepository.deleteByProjectInfoCode(projectInfo.getCode());
     }
 
     // 로그인 유저의 메인페이지에 보여줄 프로젝트 리스트 조회 (isDone, new응답, 최신순)

@@ -23,7 +23,7 @@ const EmptySurveyPage = () => {
             피드백을 시작해보세요
           </h2>
           <p className="text-center text-gray-500">
-            왼쪽 채팅방 목록에서 요청 받은 피드백 선택하여,
+            왼쪽 채팅방 목록에서 요청 받은 피드백을 선택하여,
             <br />
             콜라빗 AI와 대화를 시작해보세요.
           </p>

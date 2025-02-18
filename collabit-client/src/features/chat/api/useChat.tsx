@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "@/features/auth/api/useAuth";
 import { getChatMessagesAPI, getChatRoomDetailAPI } from "@/shared/api/chat";
 import { useChatStore } from "@/shared/lib/stores/chatStore";
@@ -7,19 +8,21 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 export const useChat = () => {
   const queryClient = useQueryClient();
   const { userInfo } = useAuth();
-  const {
-    chatId,
-    chatRoomDetail,
-    setChatRoomDetail,
-    chatMessages,
-    addMessage: originalAddMessage,
-    setChatMessages,
-  } = useChatStore();
+  const { chatId, chatRoomDetail, setChatRoomDetail, setChatMessages } =
+    useChatStore();
+
+  // 현재 URL 저장 (Next.js useRouter 문제 방지)
+  const [currentPath, setCurrentPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentPath(window.location.pathname);
+    }
+  }, []);
 
   // 채팅방 디테일 쿼리
   const {
@@ -64,21 +67,31 @@ export const useChat = () => {
   }, [chatRoom, setChatRoomDetail, chatRoomDetail]);
 
   // 쿼리로 받아온 메시지와 store의 실시간 메시지를 합침
-  const allMessages = [
-    ...(chatMessages ?? []),
-    ...(messages?.pages?.flatMap((page) => page.content) ?? []),
-  ];
+  const allMessages = messages?.pages?.flatMap((page) => page.content) ?? [];
 
+  // 새로운 메시지가 오면 query 상태를 직접 업데이트
+  const updateMessages = (message: WebSocketMessage) => {
+    queryClient.setQueryData(
+      ["chatMessages", message.roomCode],
+      (oldData: any) => {
+        if (!oldData) return { pages: [{ content: [message] }] };
 
-  // addMessage를 래핑하여 store에만 추가
-  const addMessage = (message: WebSocketMessage) => {
-    originalAddMessage(message);
+        return {
+          ...oldData,
+          pages: [
+            {
+              content: [message, ...oldData.pages[0].content], // 최신 메시지를 가장 앞에 추가
+            },
+            ...oldData.pages.slice(1),
+          ],
+        };
+      },
+    );
   };
 
-  // 채팅방 입장 시 데이터 초기화 및 새로고침
+  // 채팅방 입장 시 데이터 초기화 및 새로고침 (URL 변경 시도 반영)
   useEffect(() => {
-    if (chatId) {
-      // 채팅방이 변경될 때 쿼리 무효화
+    if (chatId && currentPath) {
       queryClient.invalidateQueries({
         queryKey: ["chatMessages", chatId],
       });
@@ -86,7 +99,7 @@ export const useChat = () => {
         queryKey: ["chatRoom", chatId],
       });
     }
-  }, [chatId, queryClient]);
+  }, [chatId, currentPath, queryClient]); // URL 변경 감지
 
   return {
     data: messages,
@@ -98,7 +111,6 @@ export const useChat = () => {
     fetchNextPage,
     isFetchingNextPage,
     hasNextPage,
-    addMessage,
-
+    updateMessages, // 새로운 메시지를 query 상태에 반영하는 함수
   };
 };

@@ -7,6 +7,7 @@ import { useChatRoomList } from "@/features/chat/api/useChatRoomList";
 import useSocket from "@/features/chat/api/useSocket";
 import { useChatStore } from "@/shared/lib/stores/chatStore";
 import { WebSocketMessage } from "@/shared/types/model/Chat";
+import { useChat } from "@/features/chat/api/useChat";
 
 const ChatLayout = ({
   list,
@@ -19,10 +20,11 @@ const ChatLayout = ({
   const isChatRoom =
     (pathname.includes("/chat/") && pathname !== "/chat") ||
     (pathname.includes("/survey/") && pathname !== "/survey");
+  const { updateMessages } = useChat();
 
   // WebSocket 연결
   const { clientRef, connectionStatus } = useSocket();
-  const { setSendMessage, addMessage, chatId } = useChatStore();
+  const { setSendMessage, chatId } = useChatStore();
 
   useEffect(() => {
     if (!clientRef.current) return;
@@ -34,7 +36,7 @@ const ChatLayout = ({
       if (!chatId) {
         return;
       }
-      addMessage(message);
+      updateMessages(message);
 
       try {
         await connectionStatus;

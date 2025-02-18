@@ -25,7 +25,7 @@ const DefaultChatRoomPage = () => {
           <p className="text-center text-gray-500">
             왼쪽 채팅방 목록에서 대화할 상대를 선택하거나,
             <br />
-            새로운 대화를 시작해보세요.
+            커뮤니티의 메시지 버튼을 눌러 새로운 대화를 시작해보세요.
           </p>
         </div>
       </div>
