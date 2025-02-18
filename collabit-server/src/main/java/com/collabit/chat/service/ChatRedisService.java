@@ -45,11 +45,18 @@ public class ChatRedisService {
         String key =  "chat_message:" + roomCode;
         if (isRead) {
             redisTemplate.opsForHash().delete(key, userCode);
-            chatSseEmitterService.sendHeaderChatNotification(userCode); // 삭제 후 변경된 상태를 SSE로 전송
+            List<Integer> unreadChatRooms = getUnreadChatRoomForUser(userCode);
+            chatSseEmitterService.sendUnreadChatRooms(userCode, unreadChatRooms); // 삭제 후 변경된 상태를 SSE로 전송
         }
         else redisTemplate.opsForHash().increment(key, userCode, 1);
         log.debug("Updated message status for sender {} and receiver {} in room {}: read={}",
                 userCode, roomCode, isRead);
+    }
+
+    // 메시지 알림 SSE 전송
+    public void sendChatNotification(String userCode) {
+        List<Integer> unreadChatRooms = getUnreadChatRoomForUser(userCode);
+        chatSseEmitterService.sendUnreadChatRooms(userCode, unreadChatRooms);
     }
 
 }
