@@ -40,7 +40,7 @@ const SurveyBubble = ({
   if (isMe) {
     return (
       <div className="flex justify-end gap-2">
-        <span className="ml-20 max-w-[350px] rounded-bl-lg rounded-br-lg rounded-tl-lg bg-violet-100 px-3 py-2 text-xs sm:max-w-lg md:max-w-xl md:text-base">
+        <span className="ml-20 max-w-[350px] rounded-bl-lg rounded-br-lg rounded-tl-lg bg-violet-100 px-3 py-2 text-sm sm:max-w-lg md:max-w-xl md:text-base">
           {message}
         </span>
       </div>

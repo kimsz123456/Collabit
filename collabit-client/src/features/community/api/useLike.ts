@@ -34,8 +34,15 @@ const useLike = ({
         postCode,
       ]);
       const previousPosts = queryClient.getQueryData(["posts", "infinite"]);
-
+      const previousMainPost = queryClient.getQueryData(["latestPost"]);
       // PostDetail 업데이트
+      if (previousMainPost) {
+        queryClient.setQueryData(["latestPost"], (old: PostListResponse) => ({
+          ...old,
+          isLiked: !isLiked,
+          likeCount: isLiked ? old.likeCount - 1 : old.likeCount + 1,
+        }));
+      }
       if (previousPostDetail) {
         queryClient.setQueryData(
           ["postDetail", Number(postCode)],
@@ -72,7 +79,11 @@ const useLike = ({
         },
       );
 
-      return { previousPostDetail, previousPosts } as MutationContext;
+      return {
+        previousPostDetail,
+        previousPosts,
+        previousMainPost,
+      } as MutationContext;
     },
     onError: (err, variables, context: MutationContext | undefined) => {
       // 에러 발생 시 이전 데이터로 롤백
@@ -93,7 +104,11 @@ const useLike = ({
           queryKey: ["postDetail", Number(postCode)],
         });
       }
-
+      if (queryClient.getQueryData(["latestPost"])) {
+        queryClient.invalidateQueries({
+          queryKey: ["latestPost"],
+        });
+      }
       queryClient.invalidateQueries({
         queryKey: ["posts", "infinite"],
       });

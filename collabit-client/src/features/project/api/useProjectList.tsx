@@ -42,18 +42,29 @@ export const useProjectList = () => {
     },
   });
 
-  const handleRemoveProject = (code: number) => {
-    openModal(
-      <TwoButtonModal
-        title="프로젝트를 삭제하시겠습니까?"
-        description="이 프로젝트를 삭제하면 복구할 수 없습니다."
-        confirmText="삭제"
-        cancelText="취소"
-        handleConfirm={async () => {
-          await removeProjectMutation.mutateAsync(code);
-        }}
-      />,
-    );
+  const handleRemoveProject = (code: number, participant: number) => {
+    if (participant == 0) {
+      openModal(
+        <TwoButtonModal
+          title="프로젝트를 삭제하시겠습니까?"
+          description="이 프로젝트를 삭제하면 복구할 수 없습니다."
+          confirmText="삭제"
+          cancelText="취소"
+          handleConfirm={async () => {
+            await removeProjectMutation.mutateAsync(code);
+          }}
+        />,
+      );
+    } else {
+      openModal(
+        <OneButtonModal
+          title="프로젝트를 삭제할 수 없습니다."
+          description="참여자가 존재하는 프로젝트는 삭제할 수 없습니다."
+          buttonText="확인"
+          handleButtonClick={closeModal}
+        />,
+      );
+    }
   };
 
   const handleFinishSurvey = (code: number) => {

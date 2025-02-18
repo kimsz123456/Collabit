@@ -67,19 +67,17 @@ const ProjectListCard = ({
             <Ellipsis />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {/* 설문 참여 인원이 0명일 때만 프로젝트 삭제 가능*/}
-            {project.participant == 0 && (
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleRemoveProject(project.code);
+                  handleRemoveProject(project.code, project.participant);
                 }}
                 className="cursor-pointer text-red-500"
               >
                 <DeleteIcon />
+
                 프로젝트 삭제
               </DropdownMenuItem>
-            )}
             <DropdownMenuItem
               onClick={() =>
                 window.open(

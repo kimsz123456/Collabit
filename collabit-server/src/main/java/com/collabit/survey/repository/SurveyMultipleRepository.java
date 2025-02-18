@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface SurveyMultipleRepository extends MongoRepository<SurveyMultiple, String> {
     SurveyMultiple findByProjectInfoCodeAndUserCode(int projectInfoCode, String userCode);
+
+    void deleteByProjectInfoCode(int projectInfoCode);
 }

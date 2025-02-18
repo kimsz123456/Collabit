@@ -18,7 +18,7 @@ import formatRelativeTime from "@/shared/utils/formatRelativeTime";
 interface ProjectListCardProps {
   project: ProjectResponse;
   organization: string;
-  onClick?: (e: React.MouseEvent) => void;
+  // onClick?: (e: React.MouseEvent) => void;
 }
 
 const MainProjectListCard = ({
@@ -47,7 +47,7 @@ const MainProjectListCard = ({
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleRemoveProject(project.code);
+                  handleRemoveProject(project.code, project.participant);
                 }}
                 className="cursor-pointer text-red-500"
               >

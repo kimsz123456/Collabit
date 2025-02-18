@@ -16,9 +16,11 @@ import EmptyProjectCard from "../project/ui/EmptyProjectCard";
 import MainProjectListCard from "../project/ui/MainProjectListCard";
 import NoProjectGuide from "../project/ui/NoProjectGuide";
 import { useAuth } from "../auth/api/useAuth";
+import { useRouter } from "next/navigation";
 
 const MyProjectSection = () => {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const { data, isLoading } = useQuery({
     queryKey: ["projectList", "main"],
     queryFn: () => getProjectListForMainAPI(),
@@ -69,13 +71,14 @@ const MyProjectSection = () => {
                 <CarouselItem
                   key={`project-${i.code || index}`}
                   className="h-full md:basis-1/2 lg:basis-1/3"
+                  onClick={() => {
+                    router.push(`/project`);
+                  }}
                 >
                   <div className="h-full px-2 py-2">
                     <MainProjectListCard
                       organization={i.organization}
                       project={i}
-                      // 알림 끄는 코드 추가
-                      onClick={() => {}}
                     />
                   </div>
                 </CarouselItem>

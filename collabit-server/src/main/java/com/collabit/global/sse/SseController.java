@@ -7,6 +7,7 @@ import com.collabit.project.service.ProjectSseEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +34,13 @@ public class SseController {
         String userCode = SecurityUtil.getCurrentUserCode();
         projectSseEmitterService.sendHeaderNotification(userCode);
         chatRedisService.sendChatNotification(userCode);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/survey")
+    public ResponseEntity<?> deleteSurveyNotification() {
+        String userCode = SecurityUtil.getCurrentUserCode();
+        projectSseEmitterService.sendAfterDeleteSurveyReqeust(userCode);
         return ResponseEntity.ok().build();
     }
 }

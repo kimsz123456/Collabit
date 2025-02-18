@@ -11,9 +11,11 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const usePost = () => {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [images, setImages] = useState<File[]>([]);
   const [preview, setPreview] = useState<string[]>([]);
@@ -27,6 +29,7 @@ const usePost = () => {
       setPreview([]);
       setContent("");
       queryClient.invalidateQueries({ queryKey: ["posts", "infinite"] });
+      router.push("/community");
     },
   });
   const { mutate: editPost } = useMutation({
