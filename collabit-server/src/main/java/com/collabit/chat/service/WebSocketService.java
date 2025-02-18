@@ -3,6 +3,7 @@ package com.collabit.chat.service;
 import com.collabit.chat.domain.dto.ChatMessageRequestDTO;
 import com.collabit.chat.domain.dto.WebSocketMessageDTO;
 import com.collabit.chat.redis.RedisPublisher;
+import com.collabit.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -41,7 +42,8 @@ public class WebSocketService {
         chatRedisService.updateRoomMessageStatus(roomCode, userCode, true);
 
         // 수신자의 모든 안 읽은 채팅방 코드 목록 조회 후 SSE로 전송
-        List<Integer> unreadRooms = chatRedisService.getUnreadChatRoomForUser(userCode);
-        chatSseEmitterService.sendUnreadChatRooms(userCode, unreadRooms);
+        String otherUserCode = chatRoomDetailService.getOtherUserByRoomCode(roomCode, userCode);
+        List<Integer> unreadRooms = chatRedisService.getUnreadChatRoomForUser(otherUserCode);
+        chatSseEmitterService.sendUnreadChatRooms(otherUserCode, unreadRooms); // 상대 유저에게 안읽은 방 알림 전송
     }
 }
