@@ -33,6 +33,7 @@ public class ChatRoomDetailService {
 
     // 채팅방 디테일 조회
     public ChatRoomDetailResponseDTO getChatRoomDetail(String userCode, int roomCode) {
+        markMessagesAsRead(roomCode, userCode);
         if (!isUserInChatRoom(userCode, roomCode)) {
             log.debug("User {} is not in chat room", userCode);
             throw new UserNotInChatRoomException();
@@ -43,7 +44,6 @@ public class ChatRoomDetailService {
                 .profileImage(otherUser.getProfileImage())
                 .nickname(otherUser.getNickname())
                 .build();
-        markMessagesAsRead(roomCode, userCode);
         log.debug("ChatRoomDetail {}", chatRoomDetail);
         return chatRoomDetail;
     }
