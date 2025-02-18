@@ -16,9 +16,11 @@ const MainCommunityCard = ({ data }: { data: PostListResponse }) => {
         <span>·</span>
         <div className="flex items-center gap-1">
           <Heart
-            className={`${data.liked ? "fill-red-500 text-red-500" : ""}`}
+            className={` ${data.liked ? "fill-red-500 text-red-500" : ""}`}
             style={{ width: "16px", height: "16px" }}
+            onClick={() => {}}
           />
+
           <span>{data.likeCount}</span>
         </div>
       </div>

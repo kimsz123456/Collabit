@@ -34,6 +34,7 @@ const Post = () => {
     handleDeleteImage,
     handleSubmit,
   } = usePost();
+
   if (isMobile) {
     return (
       <form
@@ -156,7 +157,7 @@ const Post = () => {
               </div>
 
               <Button
-                disabled={!userInfo}
+                disabled={!userInfo || content.trim().length === 0}
                 type="submit"
                 variant="default"
                 className="rounded-full px-4"
@@ -219,7 +220,11 @@ const Post = () => {
             ) : null}
           </div>
 
-          <Button disabled={!userInfo} type="submit" variant="outline">
+          <Button
+            disabled={!userInfo || content.trim().length === 0}
+            type="submit"
+            variant="outline"
+          >
             게시
           </Button>
         </div>

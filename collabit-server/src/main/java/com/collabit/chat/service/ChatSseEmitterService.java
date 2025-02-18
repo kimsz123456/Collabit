@@ -17,15 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatSseEmitterService {
 
     private final ConcurrentHashMap<String, SseEmitter> sseEmitters;
-    private final ChatRedisService chatRedisService;
 
-    // 헤더의 채팅 알림 전송
-    public void sendHeaderChatNotification(String userCode){
-        List<Integer> unreadChatRooms = chatRedisService.getUnreadChatRoomForUser(userCode);
-        sendUnreadChatRooms(userCode, unreadChatRooms);
-    }
-
-    // 채팅 알림 전송
+    // 채팅 알림 전송 (존재하는 chat_room code의 리스트 SSE 전송)
     public void sendUnreadChatRooms(String userCode, List<Integer> roomCodes) {
         sendEventSafely("newChatRequest", roomCodes, userCode);
     }

@@ -12,12 +12,13 @@ import { useEffect, useState } from "react";
 import MainCommunityCard from "./MainComminityCard";
 import { useQuery } from "@tanstack/react-query";
 import { getMainPostAPI, getRecommendPostAPI } from "@/shared/api/community";
+import { useRouter } from "next/navigation";
 
 const PostCarouselSection = ({ type }: { type: string }) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
-
+  const router = useRouter();
   const { data: latestPost } = useQuery({
     queryKey: ["latestPost"],
     queryFn: () => getMainPostAPI(),
@@ -82,6 +83,9 @@ const PostCarouselSection = ({ type }: { type: string }) => {
                   <CarouselItem
                     key={post.code}
                     className="md:basis-1/2 lg:basis-1/3"
+                    onClick={() => {
+                      router.push(`/community/posts/${post.code}`);
+                    }}
                   >
                     <div className="h-full px-2 py-2">
                       <MainCommunityCard data={post} />

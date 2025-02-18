@@ -31,7 +31,7 @@ const OneButtonModal = ({
         }}
       />
       <div
-        className="fixed left-1/2 top-1/2 z-20 min-w-[320px] -translate-x-1/2 -translate-y-1/2 transform flex-col items-center justify-center rounded-xl bg-white p-8 shadow-2xl transition-all md:min-w-[440px]"
+        className="fixed left-1/2 top-1/2 z-20 w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 transform flex-col items-center justify-center rounded-xl bg-white p-6 shadow-2xl transition-all md:p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -52,15 +52,18 @@ const OneButtonModal = ({
         >
           <X />
         </Button>
-        <div className="flex flex-col items-center justify-center gap-1 px-6">
-          <h1 id="modal-title" className="text-xl font-bold text-gray-800">
+        <div className="flex flex-col items-center justify-center gap-2 px-4 md:px-6">
+          <h1
+            id="modal-title"
+            className="break-keep text-center text-lg font-bold text-gray-800 md:text-xl"
+          >
             {title}
           </h1>
-          <p className="whitespace-pre text-center text-sm text-gray-600">
+          <p className="max-w-full whitespace-pre-wrap break-keep text-center text-sm text-gray-600">
             {description}
           </p>
         </div>
-        <div className="mt-8 flex w-full justify-center">
+        <div className="mt-6 flex w-full justify-center md:mt-8">
           <Button
             type="button"
             className="h-11 w-32 font-medium transition-colors md:h-12 md:w-40"

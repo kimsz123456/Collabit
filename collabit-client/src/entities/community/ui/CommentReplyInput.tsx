@@ -105,8 +105,9 @@ const CommentReplyInput = ({
                 <FormItem className="w-full">
                   <FormControl>
                     <Input
+                      disabled={!userInfo}
                       className="w-full border-none shadow-none"
-                      placeholder="댓글을 입력하세요"
+                      placeholder={"댓글을 입력하세요"}
                       {...field}
                     />
                   </FormControl>
@@ -116,7 +117,9 @@ const CommentReplyInput = ({
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit">작성</Button>
+            <Button type="submit" disabled={!userInfo}>
+              작성
+            </Button>
             {onCancel ? (
               <Button type="button" variant="outline" onClick={onCancel}>
                 취소

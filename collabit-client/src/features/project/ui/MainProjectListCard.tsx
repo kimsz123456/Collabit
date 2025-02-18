@@ -18,7 +18,7 @@ import formatRelativeTime from "@/shared/utils/formatRelativeTime";
 interface ProjectListCardProps {
   project: ProjectResponse;
   organization: string;
-  onClick?: (e: React.MouseEvent) => void;
+  // onClick?: (e: React.MouseEvent) => void;
 }
 
 const MainProjectListCard = ({

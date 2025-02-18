@@ -8,11 +8,13 @@ import { ProjectAddedResponse } from "@/shared/types/response/project";
 import TwoButtonModal from "@/widget/ui/modals/TwoButtonModal";
 import useModalStore from "@/shared/lib/stores/modalStore";
 import OneButtonModal from "@/widget/ui/modals/OneButtonModal";
+import { useRouter } from "next/navigation";
 
 export const useCreateProject = (org: string, title: string) => {
   const queryClient = useQueryClient();
   const [isAdded, setIsAdded] = useState(false);
   const { openModal, closeModal } = useModalStore();
+  const router = useRouter();
 
   // 등록된 프로젝트 정보 가져오기
   const { data: addedProjects, isLoading: isAddedLoading } = useQuery<
@@ -88,6 +90,9 @@ export const useCreateProject = (org: string, title: string) => {
 
   const handleCreateProject = async (project: ProjectCreateRequest) => {
     await createProjectMutation.mutateAsync(project);
+    router.push(
+      `/project/create?keyword=${project.organization}&repo=${project.title}`,
+    );
   };
 
   return {
