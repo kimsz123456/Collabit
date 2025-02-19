@@ -21,7 +21,6 @@ interface ChatActions {
     sendMessage: ((message: WebSocketMessage) => void) | null,
   ) => void;
   setChatMessages: (messages: ChatMessageResponse[]) => void;
-  addMessage: (message: WebSocketMessage) => void;
   resetUnreadMessages: (chatId: number) => void;
 }
 
@@ -36,23 +35,6 @@ export const useChatStore = create<ChatState & ChatActions>()(
     setChatRoomDetail: (chatRoomDetail) => set({ chatRoomDetail }),
     setSendMessage: (sendMessage) => set({ sendMessage }),
     setChatMessages: (messages) => set({ chatMessages: messages }),
-    addMessage: (message) =>
-      set((state) => {
-        if (state.chatId === message.roomCode) {
-          return {
-            chatMessages: Array.isArray(state.chatMessages)
-              ? [...state.chatMessages, message]
-              : [message],
-          };
-        }
-        return {
-          unreadMessages: {
-            ...state.unreadMessages,
-            [message.roomCode]:
-              (state.unreadMessages[message.roomCode] || 0) + 1,
-          },
-        };
-      }),
     resetUnreadMessages: (chatId) =>
       set((state) => ({
         unreadMessages: {

@@ -1,20 +1,22 @@
 "use client";
 
 import { getMyPostListAPI } from "@/shared/api/community";
-import { PostListResponse } from "@/shared/types/response/post";
-import { PageResponse } from "@/shared/types/response/page";
-import PostList from "@/widget/community/PostList";
-import { useQuery } from "@tanstack/react-query";
+import MyPostList from "@/widget/community/MyPostList";
 import EmptyMyPost from "@/widget/mypage/EmptyMyPost";
+import { useQuery } from "@tanstack/react-query";
 
 const ContentsPage = () => {
-  const { data: posts } = useQuery<PageResponse<PostListResponse>, Error>({
-    queryKey: ["myPostList"],
+  const { data: posts, isLoading } = useQuery({
+    queryKey: ["myPosts"],
     queryFn: () => getMyPostListAPI({ currentPage: 0 }),
   });
 
-  if (!posts) {
+  if (isLoading) {
     return <p>게시글을 불러오는 중입니다...</p>;
+  }
+
+  if (!posts) {
+    return null;
   }
 
   return (
@@ -22,7 +24,7 @@ const ContentsPage = () => {
       {posts.content.length === 0 ? (
         <EmptyMyPost />
       ) : (
-        <PostList initialPosts={posts} />
+        <MyPostList initialPosts={posts} />
       )}
     </div>
   );

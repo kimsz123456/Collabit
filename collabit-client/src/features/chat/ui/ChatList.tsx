@@ -4,10 +4,17 @@ import ChatNav from "@/entities/chat/ui/ChatNav";
 import EmptyChatList from "@/entities/chat/ui/EmptyChatList";
 import { useChatList } from "../context/ChatListProvider";
 import { useEffect, useRef } from "react";
+import { useNotificationStore } from "@/shared/lib/stores/NotificationStore";
+import { useShallow } from "zustand/shallow";
 
 export default function ChatList() {
   const { chatList, hasNextPage, fetchNextPage } = useChatList();
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { chatRequests } = useNotificationStore(
+    useShallow((state) => ({
+      chatRequests: state.chatRequests,
+    })),
+  );
 
   useEffect(() => {
     if (!hasNextPage || !loadMoreRef.current) return;
@@ -44,7 +51,11 @@ export default function ChatList() {
               title={item.nickname}
               description={item.lastMessage}
               updatedAt={item.lastMessageTime}
-              unRead={item.unreadMessageCount}
+              unRead={
+                chatRequests.findIndex((num) => item.roomCode === num) === -1
+                  ? 0
+                  : item.unreadMessageCount
+              }
             />
           ))
         ) : (

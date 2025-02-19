@@ -92,11 +92,7 @@ const ChatRoom = () => {
 
   // 채팅방 정보가 없을 경우 로딩 상태 표시
   if (chatRoomLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        🔄 채팅방 로딩 중...
-      </div>
-    );
+    return null;
   }
 
   if (chatRoomError || !chatRoomDetail) {
