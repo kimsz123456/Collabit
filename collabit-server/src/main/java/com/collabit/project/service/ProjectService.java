@@ -362,6 +362,9 @@ public class ProjectService {
         // Redis에 남아있는 알림 정보, 업데이트 되지 않은 참여자 업데이트
         removeAllNotification(userCode);
 
+        // 해당 설문에 참여하지 않은 유저의 설문 요청 알림 삭제 (남아 있는 해당 projectInfoCode 알림 삭제)
+        removeNewSurveyRequest(projectInfo.getCode());
+
         // 설문 참여자가 전체 컨트리뷰터 수의 1/2 이상일 경우에만 마감 가능
         if(projectInfo.getParticipant() < minimumDoneCondition) { // projectInfo.getTotal()/2
             log.error("설문 참여자가 부족한 경우 - 해당 ProjectInfo의 participant 수: {}, total 수: {}", projectInfo.getParticipant(), projectInfo.getTotal());
@@ -526,7 +529,7 @@ public class ProjectService {
 
         // newSurveyRequest를 지운 후 알림 상태를 각 user에게 다시 SSE 전송
         for (String contributorUserCode : contributorUserCodes) {
-            List<Integer> projectInfoCodes = projectRedisService.findAllNewSurveyResponse(contributorUserCode);
+            List<Integer> projectInfoCodes = projectRedisService.findAllNewSurveyRequest(contributorUserCode);
             projectSseEmitterService.sendNewSurveyRequest(contributorUserCode, projectInfoCodes);
         }
 
@@ -625,6 +628,21 @@ public class ProjectService {
                     }
                 });
         log.debug("Redis에 알림이 있던 전체 projectInfo {}개에 대해 participant 수 업데이트 완료", notificationList.size());
+    }
+
+    public void removeNewSurveyRequest(int projectInfoCode){
+        log.debug("해당 projectInfoCode에 해당하는 모든 설문 요청 알림 삭제 - 시작");
+
+        // 해당 projectInfoCode의 newSurveyRequest 모두 삭제
+        List<String> userCodeList = projectRedisService.removeAllNewSurveyRequestByProjectInfoCode(projectInfoCode);
+
+        // newSurveyRequest를 지운 후 알림 상태를 각 user에게 다시 SSE 전송
+        for (String userCode : userCodeList) {
+            List<Integer> projectInfoCodes = projectRedisService.findAllNewSurveyRequest(userCode);
+            projectSseEmitterService.sendNewSurveyRequest(userCode, projectInfoCodes);
+        }
+
+        log.debug("설문 요청 알림 삭제 - 완료");
     }
 
     // 육각형 데이터 조회

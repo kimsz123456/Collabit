@@ -5,11 +5,17 @@ import { useAuth } from "../auth/api/useAuth";
 import { useRouter } from "next/navigation";
 import HexagonChart from "@/entities/chart/ui/HexagonChart";
 import { ChartRangeData, SkillData } from "@/shared/types/response/report";
+import { useQuery } from "@tanstack/react-query";
+import { getMainPortfolioAPI } from "@/shared/api/report";
 
 const CompareScoreSection = () => {
   const { userInfo } = useAuth();
   const router = useRouter();
-
+  // portfolio/main
+  const { data: userPortfolio } = useQuery({
+    queryKey: ["MainPortfolio"],
+    queryFn: getMainPortfolioAPI,
+  });
   const data: ChartRangeData & SkillData = {
     minScore: 1,
     maxScore: 5,
@@ -76,7 +82,8 @@ const CompareScoreSection = () => {
           </p>
         </div>
         <div className="h-10/12 relative w-10/12 min-w-[280px] pt-2 sm:min-w-[360px]">
-          <HexagonChart hexagon={data} />
+          {/* 유저 포트폴리오 데이터가 없으면 기본 데이터 사용 */}
+          <HexagonChart hexagon={userPortfolio || data} />
           <div className="absolute -bottom-2 left-0 right-0 text-center text-[11px] text-gray-500">
             * 6가지 핵심 역량을 5점 만점으로 평가
           </div>

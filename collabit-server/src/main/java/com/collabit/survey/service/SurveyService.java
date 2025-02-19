@@ -86,6 +86,10 @@ public class SurveyService {
                 }
                 log.debug("status: " + status + ", updatedAt: " + updatedAt);
 
+                if(projectInfo.getCompletedAt() != null && status != 2) { // 참여하지 않은 마감된 설문은 리스트에 반환하지 않음
+                    continue;
+                }
+
                 SurveyListResponseDTO dto = SurveyListResponseDTO.builder()
                         .surveyCode(projectInfo.getCode())
                         .title(projectInfo.getProject().getTitle())
@@ -217,6 +221,13 @@ public class SurveyService {
         if(projectInfo == null) {
             log.error("해당 ProjectInfo를 찾을 수 없습니다.");
             throw new BusinessException(ErrorCode.PROJECT_INFO_NOT_FOUND);
+        }
+
+        if(projectInfo.getCompletedAt() != null){
+            SurveyMultiple surveyMultiples = getMultiple(userCode, projectInfo.getCode());
+            if(surveyMultiples == null) {
+                throw new BusinessException(ErrorCode.SURVEY_ALREADY_CLOSED);
+            }
         }
 
         // projectInfoCode와 projectCode로

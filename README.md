@@ -6,7 +6,7 @@
 # 협업능력 피드백 플랫폼  
 **동료들의 솔직한 피드백으로 나의 강약점을 발견하고 평균치와 비교하여 구체적인 성장 방향을 찾아보세요!**  
 
----
+<br>
 
 ## ✨ 프로젝트 개요  
 - **Collabit**은 팀원 간 협업 경험을 바탕으로 피드백 데이터를 수집하고,  
@@ -65,6 +65,12 @@
 
 <br>
 
+## 🐣 아키텍처
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/184b12ca-624a-4d23-889f-b84bfeaf55d3" width="600"/>
+</div>
+<br>
+
 ## 👥 팀원 소개  
 <table>
   <tr>
@@ -75,11 +81,18 @@
     <td align="center"><img src="https://avatars.githubusercontent.com/u/57521555?v=4" width="140px"></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/seon318">정은선</a> <br>BE, FE</td>
+    <td align="center"><a href="https://github.com/seon318">정은선</a> <br>BE, FE </td>
     <td align="center"><a href="https://github.com/kimsz123456">김지승</a> <br>BE, Infra</td>
     <td align="center"><a href="https://github.com/clapsheep">박수양</a> <br>FE</td>
     <td align="center"><a href="https://github.com/seulgi980">한슬기</a> <br>BE</td>
     <td align="center"><a href="https://github.com/lgh9776">이가현</a> <br>BE</td>
+  </tr>
+  <tr>
+  <td align="center">Chat <br> Project <br> Profile, <br> Report</td>
+  <td align="center">Community <br> AI <br> Infra <br> Report</td>
+  <td align="center">Auth <br> Community <br> Survey  <br>Report</td>
+  <td align="center">Auth <br> Report <br> Survey <br> User</td>
+  <td align="center">OAuth <br> Project <br> Profile <br> Survey</td>
   </tr>
 </table>
 
@@ -133,4 +146,5 @@
 
 ---
 
+<br>
 💜 **Collabit과 함께 협업 능력을 성장시켜보세요!** 🚀  

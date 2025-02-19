@@ -23,7 +23,9 @@ interface ProjectListCardProps {
   project: ProjectResponse;
   onClick?: (e: React.MouseEvent) => void;
 }
-
+const MINIMUM_PARTICIPANT_CONDITION = Number(
+  process.env.NEXT_PUBLIC_MINIMUM_PARTICIPANT_CONDITION,
+);
 const ProjectListCard = ({
   project,
   organization,
@@ -67,17 +69,16 @@ const ProjectListCard = ({
             <Ellipsis />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveProject(project.code, project.participant);
-                }}
-                className="cursor-pointer text-red-500"
-              >
-                <DeleteIcon />
-
-                프로젝트 삭제
-              </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveProject(project.code, project.participant);
+              }}
+              className="cursor-pointer text-red-500"
+            >
+              <DeleteIcon />
+              프로젝트 삭제
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
                 window.open(
@@ -116,6 +117,14 @@ const ProjectListCard = ({
             className="z-5 bg-black"
             onClick={(e) => {
               e.stopPropagation();
+              if (project.participant === 0) {
+                toast({
+                  title: "참여자가 부족합니다.",
+                  description: `최소 ${MINIMUM_PARTICIPANT_CONDITION}명 이상 참여해야 설문을 종료할 수 있습니다.`,
+                  variant: "destructive",
+                });
+                return;
+              }
               handleFinishSurvey(project.code);
             }}
           >

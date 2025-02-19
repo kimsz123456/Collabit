@@ -1,4 +1,9 @@
-import { ChartResponse, ReportStatusResponse } from "../types/response/report";
+import {
+  ChartRangeData,
+  ChartResponse,
+  ReportStatusResponse,
+  SkillData,
+} from "../types/response/report";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 const flaskUrl = process.env.NEXT_PUBLIC_AI_URL;
 
@@ -80,6 +85,24 @@ export const getPortfolioShareAPI = async (
   try {
     const res = await fetch(`${apiUrl}/portfolio/share/${userId}`, {
       method: "GET",
+    });
+    if (!res.ok) {
+      throw new Error("데이터 조회에 실패했습니다.");
+    }
+    return res.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const getMainPortfolioAPI = async (): Promise<
+  ChartRangeData & SkillData
+> => {
+  try {
+    const res = await fetch(`${apiUrl}/portfolio/main`, {
+      method: "GET",
+      ...fetchOptions,
     });
     if (!res.ok) {
       throw new Error("데이터 조회에 실패했습니다.");

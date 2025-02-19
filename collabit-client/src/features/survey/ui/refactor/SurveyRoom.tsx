@@ -81,6 +81,8 @@ const SurveyRoom = () => {
 
   // essayStatus가 COMPLETED일 때 캐시 무효화
   useEffect(() => {
+    console.log(essayStatus);
+
     if (essayStatus === "COMPLETED" && details?.nickname) {
       // 현재 설문 상세 데이터 캐시 무효화
       queryClient.invalidateQueries({
@@ -378,7 +380,10 @@ const SurveyRoom = () => {
       </div>
       <ChatInput
         disabled={
-          !activeInput || essayStatus === "READY" || essayStatus === "COMPLETED"
+          !activeInput ||
+          essayStatus === "READY" ||
+          essayStatus === "COMPLETED" ||
+          essayStatus === "DONE"
         }
         message={inputMessage}
         setInputMessage={setInputMessage}
