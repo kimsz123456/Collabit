@@ -30,7 +30,7 @@ const NicknameChangeModal = () => {
       openModal(
         <OneButtonModal
           title="닉네임 변경 실패"
-          description="닉네임 변경에 실패했습니다."
+          description="닉네임은 2~8자리로 입력해주세요."
           buttonText="확인"
           handleButtonClick={closeModal}
         />,
@@ -67,7 +67,7 @@ const NicknameChangeModal = () => {
           <input
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            placeholder="닉네임을 입력하세요..."
+            placeholder="닉네임을 입력하세요 (2~8자)"
             className="w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

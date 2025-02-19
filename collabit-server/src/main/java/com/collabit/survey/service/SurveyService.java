@@ -100,7 +100,9 @@ public class SurveyService {
             }
         }
 
-        Collections.reverse(surveyList);
+        surveyList.sort(Comparator
+                .comparing(SurveyListResponseDTO::getStatus)
+                .thenComparing(SurveyListResponseDTO::getUpdatedAt, Comparator.reverseOrder()));
         return surveyList;
     }
 

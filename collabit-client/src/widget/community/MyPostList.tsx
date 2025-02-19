@@ -1,22 +1,22 @@
 "use client";
 import CommunityCard from "@/features/community/ui/CommunityCard";
-import { getPostListAPI } from "@/shared/api/community";
+import { getMyPostListAPI } from "@/shared/api/community";
 import { PageResponse } from "@/shared/types/response/page";
 import { PostListResponse } from "@/shared/types/response/post";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-interface PostListProps {
+interface MyPostListProps {
   initialPosts: PageResponse<PostListResponse>;
 }
-const PostList = ({ initialPosts }: PostListProps) => {
+const MyPostList = ({ initialPosts }: MyPostListProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["myPosts", "infinite"],
+      queryKey: ["myPostList", "infinite"],
       staleTime: 0,
       queryFn: ({ pageParam = 0 }) =>
-        getPostListAPI({ currentPage: pageParam }),
+        getMyPostListAPI({ currentPage: pageParam }),
       initialPageParam: 0,
       initialData: {
         pages: [initialPosts],
@@ -68,4 +68,4 @@ const PostList = ({ initialPosts }: PostListProps) => {
   );
 };
 
-export default PostList;
+export default MyPostList;

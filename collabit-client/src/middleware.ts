@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 export async function middleware(request: NextRequest) {
@@ -41,6 +41,8 @@ export async function middleware(request: NextRequest) {
       if (res.status === 403 || res.status === 401 || res.status === 404) {
         return NextResponse.redirect(new URL("/unauthorized", request.url));
       }
+      if (res.status === 410)
+        return NextResponse.redirect(new URL("/closed", request.url));
       return NextResponse.next();
     } catch (error) {
       console.error("Survey access verification failed:", error);

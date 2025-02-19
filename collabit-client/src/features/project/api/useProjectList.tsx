@@ -29,8 +29,11 @@ export const useProjectList = () => {
   const finishSurveyMutation = useMutation({
     mutationFn: updateProjectDoneAPI,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projectList"] });
-      queryClient.refetchQueries({ queryKey: ["projectList"] });
+      queryClient.invalidateQueries({
+        queryKey: ["projectList"],
+        exact: false,
+      });
+      closeModal();
       openModal(
         <OneButtonModal
           title="프로젝트 종료"

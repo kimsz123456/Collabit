@@ -10,10 +10,11 @@ import Link from "next/link";
 import ImageChangeModal from "@/entities/mypage/ui/ImageChangeModal";
 import TwoButtonModal from "@/widget/ui/modals/TwoButtonModal";
 import { deleteUserAPI } from "@/shared/api/user";
-
+import { useRouter } from "next/navigation";
 const ProfilePage = () => {
   const { userInfo } = useAuth();
   const { openModal } = useModalStore();
+  const router = useRouter();
   const apiUri = process.env.NEXT_PUBLIC_API_URI;
   const handleLinkGithub = () => {
     window.location.href = `${apiUri}/oauth2/authorization/github`;
@@ -33,7 +34,10 @@ const ProfilePage = () => {
         description="정말로 탈퇴하시겠습니까?"
         confirmText="탈퇴"
         cancelText="취소"
-        handleConfirm={deleteUserAPI}
+        handleConfirm={() => {
+          deleteUserAPI();
+          router.push("/");
+        }}
       />,
     );
   };

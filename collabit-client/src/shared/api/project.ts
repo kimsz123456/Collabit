@@ -95,11 +95,11 @@ export const updateProjectDoneAPI = async (code: number) => {
       method: "PATCH",
       ...fetchOptions,
     });
-    const data = await res.json();
     if (!res.ok) {
       throw new Error("프로젝트 상태 업데이트에 실패했습니다.");
     }
-    return data;
+
+    return res;
   } catch (error) {
     console.error(error);
     throw error;
