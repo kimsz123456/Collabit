@@ -82,7 +82,11 @@ export default function ListPage() {
           />
           <ProjectSortSelect sort={sort} onSort={setSort} />
         </div>
-        <SearchBar keyword={searchKeyword} setKeyword={setSearchKeyword} />
+        <SearchBar
+          keyword={searchKeyword}
+          setKeyword={setSearchKeyword}
+          disabled={true}
+        />
       </div>
 
       <ScrollArea className="h-[calc(100vh-444px)] rounded-lg border p-4 md:h-[calc(100vh-402px)]">

@@ -35,7 +35,7 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트 목록 조회", description = "프로젝트 목록을 조회하는 API 입니다.")
     @GetMapping
-    public ResponseEntity<?> getProjectList(@RequestParam(required = false) String keyword, @RequestParam(required = false, defaultValue = "LATEST") SortOrder sort) {
+    public ResponseEntity<List<GetProjectListResponseDTO>> getProjectList(@RequestParam(required = false) String keyword, @RequestParam(required = false, defaultValue = "LATEST") SortOrder sort) {
         String userCode = SecurityUtil.getCurrentUserCode();
 
         List<GetProjectListResponseDTO> projectList = projectService.findProjectList(userCode, keyword, sort);
@@ -46,7 +46,7 @@ public class ProjectController {
 
     @Operation(summary = "저장된 프로젝트 목록 조회", description = "현재 DB에 있는 프로젝트(organization, title) 목록을 조회하는 API 입니다.")
     @GetMapping("/added")
-    public ResponseEntity<?> getAddedProjectList() {
+    public ResponseEntity<List<GetAddedProjectListResponseDTO>> getAddedProjectList() {
         String userCode = SecurityUtil.getCurrentUserCode();
 
         List<GetAddedProjectListResponseDTO> addedProjectList = projectService.findAddedProjectList(userCode);
@@ -57,7 +57,7 @@ public class ProjectController {
 
     @Operation(summary = "메인 페이지 프로젝트 목록 조회", description = "메인페이지에 보여줄 프로젝트 목록을 조회하는 API 입니다.")
     @GetMapping("/list/main")
-    public ResponseEntity<?> getMainProjectList() {
+    public ResponseEntity<List<GetMainProjectListResponseDTO>> getMainProjectList() {
         String userCode = SecurityUtil.getCurrentUserCode();
 
         List<GetMainProjectListResponseDTO> projectList = projectService.findMainProjectList(userCode);
@@ -90,7 +90,7 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트별 결과의 육각형 그래프 조회", description = "프로젝트별 결과 모달창의 육각형 그래프를 조회하는 API 입니다.")
     @GetMapping("/graph/hexagon/{code}")
-    public ResponseEntity<?> getHexagonGraph(@PathVariable int code) {
+    public ResponseEntity<GetHexagonResponseDTO> getHexagonGraph(@PathVariable int code) {
         GetHexagonResponseDTO responseDTO = projectService.getHexagonGraph(code);
         log.debug("육각형 그래프 데이터 조회 완료");
         return ResponseEntity.ok(responseDTO);

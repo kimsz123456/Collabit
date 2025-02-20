@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 import { getPortfolioShareAPI } from "@/shared/api/report";
 import dynamic from "next/dynamic";
 
@@ -10,6 +10,12 @@ async function fetchReportShare(user: string) {
   return getPortfolioShareAPI(user);
 }
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#1E90FF",
+};
+
 export async function generateMetadata({
   params,
 }: SharePageProps): Promise<Metadata> {
@@ -18,8 +24,9 @@ export async function generateMetadata({
   const title = `${data.portfolioInfo?.nickname}님의 협업 리포트 - Collabit`;
   const description =
     data.aiSummary?.strength ?? "협업 리포트 결과를 확인하세요.";
-  const imageUrl = "/images/logo-lg.png";
-  const pageUrl = `https://collabit.com/share/${user}`;
+
+  const pageUrl = `https://collabit.site/share/${user}`;
+  const ogImageUrl = `https://collabit.site/share/${user}/opengraph-image`;
 
   return {
     title,
@@ -33,7 +40,7 @@ export async function generateMetadata({
       type: "website",
       images: [
         {
-          url: imageUrl,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: `${data.portfolioInfo?.nickname}님의 협업 리포트`,
@@ -46,13 +53,12 @@ export async function generateMetadata({
       creator: `@${data.portfolioInfo?.nickname || "CollabitUser"}`,
       title,
       description,
-      images: [imageUrl],
+      images: [ogImageUrl],
     },
     robots: {
       index: true,
       follow: true,
     },
-    viewport: "width=device-width, initial-scale=1",
     icons: {
       icon: [
         {
@@ -67,14 +73,12 @@ export async function generateMetadata({
           sizes: "16x16",
           type: "image/png",
         },
-        { rel: "manifest", url: "/site.webmanifest" },
       ],
       apple: "/apple-touch-icon.png",
     },
     alternates: {
       canonical: pageUrl,
     },
-    themeColor: "#1E90FF",
   };
 }
 
@@ -83,7 +87,6 @@ const SurveyResult = dynamic(() => import("@/widget/report/ui/SurveyResult"), {
 });
 
 export default async function Page({ params }: SharePageProps) {
-  console.log(params);
   const { user } = await params;
   const reportShare = await fetchReportShare(user);
   const portfolioInfo = reportShare?.portfolioInfo;
@@ -121,3 +124,5 @@ export default async function Page({ params }: SharePageProps) {
     </div>
   );
 }
+
+export const runtime = "nodejs";

@@ -19,11 +19,10 @@ const formatRelativeTime = (dateString: string) => {
 
   if (diffMinutes < 1) return "방금 전";
   if (diffMinutes < 60) return `${diffMinutes}분 전`;
-  if (isSameDay) return `${diffHours}시간 전`;
-  if (diffDays === 1) return `어제 ${formatTime(date)}`;
-  if (diffDays < 7) return `${diffDays}일 전 ${formatTime(date)}`;
+  if (diffDays === 0) return `${diffHours}시간 전`;
+  if (diffDays < 7) return `${diffDays}일 전`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)}개월 전`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}달 전`;
   return `${Math.floor(diffDays / 365)}년 전`;
 };
 
