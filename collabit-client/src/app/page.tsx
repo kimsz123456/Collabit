@@ -52,7 +52,7 @@ export default function Home() {
       </h2>
       <CompareScoreSection />
       <MyProjectSection />
-      <PostCarouselSection type="latest" />
+      <PostCarouselSection type="recommend" />
     </div>
   );
 }
