@@ -6,11 +6,13 @@ interface SearchBarProps {
   keyword: string;
   setKeyword: (value: string) => void;
   debounceTime?: number;
+  disabled?: boolean;
 }
 
 const SearchBar = ({
   keyword,
   setKeyword,
+  disabled,
   debounceTime = 300,
 }: SearchBarProps) => {
   const [inputValue, setInputValue] = useState(keyword);
@@ -31,6 +33,7 @@ const SearchBar = ({
         <SearchIcon className="h-5 w-5 text-gray-400" />
       </span>
       <Input
+        disabled={disabled}
         placeholder="레포지토리명을 입력하세요."
         className="ml-2 w-full bg-white py-4 pl-[30px] text-xs"
         value={inputValue}

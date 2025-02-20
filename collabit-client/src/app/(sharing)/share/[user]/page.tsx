@@ -18,7 +18,7 @@ export async function generateMetadata({
   const title = `${data.portfolioInfo?.nickname}님의 협업 리포트 - Collabit`;
   const description =
     data.aiSummary?.strength ?? "협업 리포트 결과를 확인하세요.";
-  const imageUrl = "/images/logo-lg.png";
+
   const pageUrl = `https://collabit.com/share/${user}`;
 
   return {
@@ -31,14 +31,6 @@ export async function generateMetadata({
       url: pageUrl,
       siteName: "Collabit",
       type: "website",
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: `${data.portfolioInfo?.nickname}님의 협업 리포트`,
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -46,7 +38,6 @@ export async function generateMetadata({
       creator: `@${data.portfolioInfo?.nickname || "CollabitUser"}`,
       title,
       description,
-      images: [imageUrl],
     },
     robots: {
       index: true,
@@ -121,3 +112,13 @@ export default async function Page({ params }: SharePageProps) {
     </div>
   );
 }
+
+export const runtime = "edge";
+
+export const alt = "DevReport Share Image";
+export const size = {
+  width: 1200,
+  height: 630,
+};
+
+export const contentType = "image/png";

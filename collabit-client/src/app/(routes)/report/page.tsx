@@ -51,7 +51,7 @@ export default function Page() {
       await queryClient.refetchQueries({ queryKey: ["report"] });
       setIsExist(reportStatus?.exist ?? false);
       closeModal();
-    } catch (error) {
+    } catch {
       toast({ title: "오류 발생", description: "리포트 생성에 실패했습니다." });
       closeModal();
     }

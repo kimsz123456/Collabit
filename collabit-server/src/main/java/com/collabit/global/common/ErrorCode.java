@@ -45,6 +45,9 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 이메일입니다."),
     NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 닉네임입니다."),
 
+    // 410 Gone (마감됨)
+    SURVEY_ALREADY_CLOSED(HttpStatus.GONE,"마감된 설문입니다."),
+
     // =========== Mypage ===========
     // 401 Unauthorized (인증 실패)
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 틀립니다."),

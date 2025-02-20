@@ -76,11 +76,14 @@ const ReportHeader = ({ handleRefresh }: { handleRefresh?: () => void }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              {reportStatus?.update && (
-                <Button variant="ghost" size="icon" onClick={handleRefresh}>
-                  <RefreshCw className="h-4 w-4 text-gray-600" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!reportStatus?.update}
+                onClick={handleRefresh}
+              >
+                <RefreshCw className="h-4 w-4 text-gray-600" />
+              </Button>
             </TooltipTrigger>
             <TooltipContent>
               <p>새로고침</p>
