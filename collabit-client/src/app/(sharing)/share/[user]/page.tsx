@@ -25,8 +25,8 @@ export async function generateMetadata({
   const description =
     data.aiSummary?.strength ?? "협업 리포트 결과를 확인하세요.";
 
-  const pageUrl = `https://collabit.com/share/${user}`;
-  const ogImageUrl = `https://collabit.com/share/${user}/opengraph-image`;
+  const pageUrl = `https://collabit.site/share/${user}`;
+  const ogImageUrl = `https://collabit.site/share/${user}/opengraph-image`;
 
   return {
     title,
