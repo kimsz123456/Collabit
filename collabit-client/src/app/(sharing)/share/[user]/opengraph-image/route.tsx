@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
               opacity: 0.8,
             }}
           >
-            collabit.com
+            collabit.site
           </div>
         </div>
       ),
