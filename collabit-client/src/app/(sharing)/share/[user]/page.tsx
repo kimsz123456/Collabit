@@ -113,12 +113,4 @@ export default async function Page({ params }: SharePageProps) {
   );
 }
 
-export const runtime = "edge";
-
-export const alt = "DevReport Share Image";
-export const size = {
-  width: 1200,
-  height: 630,
-};
-
-export const contentType = "image/png";
+export const runtime = "nodejs";
