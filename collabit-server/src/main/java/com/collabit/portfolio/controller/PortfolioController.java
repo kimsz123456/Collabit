@@ -21,7 +21,7 @@ public class PortfolioController {
 
     @Operation(summary = "포트폴리오 상태 조회", description = "리포트 페이지 진입 시 필요한 포트폴리오 상태를 조회하는 API입니다.")
     @GetMapping
-    public ResponseEntity<?> getPortfolioStatus() {
+    public ResponseEntity<GetPortfolioStatusResponseDTO> getPortfolioStatus() {
         String userCode = SecurityUtil.getCurrentUserCode();
         GetPortfolioStatusResponseDTO responseDTO = portfolioService.getPortfolioStatus(userCode);
         return ResponseEntity.ok(responseDTO);
@@ -35,26 +35,9 @@ public class PortfolioController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "육각형 그래프 및 상대위치 그래프 데이터 조회", description = "나의 육각형 그래프 및 상대위치 그래프를 조회하는 API입니다.")
-    @GetMapping("/multiple/graph")
-    public ResponseEntity<GetMultipleHexagonProgressResponseDTO> getHexagonAndProgressbarGraph() {
-        String userCode = SecurityUtil.getCurrentUserCode();
-
-        return ResponseEntity.ok()
-                .body(portfolioService.getHexagonAndProgressbarGraph(userCode));
-    }
-
-    @Operation(summary = "timeline 그래프 데이터 조회", description = "최근 8개 프로젝트에 대한 역량별 점수를 조회하는 API입니다.")
-    @GetMapping("/multiple/timeline")
-    public ResponseEntity<?> getTimelineGraph() {
-        String userCode = SecurityUtil.getCurrentUserCode();
-        GetTimelineResponseDTO responseDTO = portfolioService.getTimelineGraph(userCode);
-        return ResponseEntity.ok(responseDTO);
-    }
-
     @Operation(summary = "포트폴리오 정보 조회", description = "포트폴리오 조회 시 기본 정보를 조회하는 API입니다.")
     @GetMapping("/info")
-    public ResponseEntity<?> getPortfolioInfo() {
+    public ResponseEntity<GetPortfolioInfoResponseDTO> getPortfolioInfo() {
         String userCode = SecurityUtil.getCurrentUserCode();
         GetPortfolioInfoResponseDTO responseDTO = portfolioService.getPortfolioInfo(userCode);
         return ResponseEntity.ok(responseDTO);
@@ -62,7 +45,7 @@ public class PortfolioController {
 
     @Operation(summary = "전체평균 조회", description = "메인페이지에서 전체 평균을 조회하는 API입니다.")
     @GetMapping("/main")
-    public ResponseEntity<?> getAverage() {
+    public ResponseEntity<GetAverageResponseDTO> getAverage() {
         GetAverageResponseDTO responseDTO = portfolioService.getAverage();
         return ResponseEntity.ok().body(responseDTO);
     }

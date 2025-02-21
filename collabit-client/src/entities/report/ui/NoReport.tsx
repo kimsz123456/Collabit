@@ -1,15 +1,16 @@
 import { Button } from "@/shared/ui/button";
-import Image from "next/image";
 import { Info } from "lucide-react";
 
 const NoReport = ({
   handleGenerateReport,
   currentCount,
   requiredCount,
+  projectCount,
 }: {
   handleGenerateReport: () => void;
   currentCount: number;
   requiredCount: number;
+  projectCount: number;
 }) => {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -47,7 +48,7 @@ const NoReport = ({
                 종료된 프로젝트
               </span>
               <div className="mt-1 text-2xl font-bold text-primary">
-                {currentCount}
+                {projectCount}
                 <span className="ml-1 text-base font-normal text-gray-500">
                   개
                 </span>
