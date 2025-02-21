@@ -285,10 +285,14 @@ public class PortfolioService {
         // 포트폴리오 갱신 가능 여부
         boolean isUpdate = projectService.canUpdatePortfolio(portfolio, totalParticipant);
 
+        // 프로젝트 수
+        int totalProject = completedProjectList.size();
+
         return GetPortfolioStatusResponseDTO.builder()
                 .isUpdate(isUpdate)
                 .isExist(portfolio!=null)
                 .totalParticipant(totalParticipant)
+                .totalProject(totalProject)
                 .build();
     }
 

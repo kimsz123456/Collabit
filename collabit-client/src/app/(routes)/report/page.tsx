@@ -79,6 +79,7 @@ export default function Page() {
       ) : (
         <NoReport
           handleGenerateReport={handleGenerateReport}
+          projectCount={reportStatus?.totalProject ?? 0}
           currentCount={reportStatus?.totalParticipant ?? 0}
           requiredCount={
             isNaN(Number(process.env.NEXT_PUBLIC_MINIMUM_CREATE_CONDITION))

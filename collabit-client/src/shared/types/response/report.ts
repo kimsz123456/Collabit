@@ -56,6 +56,7 @@ export type TimelineResponse = ChartRangeData & {
 
 export type ReportStatusResponse = {
   totalParticipant: number;
+  totalProject: number;
   exist: boolean;
   update: boolean;
 };
