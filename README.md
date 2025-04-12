@@ -3,7 +3,7 @@
 </div>
 
 
-# 협업능력 피드백 플랫폼  
+# 협업능력 피드백 플랫폼 🏆2025 SSAFY 공통 프로젝트 우수상🏆
 **동료들의 솔직한 피드백으로 나의 강약점을 발견하고 평균치와 비교하여 구체적인 성장 방향을 찾아보세요!**  
 
 <br>
@@ -109,12 +109,17 @@
 ### 🏗 Back-end  
 <img src="https://img.shields.io/badge/Spring Boot-6DB33F?style=for-the-badge&logo=Spring Boot&logoColor=white">
 <img src="https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=Spring Security&logoColor=white">
-<img src="https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON web tokens">
-<img src="https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white">
+<img src="https://img.shields.io/badge/Spring%20Data%20JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white">
+
+### 💾 Database
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white">
+<img src="https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white">
+<img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=MongoDB&logoColor=white">
 
 ### 📡 Infra  
 <img src="https://img.shields.io/badge/AWS EC2-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white">
 <img src="https://img.shields.io/badge/Amazon S3-FF9900?style=for-the-badge&logo=amazons3&logoColor=white">
+<img src="https://img.shields.io/badge/Jenkins-49728B?style=for-the-badge&logo=jenkins&logoColor=white">
 <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=Docker&logoColor=white">
 <img src="https://img.shields.io/badge/Nginx-%23009639.svg?style=for-the-badge&logo=Nginx&logoColor=white">
 
